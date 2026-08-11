@@ -1,5 +1,5 @@
+import { useTranslation } from "react-i18next";
 import React, { useState } from 'react';
-
 const styles = {
   container: {
     display: 'flex',
@@ -7,7 +7,8 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: '100vh',
-    backgroundColor: '#f3f4f6', // light gray
+    backgroundColor: '#f3f4f6',
+    // light gray
     fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
   },
   card: {
@@ -70,7 +71,8 @@ const styles = {
     padding: '0.75rem',
     borderRadius: '6px',
     border: 'none',
-    backgroundColor: '#4F46E5', // indigo-600
+    backgroundColor: '#4F46E5',
+    // indigo-600
     color: 'white',
     fontSize: '1rem',
     fontWeight: '500',
@@ -95,18 +97,20 @@ const styles = {
     marginBottom: '1rem'
   }
 };
-
-export default function ResetPasswordPage({ token }) {
+export default function ResetPasswordPage({
+  token
+}) {
+  const {
+    t
+  } = useTranslation();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setError(null);
-    
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
@@ -115,81 +119,66 @@ export default function ResetPasswordPage({ token }) {
       setError("Password must be at least 6 characters.");
       return;
     }
-
     setSubmitting(true);
-    
     try {
       const res = await fetch(`/api/auth/reset-password`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, newPassword: password })
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          token,
+          newPassword: password
+        })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      
       setSuccess(true);
-      
     } catch (err) {
       setError(err.message || 'Failed to reset password. The link might be invalid or expired.');
     } finally {
       setSubmitting(false);
     }
   };
-
   if (success) {
-    return (
-      <div style={styles.container}>
+    return <div style={styles.container}>
         <div style={styles.card}>
            <div style={styles.logo}>
-             <span style={{color: '#4F46E5'}}>●</span> Asana Clone
-           </div>
-           <div style={styles.success}>
-             Your password has been successfully reset!
-           </div>
-           <a href="/" style={{...styles.button, display: 'inline-block', textDecoration: 'none', boxSizing: 'border-box'}}>Return to Login</a>
+             <span style={{
+            color: '#4F46E5'
+          }}>●</span>{t("asana_clone", "Asana Clone")}</div>
+           <div style={styles.success}>{t("your_password_has_been_successfully_reset", "Your password has been successfully reset!")}</div>
+           <a href="/" style={{
+          ...styles.button,
+          display: 'inline-block',
+          textDecoration: 'none',
+          boxSizing: 'border-box'
+        }}>{t("return_to_login", "Return to Login")}</a>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div style={styles.container}>
+  return <div style={styles.container}>
       <div style={styles.card}>
         <div style={styles.logo}>
-          <span style={{color: '#4F46E5'}}>●</span> Asana Clone
-        </div>
+          <span style={{
+          color: '#4F46E5'
+        }}>●</span>{t("asana_clone", "Asana Clone")}</div>
         
-        <h2 style={styles.title}>Reset Your Password</h2>
-        <p style={styles.subtitle}>
-          Please enter your new password below.
-        </p>
+        <h2 style={styles.title}>{t("reset_your_password", "Reset Your Password")}</h2>
+        <p style={styles.subtitle}>{t("please_enter_your_new_password_below", "Please enter your new password below.")}</p>
         
         {error && <div style={styles.error}>{error}</div>}
         
         <form style={styles.form} onSubmit={handleSubmit}>
           
           <div style={styles.inputGroup}>
-            <label style={styles.label}>New Password</label>
-            <input 
-              style={styles.input} 
-              type="password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              required 
-              minLength={6}
-            />
+            <label style={styles.label}>{t("new_password", "New Password")}</label>
+            <input style={styles.input} type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
           </div>
           
           <div style={styles.inputGroup}>
-            <label style={styles.label}>Confirm New Password</label>
-            <input 
-              style={styles.input} 
-              type="password" 
-              value={confirmPassword} 
-              onChange={(e) => setConfirmPassword(e.target.value)} 
-              required 
-              minLength={6}
-            />
+            <label style={styles.label}>{t("confirm_new_password", "Confirm New Password")}</label>
+            <input style={styles.input} type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required minLength={6} />
           </div>
           
           <button style={styles.button} type="submit" disabled={submitting}>
@@ -197,6 +186,5 @@ export default function ResetPasswordPage({ token }) {
           </button>
         </form>
       </div>
-    </div>
-  );
+    </div>;
 }

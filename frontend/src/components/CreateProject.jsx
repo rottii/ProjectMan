@@ -1,8 +1,21 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from 'react';
 import IconColorPicker from './IconColorPicker';
 import { apiFetch } from '../api';
-
-export default function CreateProject({ token, setProjects, setPortfolios, setActiveView, previousView = 'home', setSelectedProject, portfolioCreationParent, setPortfolioCreationParent, activeWorkspace }) {
+export default function CreateProject({
+  token,
+  setProjects,
+  setPortfolios,
+  setActiveView,
+  previousView = 'home',
+  setSelectedProject,
+  portfolioCreationParent,
+  setPortfolioCreationParent,
+  activeWorkspace
+}) {
+  const {
+    t
+  } = useTranslation();
   const [step, setStep] = useState(1);
   const [projectName, setProjectName] = useState('new project');
   const [privacy, setPrivacy] = useState('My workspace');
@@ -11,33 +24,32 @@ export default function CreateProject({ token, setProjects, setPortfolios, setAc
   const [icon, setIcon] = useState('📋');
   const [showPicker, setShowPicker] = useState(false);
   const [templates, setTemplates] = useState([]);
-
   useEffect(() => {
     if (activeWorkspace?.teams?.length > 0 && !teamId) {
       setTeamId(activeWorkspace.teams[0].id);
     }
   }, [activeWorkspace, teamId]);
-
   useEffect(() => {
     if (!token || !activeWorkspace) return;
     apiFetch(`/api/projects/templates?workspaceId=${activeWorkspace.id}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setTemplates(data);
-      })
-      .catch(console.error);
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    }).then(res => res.json()).then(data => {
+      if (Array.isArray(data)) setTemplates(data);
+    }).catch(console.error);
   }, [token, activeWorkspace]);
-
-  const handleUseTemplate = async (template) => {
+  const handleUseTemplate = async template => {
     try {
-      const finalName = (!projectName || projectName === 'new project') ? template.name.replace(' Template', '') : projectName;
+      const finalName = !projectName || projectName === 'new project' ? template.name.replace(' Template', '') : projectName;
       const response = await apiFetch(`/api/projects/${template.id}/duplicate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ 
-          name: finalName, 
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: finalName,
           isTemplate: false,
           workspaceId: activeWorkspace ? activeWorkspace.id : undefined,
           teamId: teamId || undefined
@@ -58,7 +70,7 @@ export default function CreateProject({ token, setProjects, setPortfolios, setAc
       console.error(err);
     }
   };
-  
+
   // Step 2 states
   const [views, setViews] = useState({
     Overview: true,
@@ -73,11 +85,13 @@ export default function CreateProject({ token, setProjects, setPortfolios, setAc
     Files: false
   });
   const [defaultView, setDefaultView] = useState('List');
-
-  const toggleView = (viewName) => {
+  const toggleView = viewName => {
     if (viewName === 'Overview') return; // Maybe Overview is required, or let them toggle it
     setViews(prev => {
-      const newState = { ...prev, [viewName]: !prev[viewName] };
+      const newState = {
+        ...prev,
+        [viewName]: !prev[viewName]
+      };
       // If turning off the default view, change default view
       if (!newState[viewName] && defaultView === viewName) {
         const available = Object.keys(newState).find(k => newState[k] && k !== 'Overview');
@@ -86,13 +100,15 @@ export default function CreateProject({ token, setProjects, setPortfolios, setAc
       return newState;
     });
   };
-
   const handleCreate = () => {
     const activeViewsArray = Object.keys(views).filter(k => views[k]).map(k => {
       const id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
-      return { id, name: k, type: k };
+      return {
+        id,
+        name: k,
+        type: k
+      };
     });
-    
     apiFetch('/api/projects', {
       method: 'POST',
       headers: {
@@ -108,13 +124,11 @@ export default function CreateProject({ token, setProjects, setPortfolios, setAc
         defaultView,
         activeViews: activeViewsArray
       })
-    })
-    .then(res => res.json())
-    .then(data => {
+    }).then(res => res.json()).then(data => {
       if (data.id) {
         setProjects(prev => [...prev, data]);
         setSelectedProject(data);
-        
+
         // If it was created from inside a portfolio, link it
         if (portfolioCreationParent) {
           apiFetch(`/api/portfolios/${portfolioCreationParent}/projects`, {
@@ -123,144 +137,111 @@ export default function CreateProject({ token, setProjects, setPortfolios, setAc
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ projectId: data.id })
-          })
-          .then(() => {
-             if (setPortfolios) {
-               setPortfolios(prev => prev.map(p => p.id === portfolioCreationParent ? { ...p, projectsCount: (p.projectsCount || 0) + 1 } : p));
-             }
-             if (setPortfolioCreationParent) setPortfolioCreationParent(null);
-             setActiveView('project');
-          })
-          .catch(err => {
-             console.error(err);
-             setActiveView('project');
+            body: JSON.stringify({
+              projectId: data.id
+            })
+          }).then(() => {
+            if (setPortfolios) {
+              setPortfolios(prev => prev.map(p => p.id === portfolioCreationParent ? {
+                ...p,
+                projectsCount: (p.projectsCount || 0) + 1
+              } : p));
+            }
+            if (setPortfolioCreationParent) setPortfolioCreationParent(null);
+            setActiveView('project');
+          }).catch(err => {
+            console.error(err);
+            setActiveView('project');
           });
         } else {
           setActiveView('project');
         }
       }
-    })
-    .catch(err => console.error(err));
+    }).catch(err => console.error(err));
   };
-
-  return (
-    <div style={styles.creationContainer}>
+  return <div style={styles.creationContainer}>
       <div style={styles.creationHeader}>
         <button style={styles.backBtn} onClick={() => {
-          if (step === 2) setStep(1);
-          else setActiveView(previousView);
-        }}>←</button>
+        if (step === 2) setStep(1);else setActiveView(previousView);
+      }}>←</button>
       </div>
       
       <div style={styles.creationContent}>
-        {step === 1 ? (
-          <>
-            <h1 style={styles.creationTitle}>New project</h1>
+        {step === 1 ? <>
+            <h1 style={styles.creationTitle}>{t("new_project", "New project")}</h1>
             
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Project name</label>
-              <input 
-                style={styles.formInput} 
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                autoFocus
-              />
+              <label style={styles.formLabel}>{t("project_name", "Project name")}</label>
+              <input style={styles.formInput} value={projectName} onChange={e => setProjectName(e.target.value)} autoFocus />
             </div>
 
 
 
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Project icon & color</label>
-              <div style={{ position: 'relative' }}>
-                <div 
-                  style={{
-                    width: '36px', 
-                    height: '36px', 
-                    backgroundColor: color, 
-                    borderRadius: '8px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    cursor: 'pointer',
-                    fontSize: '1.2rem'
-                  }}
-                  onClick={() => setShowPicker(!showPicker)}
-                >
+              <label style={styles.formLabel}>{t("project_icon_color", "Project icon & color")}</label>
+              <div style={{
+            position: 'relative'
+          }}>
+                <div style={{
+              width: '36px',
+              height: '36px',
+              backgroundColor: color,
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontSize: '1.2rem'
+            }} onClick={() => setShowPicker(!showPicker)}>
                   {icon}
                 </div>
-                {showPicker && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '8px', zIndex: 1000 }}>
-                    <IconColorPicker 
-                      selectedColor={color}
-                      setSelectedColor={setColor}
-                      selectedIcon={icon}
-                      setSelectedIcon={setIcon}
-                      onClose={() => setShowPicker(false)}
-                    />
-                  </div>
-                )}
+                {showPicker && <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              marginTop: '8px',
+              zIndex: 1000
+            }}>
+                    <IconColorPicker selectedColor={color} setSelectedColor={setColor} selectedIcon={icon} setSelectedIcon={setIcon} onClose={() => setShowPicker(false)} />
+                  </div>}
               </div>
             </div>
 
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Project access</label>
-              <select 
-                style={styles.formSelect}
-                value={privacy}
-                onChange={(e) => setPrivacy(e.target.value)}
-              >
-                <option>My workspace</option>
-                <option>Private to project members</option>
+              <label style={styles.formLabel}>{t("project_access", "Project access")}</label>
+              <select style={styles.formSelect} value={privacy} onChange={e => setPrivacy(e.target.value)}>
+                <option>{t("my_workspace", "My workspace")}</option>
+                <option>{t("private_to_project_members", "Private to project members")}</option>
               </select>
             </div>
 
-            <button style={styles.continueBtn} onClick={() => setStep(2)}>Continue to set up views</button>
+            <button style={styles.continueBtn} onClick={() => setStep(2)}>{t("continue_to_set_up_views", "Continue to set up views")}</button>
 
 
-          </>
-        ) : (
-          <>
-            <h1 style={styles.creationTitle}>What views do you want for this project?</h1>
+          </> : <>
+            <h1 style={styles.creationTitle}>{t("what_views_do_you_want_for_this_project", "What views do you want for this project?")}</h1>
             
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Default view</label>
-              <select 
-                style={styles.formSelect}
-                value={defaultView}
-                onChange={(e) => setDefaultView(e.target.value)}
-              >
-                {Object.keys(views).filter(k => views[k]).map(v => (
-                  <option key={v} value={v}>{v}</option>
-                ))}
+              <label style={styles.formLabel}>{t("default_view", "Default view")}</label>
+              <select style={styles.formSelect} value={defaultView} onChange={e => setDefaultView(e.target.value)}>
+                {Object.keys(views).filter(k => views[k]).map(v => <option key={v} value={v}>{v}</option>)}
               </select>
             </div>
 
             <div style={styles.viewsList}>
-              {Object.keys(views).map(view => (
-                <div key={view} style={styles.viewRow}>
+              {Object.keys(views).map(view => <div key={view} style={styles.viewRow}>
                   <label style={styles.viewLabel}>
-                    <input 
-                      type="checkbox" 
-                      checked={views[view]} 
-                      onChange={() => toggleView(view)} 
-                      style={styles.checkbox}
-                      disabled={view === 'Overview'}
-                    />
+                    <input type="checkbox" checked={views[view]} onChange={() => toggleView(view)} style={styles.checkbox} disabled={view === 'Overview'} />
                     {view}
                   </label>
-                </div>
-              ))}
+                </div>)}
             </div>
 
-            <button style={styles.continueBtn} onClick={handleCreate}>Go to project</button>
-          </>
-        )}
+            <button style={styles.continueBtn} onClick={handleCreate}>{t("go_to_project", "Go to project")}</button>
+          </>}
       </div>
-    </div>
-  );
+    </div>;
 }
-
 const styles = {
   creationContainer: {
     display: 'flex',

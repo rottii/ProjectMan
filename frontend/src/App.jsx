@@ -19,9 +19,11 @@ import PublicForm from './components/PublicForm'
 import AdminConsoleView from './components/AdminConsoleView'
 import InvitePage from './components/InvitePage'
 import ResetPasswordPage from './components/ResetPasswordPage'
+import SettingsModal from './components/SettingsModal'
 import { UndoProvider } from './context/UndoContext'
 
 export default function App() {
+  const [showSettings, setShowSettings] = useState(false)
   const [token, setToken] = useState(localStorage.getItem('token'))
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')))
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -378,6 +380,7 @@ export default function App() {
 
   return (
     <UndoProvider>
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
       <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
       <TopNav 
         isSidebarCollapsed={isSidebarCollapsed} 
@@ -424,6 +427,7 @@ export default function App() {
           portfolios={filteredPortfolios}
           selectedPortfolio={selectedPortfolio}
           setSelectedPortfolio={setSelectedPortfolio}
+          setShowSettings={setShowSettings}
         />
         <div style={{ flex: 1, overflow: 'auto', backgroundColor: 'var(--bg-secondary)', position: 'relative' }}>
           {activeView === 'home' ? (

@@ -1,82 +1,91 @@
+import { useTranslation } from "react-i18next";
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { apiFetch } from '../api';
 import UserAvatar from './UserAvatar';
-
-export default function ProjectWorkloadView({ 
-  selectedProject, handleTaskUpdate, onOpenTaskPane, token, isReadOnly
+export default function ProjectWorkloadView({
+  selectedProject,
+  handleTaskUpdate,
+  onOpenTaskPane,
+  token,
+  isReadOnly
 }) {
+  const {
+    t
+  } = useTranslation();
   const [capacityLimit, setCapacityLimit] = useState(3);
   const [expandedAssignees, setExpandedAssignees] = useState({});
-  const [dragState, setDragState] = useState(null); 
+  const [dragState, setDragState] = useState(null);
   const scrollContainerRef = useRef(null);
   const hasDraggedRef = useRef(false);
   const DAY_WIDTH = 40;
   const HEADER_HEIGHT = 60;
   const ASSIGNEE_WIDTH = 250;
-
-  const toggleExpand = (assigneeName) => {
-    setExpandedAssignees(prev => ({ ...prev, [assigneeName]: !prev[assigneeName] }));
+  const toggleExpand = assigneeName => {
+    setExpandedAssignees(prev => ({
+      ...prev,
+      [assigneeName]: !prev[assigneeName]
+    }));
   };
-
-  const { start, days, assigneeData, rawTasks } = useMemo(() => {
+  const {
+    start,
+    days,
+    assigneeData,
+    rawTasks
+  } = useMemo(() => {
     const today = new Date();
     const startDate = new Date(today);
     startDate.setDate(today.getDate() - 30); // 30 days ago
-    startDate.setHours(0,0,0,0);
+    startDate.setHours(0, 0, 0, 0);
     const totalDays = 120; // 4 months
-    
+
     const daysArr = [];
     for (let i = 0; i < totalDays; i++) {
       const d = new Date(startDate);
       d.setDate(d.getDate() + i);
       daysArr.push({
         date: d,
-        dateStr: d.toISOString().split('T')[0], // yyyy-mm-dd
+        dateStr: d.toISOString().split('T')[0],
+        // yyyy-mm-dd
         dayNum: d.getDate(),
-        dayName: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        dayName: d.toLocaleDateString('en-US', {
+          weekday: 'short'
+        }),
         timestamp: d.getTime(),
         isToday: d.toDateString() === today.toDateString()
       });
     }
-
     const assigneeMap = {};
     const rawMap = {};
-
     (selectedProject.sections || []).forEach(section => {
       (section.tasks || []).forEach(task => {
         if (task.isCompleted) return;
         if (!task.startDate && !task.dueDate) return;
-
         rawMap[task.id] = task;
-
         const assigneeName = task.assignee?.name || 'Unassigned';
         if (!assigneeMap[assigneeName]) {
-          assigneeMap[assigneeName] = { 
-            name: assigneeName, 
+          assigneeMap[assigneeName] = {
+            name: assigneeName,
             avatar: assigneeName !== 'Unassigned' ? assigneeName[0].toUpperCase() : '?',
             tasks: [],
             dailyCounts: Array(totalDays).fill(0)
           };
         }
-
         let tStart = task.startDate ? new Date(task.startDate) : new Date(task.dueDate);
         let tEnd = task.dueDate ? new Date(task.dueDate) : new Date(task.startDate);
-        tStart.setHours(0,0,0,0);
-        tEnd.setHours(0,0,0,0);
+        tStart.setHours(0, 0, 0, 0);
+        tEnd.setHours(0, 0, 0, 0);
 
         // Find intersecting days for this task
         const offsetMs = tStart.getTime() - startDate.getTime();
         const offsetDays = Math.round(offsetMs / (1000 * 60 * 60 * 24));
         const durationMs = tEnd.getTime() - tStart.getTime();
         const durationDays = Math.max(1, Math.round(durationMs / (1000 * 60 * 60 * 24)) + 1);
-
         const taskData = {
           ...task,
           left: offsetDays * DAY_WIDTH,
-          width: durationDays * DAY_WIDTH,
+          width: durationDays * DAY_WIDTH
         };
-
         if (dragState && dragState.taskId === task.id) {
           if (dragState.type === 'LEFT') {
             taskData.left += dragState.deltaX;
@@ -88,7 +97,6 @@ export default function ProjectWorkloadView({
           }
           taskData.width = Math.max(taskData.width, 10);
         }
-
         assigneeMap[assigneeName].tasks.push(taskData);
 
         // Calculate overlap for capacity (ignore drag state for capacity rendering to avoid flicker)
@@ -100,25 +108,29 @@ export default function ProjectWorkloadView({
         }
       });
     });
-
     const data = Object.values(assigneeMap).sort((a, b) => {
       if (a.name === 'Unassigned') return 1;
       if (b.name === 'Unassigned') return -1;
       return a.name.localeCompare(b.name);
     });
-
-    return { start: startDate, days: daysArr, assigneeData: data, rawTasks: rawMap };
+    return {
+      start: startDate,
+      days: daysArr,
+      assigneeData: data,
+      rawTasks: rawMap
+    };
   }, [selectedProject, dragState]);
-
   useEffect(() => {
-    const handleMouseMove = (e) => {
+    const handleMouseMove = e => {
       if (dragState) {
         const deltaX = e.clientX - dragState.startX;
-        setDragState(prev => ({ ...prev, deltaX }));
+        setDragState(prev => ({
+          ...prev,
+          deltaX
+        }));
         if (Math.abs(deltaX) > 3) hasDraggedRef.current = true;
       }
     };
-
     const handleMouseUp = async () => {
       if (dragState) {
         const deltaDays = Math.round(dragState.deltaX / DAY_WIDTH);
@@ -126,7 +138,6 @@ export default function ProjectWorkloadView({
           const t = rawTasks[dragState.taskId];
           let newStart = t.startDate ? new Date(t.startDate) : new Date(t.dueDate);
           let newEnd = t.dueDate ? new Date(t.dueDate) : new Date(t.startDate);
-
           if (dragState.type === 'LEFT') {
             newStart.setDate(newStart.getDate() + deltaDays);
             if (newStart > newEnd) newStart = newEnd;
@@ -137,27 +148,32 @@ export default function ProjectWorkloadView({
             newStart.setDate(newStart.getDate() + deltaDays);
             newEnd.setDate(newEnd.getDate() + deltaDays);
           }
-
           if (handleTaskUpdate && !isReadOnly) {
             try {
               const response = await apiFetch(`/api/projects/tasks/${t.id}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ 
-                  startDate: newStart.toISOString().split('T')[0], 
-                  dueDate: newEnd.toISOString().split('T')[0] 
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                  startDate: newStart.toISOString().split('T')[0],
+                  dueDate: newEnd.toISOString().split('T')[0]
                 })
               });
               const data = await response.json();
               if (response.ok) handleTaskUpdate(t.id, data);
-            } catch (err) { console.error(err); }
+            } catch (err) {
+              console.error(err);
+            }
           }
         }
         setDragState(null);
-        setTimeout(() => { hasDraggedRef.current = false; }, 50);
+        setTimeout(() => {
+          hasDraggedRef.current = false;
+        }, 50);
       }
     };
-
     if (dragState) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
@@ -167,24 +183,29 @@ export default function ProjectWorkloadView({
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [dragState, rawTasks, token, handleTaskUpdate, isReadOnly]);
-
   const goToday = (smooth = true) => {
     if (scrollContainerRef.current) {
       const todayIdx = days.findIndex(d => d.isToday);
       if (todayIdx !== -1) {
-        scrollContainerRef.current.scrollTo({ left: Math.max(0, todayIdx * DAY_WIDTH - 200), behavior: smooth ? 'smooth' : 'auto' });
+        scrollContainerRef.current.scrollTo({
+          left: Math.max(0, todayIdx * DAY_WIDTH - 200),
+          behavior: smooth ? 'smooth' : 'auto'
+        });
       }
     }
   };
-
   const scrollLeftBtn = () => {
-    if (scrollContainerRef.current) scrollContainerRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+    if (scrollContainerRef.current) scrollContainerRef.current.scrollBy({
+      left: -400,
+      behavior: 'smooth'
+    });
   };
-
   const scrollRightBtn = () => {
-    if (scrollContainerRef.current) scrollContainerRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+    if (scrollContainerRef.current) scrollContainerRef.current.scrollBy({
+      left: 400,
+      behavior: 'smooth'
+    });
   };
-
   useEffect(() => {
     // Jump to today immediately on first mount
     const timer = setTimeout(() => {
@@ -192,208 +213,249 @@ export default function ProjectWorkloadView({
     }, 10);
     return () => clearTimeout(timer);
   }, []);
-
   useEffect(() => {
     const onGoToday = () => goToday();
     const onScrollLeft = () => scrollLeftBtn();
     const onScrollRight = () => scrollRightBtn();
-
     window.addEventListener('timeline-go-today', onGoToday);
     window.addEventListener('timeline-scroll-left', onScrollLeft);
     window.addEventListener('timeline-scroll-right', onScrollRight);
-
     return () => {
       window.removeEventListener('timeline-go-today', onGoToday);
       window.removeEventListener('timeline-scroll-left', onScrollLeft);
       window.removeEventListener('timeline-scroll-right', onScrollRight);
     };
   }, [days]);
-
   const sidebarScrollRef = useRef(null);
-
-  const handleTimelineScroll = (e) => {
+  const handleTimelineScroll = e => {
     if (sidebarScrollRef.current) {
       sidebarScrollRef.current.scrollTop = e.target.scrollTop;
     }
   };
-
-  const handleSidebarWheel = (e) => {
+  const handleSidebarWheel = e => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop += e.deltaY;
     }
   };
-
   const portalTarget = document.getElementById('timeline-topbar-portal');
-
-  return (
-    <div style={styles.container}>
-      {portalTarget && createPortal(
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600', color: 'var(--text-primary)' }}>Team Workload</h2>
+  return <div style={styles.container}>
+      {portalTarget && createPortal(<div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '1rem'
+    }}>
+          <h2 style={{
+        margin: 0,
+        fontSize: '1.1rem',
+        fontWeight: '600',
+        color: 'var(--text-primary)'
+      }}>{t("team_workload", "Team Workload")}</h2>
           <div style={styles.capacityControl}>
-            <label style={{ fontSize: '0.85rem', color: '#6B7280' }}>Capacity limit:</label>
-            <input 
-              type="number" 
-              value={capacityLimit} 
-              onChange={(e) => setCapacityLimit(Math.max(1, parseInt(e.target.value) || 1))}
-              style={styles.capacityInput}
-              min="1"
-            />
-            <span style={{ fontSize: '0.85rem', color: '#6B7280' }}>tasks/day</span>
+            <label style={{
+          fontSize: '0.85rem',
+          color: '#6B7280'
+        }}>{t("capacity_limit", "Capacity limit:")}</label>
+            <input type="number" value={capacityLimit} onChange={e => setCapacityLimit(Math.max(1, parseInt(e.target.value) || 1))} style={styles.capacityInput} min="1" />
+            <span style={{
+          fontSize: '0.85rem',
+          color: '#6B7280'
+        }}>{t("tasks_day", "tasks/day")}</span>
           </div>
-        </div>,
-        portalTarget
-      )}
+        </div>, portalTarget)}
 
       <div style={styles.layoutWrapper}>
         
         {/* Left Sidebar (Assignees) */}
         <div style={styles.sidebar} onWheel={handleSidebarWheel}>
-          <div style={styles.sidebarHeader}>Assignee</div>
+          <div style={styles.sidebarHeader}>{t("assignee", "Assignee")}</div>
           <div style={styles.sidebarContent} ref={sidebarScrollRef}>
-            {assigneeData.length === 0 && <div style={styles.emptyState}>No scheduled tasks</div>}
+            {assigneeData.length === 0 && <div style={styles.emptyState}>{t("no_scheduled_tasks", "No scheduled tasks")}</div>}
             
-            {assigneeData.map((assignee, idx) => (
-              <div key={idx} style={styles.assigneeGroupSidebar}>
-                <div 
-                  style={styles.assigneeMainRowSidebar}
-                  onClick={() => toggleExpand(assignee.name)}
-                >
-                  <span style={{ ...styles.chevron, transform: expandedAssignees[assignee.name] ? 'rotate(90deg)' : 'rotate(0)' }}>▶</span>
-                  <UserAvatar name={assignee.name} userId={assignee.id} profilePhoto={assignee.profilePhoto} size={24} style={{ marginRight: '8px' }} />
+            {assigneeData.map((assignee, idx) => <div key={idx} style={styles.assigneeGroupSidebar}>
+                <div style={styles.assigneeMainRowSidebar} onClick={() => toggleExpand(assignee.name)}>
+                  <span style={{
+                ...styles.chevron,
+                transform: expandedAssignees[assignee.name] ? 'rotate(90deg)' : 'rotate(0)'
+              }}>▶</span>
+                  <UserAvatar name={assignee.name} userId={assignee.id} profilePhoto={assignee.profilePhoto} size={24} style={{
+                marginRight: '8px'
+              }} />
                   <span style={styles.assigneeName}>{assignee.name}</span>
                 </div>
-                {expandedAssignees[assignee.name] && (
-                  <div style={{ ...styles.expandedTasksSidebar, height: assignee.tasks.length * 32 }}>
-                    {assignee.tasks.map(task => (
-                      <div key={task.id} style={styles.taskLabelRow}>
+                {expandedAssignees[assignee.name] && <div style={{
+              ...styles.expandedTasksSidebar,
+              height: assignee.tasks.length * 32
+            }}>
+                    {assignee.tasks.map(task => <div key={task.id} style={styles.taskLabelRow}>
                         {task.title}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+                      </div>)}
+                  </div>}
+              </div>)}
           </div>
         </div>
 
         {/* Right Scrollable Timeline Grid */}
         <div style={styles.timelineScrollArea} ref={scrollContainerRef} onScroll={handleTimelineScroll}>
-          <div style={{ width: days.length * DAY_WIDTH, position: 'relative' }}>
+          <div style={{
+          width: days.length * DAY_WIDTH,
+          position: 'relative'
+        }}>
             
             {/* Timeline Header */}
             <div style={styles.timelineHeader}>
-              {days.map((d, i) => (
-                <div key={i} style={{ ...styles.dayHeaderCell, width: DAY_WIDTH, borderBottom: d.isToday ? '3px solid #10B981' : '1px solid #E5E7EB' }}>
-                  <div style={{ fontSize: '0.7rem', color: '#6B7280', textTransform: 'uppercase' }}>{d.dayName}</div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: d.isToday ? '700' : '500', color: d.isToday ? '#10B981' : '#111827' }}>
+              {days.map((d, i) => <div key={i} style={{
+              ...styles.dayHeaderCell,
+              width: DAY_WIDTH,
+              borderBottom: d.isToday ? '3px solid #10B981' : '1px solid #E5E7EB'
+            }}>
+                  <div style={{
+                fontSize: '0.7rem',
+                color: '#6B7280',
+                textTransform: 'uppercase'
+              }}>{d.dayName}</div>
+                  <div style={{
+                fontSize: '0.85rem',
+                fontWeight: d.isToday ? '700' : '500',
+                color: d.isToday ? '#10B981' : '#111827'
+              }}>
                     {d.dayNum}
                   </div>
-                </div>
-              ))}
+                </div>)}
             </div>
 
             {/* Timeline Content */}
             <div style={styles.timelineContent}>
               {/* Background Grid Lines */}
               <div style={styles.gridLinesContainer}>
-                {days.map((d, i) => (
-                  <div key={i} style={{ ...styles.gridLine, left: i * DAY_WIDTH, backgroundColor: d.isToday ? 'rgba(16, 185, 129, 0.1)' : 'transparent', borderLeft: d.dayName === 'Mon' ? '1px solid #E5E7EB' : '1px dashed #F3F4F6' }}></div>
-                ))}
+                {days.map((d, i) => <div key={i} style={{
+                ...styles.gridLine,
+                left: i * DAY_WIDTH,
+                backgroundColor: d.isToday ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                borderLeft: d.dayName === 'Mon' ? '1px solid #E5E7EB' : '1px dashed #F3F4F6'
+              }}></div>)}
               </div>
 
-              {assigneeData.map((assignee, idx) => (
-                <div key={idx} style={styles.assigneeGroupTimeline}>
+              {assigneeData.map((assignee, idx) => <div key={idx} style={styles.assigneeGroupTimeline}>
                   {/* Summary Row (Line Graph) */}
                   <div style={styles.assigneeMainRowTimeline}>
                     {(() => {
-                      const points = assignee.dailyCounts.map((count, dayIdx) => {
-                        const x = dayIdx * DAY_WIDTH + (DAY_WIDTH / 2);
-                        const y = count === 0 ? 44 : Math.max(10, 44 - count * 12);
-                        return { x, y, count, dayIdx };
-                      });
-
-                      if (points.length === 0) return null;
-
-                      const firstY = points[0].y;
-                      const lastY = points[points.length - 1].y;
-                      const linePoints = `0,${firstY} ${points.map(p => `${p.x},${p.y}`).join(' ')} ${days.length * DAY_WIDTH},${lastY}`;
-                      const polyPoints = `0,44 ${linePoints} ${days.length * DAY_WIDTH},44`;
-
-                      return (
-                        <>
-                          <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+                  const points = assignee.dailyCounts.map((count, dayIdx) => {
+                    const x = dayIdx * DAY_WIDTH + DAY_WIDTH / 2;
+                    const y = count === 0 ? 44 : Math.max(10, 44 - count * 12);
+                    return {
+                      x,
+                      y,
+                      count,
+                      dayIdx
+                    };
+                  });
+                  if (points.length === 0) return null;
+                  const firstY = points[0].y;
+                  const lastY = points[points.length - 1].y;
+                  const linePoints = `0,${firstY} ${points.map(p => `${p.x},${p.y}`).join(' ')} ${days.length * DAY_WIDTH},${lastY}`;
+                  const polyPoints = `0,44 ${linePoints} ${days.length * DAY_WIDTH},44`;
+                  return <>
+                          <svg style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      pointerEvents: 'none'
+                    }}>
                             <polygon points={polyPoints} fill="rgba(99, 102, 241, 0.15)" />
                             <polyline points={linePoints} fill="none" stroke="#818CF8" strokeWidth="2" />
                           </svg>
 
                           {points.map((p, i) => {
-                            if (p.count === 0) return null;
-                            const isOverloaded = p.count > capacityLimit;
-                            return (
-                              <div key={i} style={{
-                                position: 'absolute',
-                                left: p.dayIdx * DAY_WIDTH,
-                                width: DAY_WIDTH,
-                                top: p.y - 8,
-                                textAlign: 'center',
-                                fontSize: '0.75rem',
-                                color: isOverloaded ? '#EF4444' : 'var(--text-primary)',
-                                fontWeight: isOverloaded ? 'bold' : '500',
-                                pointerEvents: 'none'
-                              }}>
+                      if (p.count === 0) return null;
+                      const isOverloaded = p.count > capacityLimit;
+                      return <div key={i} style={{
+                        position: 'absolute',
+                        left: p.dayIdx * DAY_WIDTH,
+                        width: DAY_WIDTH,
+                        top: p.y - 8,
+                        textAlign: 'center',
+                        fontSize: '0.75rem',
+                        color: isOverloaded ? '#EF4444' : 'var(--text-primary)',
+                        fontWeight: isOverloaded ? 'bold' : '500',
+                        pointerEvents: 'none'
+                      }}>
                                 {p.count}
-                              </div>
-                            );
-                          })}
-                        </>
-                      );
-                    })()}
+                              </div>;
+                    })}
+                        </>;
+                })()}
                   </div>
 
                   {/* Expanded Tasks (Gantt Bars) */}
-                  {expandedAssignees[assignee.name] && (
-                    <div style={{ ...styles.expandedTasksTimeline, height: assignee.tasks.length * 32 }}>
-                      {assignee.tasks.map((task, tIdx) => (
-                        <div key={task.id} style={{ ...styles.taskBarRow, top: tIdx * 32 }}>
-                          <div 
-                            data-task-id={task.id}
-                            style={{ ...styles.taskBar, left: task.left, width: Math.max(task.width, 10), backgroundColor: task.isCompleted ? '#D1D5DB' : '#6366F1' }}
-                            onClick={() => {
-                              if (!hasDraggedRef.current && onOpenTaskPane) onOpenTaskPane(task.id);
-                            }}
-                          >
-                            {!isReadOnly && (
-                              <div style={{ ...styles.dragHandle, left: 0 }} onMouseDown={(e) => { e.stopPropagation(); setDragState({ taskId: task.id, type: 'LEFT', startX: e.clientX, deltaX: 0 }); }} />
-                            )}
+                  {expandedAssignees[assignee.name] && <div style={{
+                ...styles.expandedTasksTimeline,
+                height: assignee.tasks.length * 32
+              }}>
+                      {assignee.tasks.map((task, tIdx) => <div key={task.id} style={{
+                  ...styles.taskBarRow,
+                  top: tIdx * 32
+                }}>
+                          <div data-task-id={task.id} style={{
+                    ...styles.taskBar,
+                    left: task.left,
+                    width: Math.max(task.width, 10),
+                    backgroundColor: task.isCompleted ? '#D1D5DB' : '#6366F1'
+                  }} onClick={() => {
+                    if (!hasDraggedRef.current && onOpenTaskPane) onOpenTaskPane(task.id);
+                  }}>
+                            {!isReadOnly && <div style={{
+                      ...styles.dragHandle,
+                      left: 0
+                    }} onMouseDown={e => {
+                      e.stopPropagation();
+                      setDragState({
+                        taskId: task.id,
+                        type: 'LEFT',
+                        startX: e.clientX,
+                        deltaX: 0
+                      });
+                    }} />}
                             
-                            <div 
-                              style={styles.taskBarContent} 
-                              onMouseDown={(e) => { if(!isReadOnly){ e.stopPropagation(); setDragState({ taskId: task.id, type: 'MOVE', startX: e.clientX, deltaX: 0 });} }}
-                            >
+                            <div style={styles.taskBarContent} onMouseDown={e => {
+                      if (!isReadOnly) {
+                        e.stopPropagation();
+                        setDragState({
+                          taskId: task.id,
+                          type: 'MOVE',
+                          startX: e.clientX,
+                          deltaX: 0
+                        });
+                      }
+                    }}>
                               <span style={styles.taskTitleTruncated}>{task.title}</span>
                             </div>
 
-                            {!isReadOnly && (
-                              <div style={{ ...styles.dragHandle, right: 0 }} onMouseDown={(e) => { e.stopPropagation(); setDragState({ taskId: task.id, type: 'RIGHT', startX: e.clientX, deltaX: 0 }); }} />
-                            )}
+                            {!isReadOnly && <div style={{
+                      ...styles.dragHandle,
+                      right: 0
+                    }} onMouseDown={e => {
+                      e.stopPropagation();
+                      setDragState({
+                        taskId: task.id,
+                        type: 'RIGHT',
+                        startX: e.clientX,
+                        deltaX: 0
+                      });
+                    }} />}
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+                        </div>)}
+                    </div>}
+                </div>)}
             </div>
             
           </div>
         </div>
 
       </div>
-    </div>
-  );
+    </div>;
 }
-
 const styles = {
   container: {
     display: 'flex',
@@ -523,7 +585,8 @@ const styles = {
     height: '32px',
     display: 'flex',
     alignItems: 'center',
-    padding: '0 1rem 0 3rem', // indented
+    padding: '0 1rem 0 3rem',
+    // indented
     fontSize: '0.8rem',
     color: 'var(--text-secondary)',
     whiteSpace: 'nowrap',
@@ -574,7 +637,8 @@ const styles = {
     position: 'absolute',
     top: 0,
     bottom: 0,
-    width: '40px', // DAY_WIDTH
+    width: '40px',
+    // DAY_WIDTH
     boxSizing: 'border-box'
   },
   assigneeGroupTimeline: {

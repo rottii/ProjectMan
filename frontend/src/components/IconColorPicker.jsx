@@ -1,76 +1,65 @@
+import { useTranslation } from "react-i18next";
 import React from 'react';
-
-const COLORS = [
-  '#4F46E5', // Indigo
-  '#EF4444', // Red
-  '#10B981', // Green
-  '#F59E0B', // Yellow
-  '#3B82F6', // Blue
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#6B7280', // Gray
-  '#14B8A6', // Teal
+const COLORS = ['#4F46E5',
+// Indigo
+'#EF4444',
+// Red
+'#10B981',
+// Green
+'#F59E0B',
+// Yellow
+'#3B82F6',
+// Blue
+'#8B5CF6',
+// Purple
+'#EC4899',
+// Pink
+'#6B7280',
+// Gray
+'#14B8A6' // Teal
 ];
-
-const ICONS = [
-  '📋', '🌟', '🚀', '🎯', '💡', '🔥', '🎉', '🛠️', '💻', '📈', '✅', '📁', '📊', '🤝', '⚡'
-];
-
-export default function IconColorPicker({ 
-  selectedColor, 
-  setSelectedColor, 
-  selectedIcon, 
-  setSelectedIcon, 
-  onClose 
+const ICONS = ['📋', '🌟', '🚀', '🎯', '💡', '🔥', '🎉', '🛠️', '💻', '📈', '✅', '📁', '📊', '🤝', '⚡'];
+export default function IconColorPicker({
+  selectedColor,
+  setSelectedColor,
+  selectedIcon,
+  setSelectedIcon,
+  onClose
 }) {
-  return (
-    <div style={styles.container} onClick={e => e.stopPropagation()}>
+  const {
+    t
+  } = useTranslation();
+  return <div style={styles.container} onClick={e => e.stopPropagation()}>
       <div style={styles.header}>
-        <span style={styles.title}>Project Icon & Color</span>
-        {onClose && (
-          <button style={styles.closeBtn} onClick={onClose}>✕</button>
-        )}
+        <span style={styles.title}>{t("project_icon_color", "Project Icon & Color")}</span>
+        {onClose && <button style={styles.closeBtn} onClick={onClose}>✕</button>}
       </div>
 
       <div style={styles.section}>
-        <div style={styles.label}>Colors</div>
+        <div style={styles.label}>{t("colors", "Colors")}</div>
         <div style={styles.grid}>
-          {COLORS.map(c => (
-            <div 
-              key={c}
-              onClick={() => setSelectedColor(c)}
-              style={{
-                ...styles.colorItem,
-                backgroundColor: c,
-                border: selectedColor === c ? '2px solid var(--text-primary)' : '2px solid transparent',
-              }}
-            />
-          ))}
+          {COLORS.map(c => <div key={c} onClick={() => setSelectedColor(c)} style={{
+          ...styles.colorItem,
+          backgroundColor: c,
+          border: selectedColor === c ? '2px solid var(--text-primary)' : '2px solid transparent'
+        }} />)}
         </div>
       </div>
 
       <div style={styles.section}>
-        <div style={styles.label}>Icons</div>
+        <div style={styles.label}>{t("icons", "Icons")}</div>
         <div style={styles.grid}>
-          {ICONS.map(i => (
-            <div 
-              key={i}
-              onClick={() => setSelectedIcon(i)}
-              style={{
-                ...styles.iconItem,
-                backgroundColor: selectedIcon === i ? '#F3F4F6' : 'transparent',
-                borderColor: selectedIcon === i ? 'var(--text-secondary)' : 'transparent'
-              }}
-            >
+          {ICONS.map(i => <div key={i} onClick={() => setSelectedIcon(i)} style={{
+          ...styles.iconItem,
+          backgroundColor: selectedIcon === i ? '#F3F4F6' : 'transparent',
+          borderColor: selectedIcon === i ? 'var(--text-secondary)' : 'transparent'
+        }}>
               {i}
-            </div>
-          ))}
+            </div>)}
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
-
 const styles = {
   container: {
     backgroundColor: 'var(--bg-primary)',

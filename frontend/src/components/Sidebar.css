@@ -7,7 +7,7 @@
   box-sizing: border-box;
   display: flex;
   height: 100%;
-  transition: width 0.2s ease;
+  transition: margin-left 0.3s ease, transform 0.3s ease, width 0.2s ease;
   overflow: visible;
   z-index: 100; /* Ensure dropdowns overlay the main pane */
   position: relative;
@@ -414,7 +414,7 @@
 
 /* When collapsed class is present, we slide it out of view */
 .sidebar-wrapper.collapsed {
-  display: none;
+  margin-left: calc(-1 * var(--sidebar-width));
 }
 
 /* --- MOBILE RESPONSIVENESS --- */
@@ -436,6 +436,7 @@
   .sidebar-wrapper.collapsed {
     display: flex;
     transform: translateX(-100%);
+    margin-left: 0;
     box-shadow: none;
     visibility: hidden;
     pointer-events: none;

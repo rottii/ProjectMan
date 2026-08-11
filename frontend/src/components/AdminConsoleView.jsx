@@ -1,7 +1,7 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from 'react';
 import UserAvatar from './UserAvatar';
 import { apiFetch } from '../api';
-
 const styles = {
   container: {
     padding: '2rem 3rem',
@@ -109,24 +109,30 @@ const styles = {
     color: 'var(--text-secondary)'
   }
 };
-
-export default function AdminConsoleView({ workspaceId, token, currentUser }) {
+export default function AdminConsoleView({
+  workspaceId,
+  token,
+  currentUser
+}) {
+  const {
+    t
+  } = useTranslation();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [inviteLinkToken, setInviteLinkToken] = useState(null);
   const [resetLinkToken, setResetLinkToken] = useState(null);
-
   useEffect(() => {
     fetchMembers();
   }, [workspaceId]);
-
   const fetchMembers = async () => {
     try {
       setLoading(true);
       setError(null);
       const res = await apiFetch(`/api/workspaces/${workspaceId}/members`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to fetch members');
@@ -137,13 +143,17 @@ export default function AdminConsoleView({ workspaceId, token, currentUser }) {
       setLoading(false);
     }
   };
-
   const handleGenerateInvite = async () => {
     try {
       const res = await apiFetch(`/api/invites/workspaces/${workspaceId}`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ maxUses: 50 })
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          maxUses: 50
+        })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -152,13 +162,18 @@ export default function AdminConsoleView({ workspaceId, token, currentUser }) {
       alert(`Error generating invite link: ${err.message}`);
     }
   };
-
-  const handleGenerateResetLink = async (targetUserId) => {
+  const handleGenerateResetLink = async targetUserId => {
     try {
       const res = await apiFetch(`/api/auth/generate-reset-link`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetUserId, workspaceId })
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          targetUserId,
+          workspaceId
+        })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -167,116 +182,120 @@ export default function AdminConsoleView({ workspaceId, token, currentUser }) {
       alert(`Error generating reset link: ${err.message}`);
     }
   };
-
-  const copyToClipboard = (text) => {
+  const copyToClipboard = text => {
     navigator.clipboard.writeText(text);
     alert('Copied to clipboard!');
   };
-
   const handleRoleChange = async (userId, newRole) => {
     try {
       const res = await apiFetch(`/api/workspaces/${workspaceId}/members/${userId}`, {
         method: 'PATCH',
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ role: newRole })
+        body: JSON.stringify({
+          role: newRole
+        })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      
-      setMembers(members.map(m => m.userId === userId ? { ...m, role: newRole } : m));
+      setMembers(members.map(m => m.userId === userId ? {
+        ...m,
+        role: newRole
+      } : m));
     } catch (err) {
       alert(`Error updating role: ${err.message}`);
     }
   };
-
   const handleRemoveMember = async (userId, userName) => {
     if (userName === 'yourself') {
       if (!window.confirm(`Are you sure you want to leave this workspace? You will lose access to all projects and teams.`)) return;
     } else {
       if (!window.confirm(`Are you sure you want to remove ${userName} from the workspace? They will lose access to all projects and teams.`)) return;
     }
-    
     try {
       const res = await apiFetch(`/api/workspaces/${workspaceId}/members/${userId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      
       setMembers(members.filter(m => m.userId !== userId));
     } catch (err) {
       alert(`Error removing member: ${err.message}`);
     }
   };
-
   const handleDeleteWorkspace = async () => {
     if (!window.confirm("WARNING: Are you absolutely sure you want to delete this entire workspace? This will permanently delete all projects, teams, tasks, and data within it. This action CANNOT be undone.")) return;
-    
     try {
       const res = await apiFetch(`/api/workspaces/${workspaceId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      
       alert("Workspace deleted successfully. Please refresh the page.");
       window.location.reload();
     } catch (err) {
       alert(`Error deleting workspace: ${err.message}`);
     }
   };
-
-  if (loading) return <div style={styles.loadingBox}>Loading admin console...</div>;
-  if (error) return (
-    <div style={styles.container}>
+  if (loading) return <div style={styles.loadingBox}>{t("loading_admin_console", "Loading admin console...")}</div>;
+  if (error) return <div style={styles.container}>
       <div style={styles.errorBox}>
-        <strong>Access Denied:</strong> {error}
+        <strong>{t("access_denied", "Access Denied:")}</strong> {error}
       </div>
-    </div>
-  );
-
+    </div>;
   const myMemberRecord = members.find(m => m.userId === currentUser?.id);
   const oldestAdmin = [...members].filter(m => m.role === 'ADMIN').sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
   const isOriginalAdmin = oldestAdmin && myMemberRecord && oldestAdmin.userId === myMemberRecord.userId;
-
-  return (
-    <div style={styles.container}>
-      <div style={{ ...styles.header, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  return <div style={styles.container}>
+      <div style={{
+      ...styles.header,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }}>
         <div>
-          <h1 style={styles.title}>Admin Console</h1>
-          <p style={styles.subtitle}>Manage workspace members, guests, and their permissions.</p>
+          <h1 style={styles.title}>{t("admin_console", "Admin Console")}</h1>
+          <p style={styles.subtitle}>{t("manage_workspace_members_guests_and_their_permissi", "Manage workspace members, guests, and their permissions.")}</p>
         </div>
         
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button 
-            onClick={handleGenerateInvite}
-            style={{
-              backgroundColor: 'var(--primary-color, #4F46E5)', color: 'white', border: 'none', borderRadius: '6px',
-              padding: '8px 16px', fontSize: '0.9rem', fontWeight: '500', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: '8px'
-            }}
-          >
-            🔗 Generate Invite Link
-          </button>
-          {isOriginalAdmin ? (
-          <button 
-            onClick={handleDeleteWorkspace}
-            style={{
-              backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px',
-              padding: '8px 16px', fontSize: '0.9rem', fontWeight: '500', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: '8px'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
-          >
-            🗑️ Delete Workspace
-          </button>
-        ) : null}
+        <div style={{
+        display: 'flex',
+        gap: '1rem'
+      }}>
+          <button onClick={handleGenerateInvite} style={{
+          backgroundColor: 'var(--primary-color, #4F46E5)',
+          color: 'white',
+          border: 'none',
+          borderRadius: '6px',
+          padding: '8px 16px',
+          fontSize: '0.9rem',
+          fontWeight: '500',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>{t("generate_invite_link", "\uD83D\uDD17 Generate Invite Link")}</button>
+          {isOriginalAdmin ? <button onClick={handleDeleteWorkspace} style={{
+          backgroundColor: '#ef4444',
+          color: 'white',
+          border: 'none',
+          borderRadius: '6px',
+          padding: '8px 16px',
+          fontSize: '0.9rem',
+          fontWeight: '500',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }} onMouseEnter={e => e.currentTarget.style.backgroundColor = '#dc2626'} onMouseLeave={e => e.currentTarget.style.backgroundColor = '#ef4444'}>{t("delete_workspace", "\uD83D\uDDD1\uFE0F Delete Workspace")}</button> : null}
         </div>
       </div>
 
@@ -284,21 +303,22 @@ export default function AdminConsoleView({ workspaceId, token, currentUser }) {
         <table style={styles.table}>
           <thead>
             <tr>
-              <th style={styles.th}>Member</th>
-              <th style={styles.th}>Role</th>
-              <th style={{ ...styles.th, textAlign: 'right' }}>Actions</th>
+              <th style={styles.th}>{t("member", "Member")}</th>
+              <th style={styles.th}>{t("role", "Role")}</th>
+              <th style={{
+              ...styles.th,
+              textAlign: 'right'
+            }}>{t("actions", "Actions")}</th>
             </tr>
           </thead>
           <tbody>
             {members.map(member => {
-              const isMe = member.userId === currentUser?.id;
-              
-              // Protect older admins from being modified by newer admins
-              const isOlderAdmin = !isMe && myMemberRecord && member.role === 'ADMIN' && new Date(member.createdAt) < new Date(myMemberRecord.createdAt);
-              const isControlDisabled = isMe || isOlderAdmin;
-              
-              return (
-                <tr key={member.userId}>
+            const isMe = member.userId === currentUser?.id;
+
+            // Protect older admins from being modified by newer admins
+            const isOlderAdmin = !isMe && myMemberRecord && member.role === 'ADMIN' && new Date(member.createdAt) < new Date(myMemberRecord.createdAt);
+            const isControlDisabled = isMe || isOlderAdmin;
+            return <tr key={member.userId}>
                   <td style={styles.td}>
                     <div style={styles.memberRow}>
                       <UserAvatar name={member.user?.name} userId={member.user?.id} profilePhoto={member.user?.profilePhoto} size={40} />
@@ -311,75 +331,136 @@ export default function AdminConsoleView({ workspaceId, token, currentUser }) {
                     </div>
                   </td>
                   <td style={styles.td}>
-                    <select 
-                      style={isControlDisabled ? { ...styles.select, cursor: 'not-allowed' } : styles.select} 
-                      value={member.role}
-                      onChange={(e) => handleRoleChange(member.userId, e.target.value)}
-                      disabled={isControlDisabled}
-                      title={isOlderAdmin ? "You cannot modify the role of an admin who joined before you" : ""}
-                    >
-                      <option value="ADMIN">Admin</option>
-                      <option value="MEMBER">Member</option>
-                      <option value="GUEST">Guest</option>
+                    <select style={isControlDisabled ? {
+                  ...styles.select,
+                  cursor: 'not-allowed'
+                } : styles.select} value={member.role} onChange={e => handleRoleChange(member.userId, e.target.value)} disabled={isControlDisabled} title={isOlderAdmin ? "You cannot modify the role of an admin who joined before you" : ""}>
+                      <option value="ADMIN">{t("admin", "Admin")}</option>
+                      <option value="MEMBER">{t("member", "Member")}</option>
+                      <option value="GUEST">{t("guest", "Guest")}</option>
                     </select>
                   </td>
-                  <td style={{ ...styles.td, textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                    {!isMe && (
-                      <button 
-                        style={{ ...styles.removeBtn, color: 'var(--text-secondary)', borderColor: 'var(--border-color)' }}
-                        onClick={() => handleGenerateResetLink(member.userId)}
-                        title="Generate Password Reset Link"
-                      >
-                        Reset Password
-                      </button>
-                    )}
-                    <button 
-                      style={isControlDisabled && !isMe ? { ...styles.removeBtn, cursor: 'not-allowed' } : styles.removeBtn}
-                      disabled={isControlDisabled && !isMe}
-                      onClick={() => handleRemoveMember(member.userId, isMe ? 'yourself' : member.user?.name)}
-                      onMouseEnter={(e) => { if (!isControlDisabled || isMe) e.currentTarget.style.backgroundColor = '#fef2f2'; }}
-                      onMouseLeave={(e) => { if (!isControlDisabled || isMe) e.currentTarget.style.backgroundColor = 'transparent'; }}
-                      title={isOlderAdmin ? "You cannot remove an admin who joined before you" : ""}
-                    >
+                  <td style={{
+                ...styles.td,
+                textAlign: 'right',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '0.5rem'
+              }}>
+                    {!isMe && <button style={{
+                  ...styles.removeBtn,
+                  color: 'var(--text-secondary)',
+                  borderColor: 'var(--border-color)'
+                }} onClick={() => handleGenerateResetLink(member.userId)} title={t("generate_password_reset_link", "Generate Password Reset Link")}>{t("reset_password", "Reset Password")}</button>}
+                    <button style={isControlDisabled && !isMe ? {
+                  ...styles.removeBtn,
+                  cursor: 'not-allowed'
+                } : styles.removeBtn} disabled={isControlDisabled && !isMe} onClick={() => handleRemoveMember(member.userId, isMe ? 'yourself' : member.user?.name)} onMouseEnter={e => {
+                  if (!isControlDisabled || isMe) e.currentTarget.style.backgroundColor = '#fef2f2';
+                }} onMouseLeave={e => {
+                  if (!isControlDisabled || isMe) e.currentTarget.style.backgroundColor = 'transparent';
+                }} title={isOlderAdmin ? "You cannot remove an admin who joined before you" : ""}>
                       {isMe ? 'Leave' : 'Remove'}
                     </button>
                   </td>
-                </tr>
-              );
-            })}
+                </tr>;
+          })}
           </tbody>
         </table>
       </div>
 
       {/* Modals for Links */}
-      {inviteLinkToken && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ backgroundColor: 'var(--bg-primary)', padding: '2rem', borderRadius: '12px', maxWidth: '500px', width: '100%' }}>
-            <h2 style={{ marginTop: 0 }}>Invite Link Generated</h2>
-            <p>Share this link with anyone you want to join the workspace. It will expire after 50 uses.</p>
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-              <input type="text" readOnly value={`${window.location.origin}/invite/${inviteLinkToken}`} style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }} />
-              <button onClick={() => copyToClipboard(`${window.location.origin}/invite/${inviteLinkToken}`)} style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>Copy</button>
+      {inviteLinkToken && <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999
+    }}>
+          <div style={{
+        backgroundColor: 'var(--bg-primary)',
+        padding: '2rem',
+        borderRadius: '12px',
+        maxWidth: '500px',
+        width: '100%'
+      }}>
+            <h2 style={{
+          marginTop: 0
+        }}>{t("invite_link_generated", "Invite Link Generated")}</h2>
+            <p>{t("share_this_link_with_anyone_you_want_to_join_the_w", "Share this link with anyone you want to join the workspace. It will expire after 50 uses.")}</p>
+            <div style={{
+          display: 'flex',
+          gap: '0.5rem',
+          marginBottom: '1.5rem'
+        }}>
+              <input type="text" readOnly value={`${window.location.origin}/invite/${inviteLinkToken}`} style={{
+            flex: 1,
+            padding: '0.5rem',
+            borderRadius: '4px',
+            border: '1px solid var(--border-color)'
+          }} />
+              <button onClick={() => copyToClipboard(`${window.location.origin}/invite/${inviteLinkToken}`)} style={{
+            padding: '0.5rem 1rem',
+            cursor: 'pointer'
+          }}>{t("copy", "Copy")}</button>
             </div>
-            <button onClick={() => setInviteLinkToken(null)} style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>Close</button>
+            <button onClick={() => setInviteLinkToken(null)} style={{
+          padding: '0.5rem 1rem',
+          cursor: 'pointer'
+        }}>{t("close", "Close")}</button>
           </div>
-        </div>
-      )}
+        </div>}
 
-      {resetLinkToken && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ backgroundColor: 'var(--bg-primary)', padding: '2rem', borderRadius: '12px', maxWidth: '500px', width: '100%' }}>
-            <h2 style={{ marginTop: 0 }}>Password Reset Link Generated</h2>
-            <p>Securely share this one-time link with the user. It will expire in 24 hours.</p>
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-              <input type="text" readOnly value={`${window.location.origin}/reset-password/${resetLinkToken}`} style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }} />
-              <button onClick={() => copyToClipboard(`${window.location.origin}/reset-password/${resetLinkToken}`)} style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>Copy</button>
+      {resetLinkToken && <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999
+    }}>
+          <div style={{
+        backgroundColor: 'var(--bg-primary)',
+        padding: '2rem',
+        borderRadius: '12px',
+        maxWidth: '500px',
+        width: '100%'
+      }}>
+            <h2 style={{
+          marginTop: 0
+        }}>{t("password_reset_link_generated", "Password Reset Link Generated")}</h2>
+            <p>{t("securely_share_this_one_time_link_with_the_user_it", "Securely share this one-time link with the user. It will expire in 24 hours.")}</p>
+            <div style={{
+          display: 'flex',
+          gap: '0.5rem',
+          marginBottom: '1.5rem'
+        }}>
+              <input type="text" readOnly value={`${window.location.origin}/reset-password/${resetLinkToken}`} style={{
+            flex: 1,
+            padding: '0.5rem',
+            borderRadius: '4px',
+            border: '1px solid var(--border-color)'
+          }} />
+              <button onClick={() => copyToClipboard(`${window.location.origin}/reset-password/${resetLinkToken}`)} style={{
+            padding: '0.5rem 1rem',
+            cursor: 'pointer'
+          }}>{t("copy", "Copy")}</button>
             </div>
-            <button onClick={() => setResetLinkToken(null)} style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>Close</button>
+            <button onClick={() => setResetLinkToken(null)} style={{
+          padding: '0.5rem 1rem',
+          cursor: 'pointer'
+        }}>{t("close", "Close")}</button>
           </div>
-        </div>
-      )}
+        </div>}
 
-    </div>
-  );
+    </div>;
 }

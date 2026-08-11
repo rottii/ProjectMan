@@ -26,10 +26,44 @@ import BulkActionBar from './BulkActionBar'
 import './KanbanBoard.css'
 import { getParsedCustomFields, getParsedGithubPRs, getGithubPRStatusLabel, GITHUB_PR_STATUSES, GITHUB_PR_SORT_MAP } from '../utils/customFields'
 import UserAvatar from './UserAvatar'
+import { useTranslation } from 'react-i18next'
 
 import { useUndo } from '../context/UndoContext'
 
+function SlidePaneWrapper({ isOpen, children, className = "", id = "", style = {} }) {
+  const [render, setRender] = useState(isOpen);
+  const childrenRef = useRef(children);
+
+  if (isOpen && !render) {
+    setRender(true);
+  }
+
+  useEffect(() => {
+    if (isOpen) {
+      childrenRef.current = children;
+    } else if (render) {
+      const t = setTimeout(() => {
+        setRender(false);
+      }, 210);
+      return () => clearTimeout(t);
+    }
+  }, [isOpen, render, children]);
+
+  if (!render) return null;
+
+  return (
+    <div 
+      className={`${className} ${isOpen ? 'slide-in-right' : 'slide-out-right'}`}
+      id={id}
+      style={{ zIndex: 900, ...style }}
+    >
+      {isOpen ? children : childrenRef.current}
+    </div>
+  );
+}
+
 export default function KanbanBoard({ selectedProject, setSelectedProject, projects, setProjects, token, user, handleLogout, isMyTasks }) {
+  const { t } = useTranslation()
   const [newSectionName, setNewSectionName] = useState('')
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, taskId: null })
   const [approvalMenu, setApprovalMenu] = useState({ visible: false, x: 0, y: 0, task: null })
@@ -164,13 +198,13 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
   const activeViewObj = parsedViews.find(v => v.id === currentTab) || parsedViews.find(v => v.type === currentTab) || parsedViews[0];
 
   const projectStatuses = [
-    { id: 'ON_TRACK', label: 'On track', color: '#34D399', bgColor: '#064E3B', icon: '●' },
-    { id: 'AT_RISK', label: 'At risk', color: '#FBBF24', bgColor: '#78350F', icon: '●' },
-    { id: 'OFF_TRACK', label: 'Off track', color: '#F87171', bgColor: '#7F1D1D', icon: '●' },
-    { id: 'ON_HOLD', label: 'On hold', color: '#60A5FA', bgColor: '#1E3A8A', icon: '●' },
+    { id: 'ON_TRACK', label: t('on_track', 'On track'), color: '#34D399', bgColor: '#064E3B', icon: '●' },
+    { id: 'AT_RISK', label: t('at_risk', 'At risk'), color: '#FBBF24', bgColor: '#78350F', icon: '●' },
+    { id: 'OFF_TRACK', label: t('off_track', 'Off track'), color: '#F87171', bgColor: '#7F1D1D', icon: '●' },
+    { id: 'ON_HOLD', label: t('on_hold', 'On hold'), color: '#60A5FA', bgColor: '#1E3A8A', icon: '●' },
     { id: 'DIVIDER', isDivider: true },
-    { id: 'COMPLETE', label: 'Complete', color: '#FFF', bgColor: '#10B981', icon: '✓' },
-    { id: 'DROPPED', label: 'Dropped', color: '#9CA3AF', bgColor: 'var(--text-primary)', icon: '●' }
+    { id: 'COMPLETE', label: t('complete', 'Complete'), color: '#FFF', bgColor: '#10B981', icon: '✓' },
+    { id: 'DROPPED', label: t('dropped', 'Dropped'), color: '#9CA3AF', bgColor: 'var(--text-primary)', icon: '●' }
   ];
 
   // Akıllı konum hafıza takipleri
@@ -2329,10 +2363,10 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                   style={{ cursor: 'pointer', border: '1px solid #FFF' }}
                 />
               </div>
-              <button onClick={(e) => { e.stopPropagation(); setIsShareModalOpen(true); }} style={{ ...styles.asanaShareButtonLight, fontWeight: 'normal' }}>👥 Share</button>
+              <button onClick={(e) => { e.stopPropagation(); setIsShareModalOpen(true); }} style={{ ...styles.asanaShareButtonLight, fontWeight: 'normal' }}>👥 {t('share', 'Share')}</button>
             </>
           )}
-          <button id="customize-pane-toggle-btn" onClick={(e) => { e.stopPropagation(); setIsCustomizePanelOpen(prev => !prev); setIsOptionsPaneOpen(false); }} style={styles.asanaCustomizeBtn}>🎛️ Customize</button>
+          <button id="customize-pane-toggle-btn" onClick={(e) => { e.stopPropagation(); setIsCustomizePanelOpen(prev => !prev); setIsOptionsPaneOpen(false); }} style={styles.asanaCustomizeBtn}>🎛️ {t('customize', 'Customize')}</button>
         </div>
       </div>
 
@@ -2388,9 +2422,9 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
               gap: '4px'
             }}
           >
-            <span className="view-tab-text" data-text={view.name} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', maxWidth: '120px' }}>
+            <span className="view-tab-text" data-text={t(view.name.toLowerCase(), view.name)} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', maxWidth: '120px' }}>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%', textAlign: 'center' }}>
-                {view.name}
+                {t(view.name.toLowerCase(), view.name)}
               </span>
             </span>
             {selectedProject.defaultView === view.id && <span style={{ fontSize: '10px' }}>⭐</span>}
@@ -3369,8 +3403,11 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
       }} />}
 
       {/* Global Task Detail Pane */}
-      {activeTaskPaneId && (
-        <div className="task-pane-ignore-click">
+      <SlidePaneWrapper 
+        isOpen={!!activeTaskPaneId} 
+        className="task-pane-ignore-click"
+        style={{ position: 'fixed', top: '52px', bottom: 0, right: 0, width: '700px', zIndex: 9999 }}
+      >
           <TaskDetailPane
             task={(() => {
               for (const sec of selectedProject.sections || []) {
@@ -3393,13 +3430,10 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
             onConvertTask={handleConvertTask}
             onOpenPopover={(type, task, coords, extra = {}) => setActivePopover({ type, task, coords, ...extra })}
           />
-        </div>
-      )}
+      </SlidePaneWrapper>
 
       {/* Customize Panel */}
-      {isCustomizePanelOpen && (
-        <>
-          <div style={styles.customizePanel} id="customize-pane-container">
+      <SlidePaneWrapper isOpen={isCustomizePanelOpen} style={styles.customizePanel} id="customize-pane-container">
             {customizeView === 'main' && (
               <>
                 <div style={styles.customizeHeader}>
@@ -3640,14 +3674,10 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                 </div>
               </div>
             )}
-          </div>
-        </>
-      )}
+      </SlidePaneWrapper>
 
       {/* Options Pane */}
-      {isOptionsPaneOpen && (
-        <>
-          <div style={styles.customizePanel} id="options-pane-container">
+      <SlidePaneWrapper isOpen={isOptionsPaneOpen} style={styles.customizePanel} id="options-pane-container">
             {optionsView === 'main' ? (
               <>
                 <div style={styles.customizeHeader}>
@@ -4185,9 +4215,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                 </div>
               </>
             ) : null}
-          </div>
-        </>
-      )}
+      </SlidePaneWrapper>
 
       {isShareDashboardModalOpen && (
         <ShareDashboardModal
@@ -4272,7 +4300,7 @@ const styles = {
   asanaTabsRow: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1.5rem', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', flexShrink: 0 },
   tabItemBack: { fontSize: '0.8rem', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: '600', padding: '6px 12px', borderRadius: '6px' },
   tabItemPassive: { fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '6px 12px', fontWeight: '500', cursor: 'pointer', borderRadius: '6px' },
-  tabItemActive: { fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: '700', padding: '6px 12px', cursor: 'pointer', borderRadius: '6px', backgroundColor: 'var(--bg-secondary)' },
+  tabItemActive: { fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: '500', padding: '6px 12px', cursor: 'pointer', borderRadius: '6px', backgroundColor: 'var(--bg-tertiary)' },
   asanaOptionsSubHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 1.5rem', height: '52px', boxSizing: 'border-box', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', flexShrink: 0 },
   addTaskDropdownBtn: { backgroundColor: '#6366F1', color: '#FFF', border: 'none', borderRadius: '6px', padding: '0.35rem 0.75rem', fontSize: '0.8rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', transition: 'background-color 0.2s' },
   optionsRightGroup: { display: 'flex', alignItems: 'center', gap: '1rem' },

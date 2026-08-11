@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useEditor, EditorContent, ReactRenderer } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -12,30 +13,29 @@ import { GithubPRExtension } from './GithubPRExtension';
 // ---- Mention Dropdown UI ----
 const MentionList = forwardRef((props, ref) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-
-  const selectItem = (index) => {
+  const selectItem = index => {
     const item = props.items[index];
     if (item) {
-      props.command({ id: item.id, label: item.name });
+      props.command({
+        id: item.id,
+        label: item.name
+      });
     }
   };
-
   const upHandler = () => {
     setSelectedIndex((selectedIndex + props.items.length - 1) % props.items.length);
   };
-
   const downHandler = () => {
     setSelectedIndex((selectedIndex + 1) % props.items.length);
   };
-
   const enterHandler = () => {
     selectItem(selectedIndex);
   };
-
   useEffect(() => setSelectedIndex(0), [props.items]);
-
   useImperativeHandle(ref, () => ({
-    onKeyDown: ({ event }) => {
+    onKeyDown: ({
+      event
+    }) => {
       if (event.key === 'ArrowUp') {
         upHandler();
         return true;
@@ -49,44 +49,53 @@ const MentionList = forwardRef((props, ref) => {
         return true;
       }
       return false;
-    },
+    }
   }));
-
-  return (
-    <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', overflow: 'hidden', minWidth: '150px' }}>
-      {props.items.length ? (
-        props.items.map((item, index) => (
-          <button
-            key={item.id}
-            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); selectItem(index); }}
-            style={{
-              display: 'block',
-              width: '100%',
-              padding: '8px 12px',
-              border: 'none',
-              borderLeft: index === selectedIndex ? '3px solid #4F46E5' : '3px solid transparent',
-              background: index === selectedIndex ? 'var(--bg-secondary)' : 'transparent',
-              color: 'var(--text-primary)',
-              textAlign: 'left',
-              cursor: 'pointer',
-              fontSize: '0.9rem'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+  return <div style={{
+    background: 'var(--bg-primary)',
+    border: '1px solid var(--border-color)',
+    borderRadius: '6px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    overflow: 'hidden',
+    minWidth: '150px'
+  }}>
+      {props.items.length ? props.items.map((item, index) => <button key={item.id} onMouseDown={e => {
+      e.preventDefault();
+      e.stopPropagation();
+      selectItem(index);
+    }} style={{
+      display: 'block',
+      width: '100%',
+      padding: '8px 12px',
+      border: 'none',
+      borderLeft: index === selectedIndex ? '3px solid #4F46E5' : '3px solid transparent',
+      background: index === selectedIndex ? 'var(--bg-secondary)' : 'transparent',
+      color: 'var(--text-primary)',
+      textAlign: 'left',
+      cursor: 'pointer',
+      fontSize: '0.9rem'
+    }}>
+            <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%'
+      }}>
               <span>{item.name}</span>
-              {item.email && (
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginLeft: '8px' }}>
+              {item.email && <span style={{
+          color: 'var(--text-secondary)',
+          fontSize: '0.8rem',
+          marginLeft: '8px'
+        }}>
                   {item.email}
-                </span>
-              )}
+                </span>}
             </div>
-          </button>
-        ))
-      ) : (
-        <div style={{ padding: '8px 12px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No results</div>
-      )}
-    </div>
-  );
+          </button>) : <div style={{
+      padding: '8px 12px',
+      color: 'var(--text-secondary)',
+      fontSize: '0.9rem'
+    }}>{t("no_results", "No results")}</div>}
+    </div>;
 });
 
 // ---- Toolbar Icon SVG Components ----
@@ -107,134 +116,130 @@ const IconQuote = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="no
 const IconMagicWand = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.9 14.5A2.9 2.9 0 0 0 23 12a2.9 2.9 0 0 0-2.1-2.5l-.2-.1A2.9 2.9 0 0 0 19 8.1l-.1-.2A2.9 2.9 0 0 0 17 6c-1.3 0-2.4 1-2.5 2.2l-.1.2A2.9 2.9 0 0 0 13 9.7l-.2.1A2.9 2.9 0 0 0 11 12a2.9 2.9 0 0 0 1.9 2.4l.2.1A2.9 2.9 0 0 0 14.6 16l.1.2A2.9 2.9 0 0 0 17 18a2.9 2.9 0 0 0 2.4-1.9l.1-.2A2.9 2.9 0 0 0 20.7 14.6l.2-.1z" /><path d="m3 21 6.5-6.5" /></svg>;
 
 // ---- Rich Text Editor Component ----
-export default function RichTextEditor({ value, onChange, onBlur, placeholder = 'Type / for menu', users = [], minHeight = '120px', autoFocus = false }) {
+export default function RichTextEditor({
+  value,
+  onChange,
+  onBlur,
+  placeholder = 'Type / for menu',
+  users = [],
+  minHeight = '120px',
+  autoFocus = false
+}) {
+  const {
+    t
+  } = useTranslation();
   const usersRef = React.useRef(users);
-
   React.useEffect(() => {
     usersRef.current = users;
   }, [users]);
-
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      Highlight,
-      GithubPRExtension,
-      Placeholder.configure({
-        placeholder: placeholder,
-        emptyEditorClass: 'is-editor-empty',
-      }),
-      Mention.configure({
-        HTMLAttributes: {
-          class: 'mention',
-          style: 'color: #4F46E5; background: #EEF2FF; padding: 2px 4px; border-radius: 4px; font-weight: 500;',
+    extensions: [StarterKit, Underline, Highlight, GithubPRExtension, Placeholder.configure({
+      placeholder: placeholder,
+      emptyEditorClass: 'is-editor-empty'
+    }), Mention.configure({
+      HTMLAttributes: {
+        class: 'mention',
+        style: 'color: #4F46E5; background: #EEF2FF; padding: 2px 4px; border-radius: 4px; font-weight: 500;'
+      },
+      renderLabel({
+        options,
+        node
+      }) {
+        const userId = node.attrs.id;
+        const user = usersRef.current.find(u => u.id === userId);
+        const label = user ? user.name : node.attrs.label || userId;
+        return `@${label}`;
+      },
+      suggestion: {
+        items: ({
+          query
+        }) => {
+          return usersRef.current.filter(user => user?.name?.toLowerCase().startsWith(query.toLowerCase())).slice(0, 5);
         },
-        renderLabel({ options, node }) {
-          const userId = node.attrs.id;
-          const user = usersRef.current.find(u => u.id === userId);
-          const label = user ? user.name : (node.attrs.label || userId);
-          return `@${label}`;
-        },
-        suggestion: {
-          items: ({ query }) => {
-            return usersRef.current
-              .filter(user => user?.name?.toLowerCase().startsWith(query.toLowerCase()))
-              .slice(0, 5);
-          },
-          render: () => {
-            let component;
-            let popup;
-
-            return {
-              onStart: (props) => {
-                console.log('Mention suggestion onStart triggered with query:', props.query);
-                component = new ReactRenderer(MentionList, {
-                  props,
-                  editor: props.editor,
-                });
-
-                if (!props.clientRect) {
-                  console.log('No clientRect provided');
-                  return;
-                }
-
-                popup = tippy('body', {
-                  getReferenceClientRect: props.clientRect,
-                  appendTo: () => document.body,
-                  content: component.element,
-                  showOnCreate: false,
-                  interactive: true,
-                  trigger: 'manual',
-                  placement: 'bottom-start',
-                  theme: 'mention-popup',
-                  arrow: false,
-                  zIndex: 99999,
-                });
-
-                if (props.editor.isFocused) {
-                  popup[0].show();
-                }
-              },
-              onUpdate(props) {
-                if (!component || !popup) return;
-                component.updateProps(props);
-
-                if (!props.clientRect) return;
-
-                popup[0].setProps({
-                  getReferenceClientRect: props.clientRect,
-                });
-
-                if (props.editor.isFocused) {
-                  popup[0].show();
-                } else {
-                  popup[0].hide();
-                }
-              },
-              onKeyDown(props) {
-                if (props.event.key === 'Escape') {
-                  popup?.[0]?.hide();
-                  return true;
-                }
-                return component?.ref?.onKeyDown(props);
-              },
-              onExit() {
-                if (popup && popup[0]) {
-                  popup[0].destroy();
-                }
-                if (component) {
-                  component.destroy();
-                }
-              },
-            };
-          },
-        },
-      }),
-    ],
+        render: () => {
+          let component;
+          let popup;
+          return {
+            onStart: props => {
+              console.log('Mention suggestion onStart triggered with query:', props.query);
+              component = new ReactRenderer(MentionList, {
+                props,
+                editor: props.editor
+              });
+              if (!props.clientRect) {
+                console.log('No clientRect provided');
+                return;
+              }
+              popup = tippy('body', {
+                getReferenceClientRect: props.clientRect,
+                appendTo: () => document.body,
+                content: component.element,
+                showOnCreate: false,
+                interactive: true,
+                trigger: 'manual',
+                placement: 'bottom-start',
+                theme: 'mention-popup',
+                arrow: false,
+                zIndex: 99999
+              });
+              if (props.editor.isFocused) {
+                popup[0].show();
+              }
+            },
+            onUpdate(props) {
+              if (!component || !popup) return;
+              component.updateProps(props);
+              if (!props.clientRect) return;
+              popup[0].setProps({
+                getReferenceClientRect: props.clientRect
+              });
+              if (props.editor.isFocused) {
+                popup[0].show();
+              } else {
+                popup[0].hide();
+              }
+            },
+            onKeyDown(props) {
+              if (props.event.key === 'Escape') {
+                popup?.[0]?.hide();
+                return true;
+              }
+              return component?.ref?.onKeyDown(props);
+            },
+            onExit() {
+              if (popup && popup[0]) {
+                popup[0].destroy();
+              }
+              if (component) {
+                component.destroy();
+              }
+            }
+          };
+        }
+      }
+    })],
     content: value || '',
-    onUpdate: ({ editor }) => {
+    onUpdate: ({
+      editor
+    }) => {
       onChange(editor.getHTML());
     },
     onBlur: () => {
       if (onBlur) onBlur();
     }
   });
-
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
       editor.commands.setContent(value || '');
     }
   }, [value, editor]);
-
   useEffect(() => {
     if (editor && autoFocus) {
       editor.commands.focus('end');
     }
   }, [editor, autoFocus]);
-
   if (!editor) return null;
-
-  const btnStyle = (isActive) => ({
+  const btnStyle = isActive => ({
     padding: '4px 6px',
     background: isActive ? 'rgba(0,0,0,0.05)' : 'transparent',
     border: 'none',
@@ -244,18 +249,22 @@ export default function RichTextEditor({ value, onChange, onBlur, placeholder = 
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'background-color 0.2s',
+    transition: 'background-color 0.2s'
   });
-
   const dividerStyle = {
     width: '1px',
     height: '20px',
     backgroundColor: '#E2E8F0',
-    margin: '0 4px',
+    margin: '0 4px'
   };
-
-  return (
-    <div style={{ border: '1px solid #D1D5DB', borderRadius: '8px', overflow: 'hidden', backgroundColor: 'var(--bg-primary)', display: 'flex', flexDirection: 'column' }}>
+  return <div style={{
+    border: '1px solid #D1D5DB',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    backgroundColor: 'var(--bg-primary)',
+    display: 'flex',
+    flexDirection: 'column'
+  }}>
 
       <style>{`
         .ProseMirror p.is-editor-empty:first-child::before {
@@ -268,37 +277,60 @@ export default function RichTextEditor({ value, onChange, onBlur, placeholder = 
         .ProseMirror { outline: none; }
       `}</style>
 
-      <div style={{ padding: '12px 16px', minHeight: minHeight, cursor: 'text', color: 'var(--text-primary)', fontSize: '0.95rem' }} onClick={() => editor.chain().focus().run()}>
+      <div style={{
+      padding: '12px 16px',
+      minHeight: minHeight,
+      cursor: 'text',
+      color: 'var(--text-primary)',
+      fontSize: '0.95rem'
+    }} onClick={() => editor.chain().focus().run()}>
         <EditorContent editor={editor} />
       </div>
 
-      <div style={{ padding: '8px 12px', display: 'flex', gap: '4px', backgroundColor: 'var(--bg-primary)', alignItems: 'center', borderTop: '1px solid transparent' }}>
-        <button type="button" style={btnStyle()} title="Add"><IconPlus /></button>
+      <div style={{
+      padding: '8px 12px',
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '4px',
+      backgroundColor: 'var(--bg-primary)',
+      alignItems: 'center',
+      borderTop: '1px solid transparent'
+    }}>
+        <button type="button" style={btnStyle()} title={t("add", "Add")}><IconPlus /></button>
         <div style={dividerStyle}></div>
-        <button type="button" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} style={{ ...btnStyle(), opacity: editor.can().undo() ? 1 : 0.5 }} title="Undo"><IconUndo /></button>
-        <button type="button" onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} style={{ ...btnStyle(), opacity: editor.can().redo() ? 1 : 0.5 }} title="Redo"><IconRedo /></button>
+        <button type="button" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} style={{
+        ...btnStyle(),
+        opacity: editor.can().undo() ? 1 : 0.5
+      }} title={t("undo", "Undo")}><IconUndo /></button>
+        <button type="button" onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} style={{
+        ...btnStyle(),
+        opacity: editor.can().redo() ? 1 : 0.5
+      }} title={t("redo", "Redo")}><IconRedo /></button>
         <div style={dividerStyle}></div>
-        <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} style={btnStyle(editor.isActive('bold'))} title="Bold"><IconBold /></button>
-        <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} style={btnStyle(editor.isActive('italic'))} title="Italic"><IconItalic /></button>
-        <button type="button" onClick={() => editor.chain().focus().toggleUnderline().run()} style={btnStyle(editor.isActive('underline'))} title="Underline"><IconUnderline /></button>
-        <button type="button" onClick={() => editor.chain().focus().toggleHighlight().run()} style={btnStyle(editor.isActive('highlight'))} title="Highlight"><IconMarker /></button>
-        <button type="button" onClick={() => editor.chain().focus().toggleStrike().run()} style={btnStyle(editor.isActive('strike'))} title="Strikethrough"><IconStrikethrough /></button>
-        <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} style={btnStyle(editor.isActive('bulletList'))} title="Bullet List"><IconBulletList /></button>
-        <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} style={btnStyle(editor.isActive('orderedList'))} title="Numbered List"><IconOrderedList /></button>
-        <button type="button" style={btnStyle()} title="Indent"><IconIndent /></button>
-        <button type="button" style={btnStyle()} title="Link"><IconLink /></button>
-        <button type="button" onClick={() => editor.chain().focus().toggleCodeBlock().run()} style={btnStyle(editor.isActive('codeBlock'))} title="Code Block"><IconCode /></button>
-        <button type="button" onClick={() => editor.chain().focus().toggleBlockquote().run()} style={btnStyle(editor.isActive('blockquote'))} title="Quote"><IconQuote /></button>
-        <button type="button" style={btnStyle()} title="Magic Wand"><IconMagicWand /></button>
+        <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} style={btnStyle(editor.isActive('bold'))} title={t("bold", "Bold")}><IconBold /></button>
+        <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} style={btnStyle(editor.isActive('italic'))} title={t("italic", "Italic")}><IconItalic /></button>
+        <button type="button" onClick={() => editor.chain().focus().toggleUnderline().run()} style={btnStyle(editor.isActive('underline'))} title={t("underline", "Underline")}><IconUnderline /></button>
+        <button type="button" onClick={() => editor.chain().focus().toggleHighlight().run()} style={btnStyle(editor.isActive('highlight'))} title={t("highlight", "Highlight")}><IconMarker /></button>
+        <button type="button" onClick={() => editor.chain().focus().toggleStrike().run()} style={btnStyle(editor.isActive('strike'))} title={t("strikethrough", "Strikethrough")}><IconStrikethrough /></button>
+        <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} style={btnStyle(editor.isActive('bulletList'))} title={t("bullet_list", "Bullet List")}><IconBulletList /></button>
+        <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} style={btnStyle(editor.isActive('orderedList'))} title={t("numbered_list", "Numbered List")}><IconOrderedList /></button>
+        <button type="button" style={btnStyle()} title={t("indent", "Indent")}><IconIndent /></button>
+        <button type="button" style={btnStyle()} title={t("link", "Link")}><IconLink /></button>
+        <button type="button" onClick={() => editor.chain().focus().toggleCodeBlock().run()} style={btnStyle(editor.isActive('codeBlock'))} title={t("code_block", "Code Block")}><IconCode /></button>
+        <button type="button" onClick={() => editor.chain().focus().toggleBlockquote().run()} style={btnStyle(editor.isActive('blockquote'))} title={t("quote", "Quote")}><IconQuote /></button>
+        <button type="button" style={btnStyle()} title={t("magic_wand", "Magic Wand")}><IconMagicWand /></button>
 
         <div style={dividerStyle}></div>
 
-        <button type="button" style={{ ...btnStyle(), padding: '4px 8px', gap: '6px', fontSize: '0.85rem', color: '#9CA3AF' }} disabled>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-          Create task
-        </button>
+        <button type="button" style={{
+        ...btnStyle(),
+        padding: '4px 8px',
+        gap: '6px',
+        fontSize: '0.85rem',
+        color: '#9CA3AF'
+      }} disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>{t("create_task", "Create task")}</button>
       </div>
 
-    </div>
-  );
+    </div>;
 }

@@ -53,6 +53,8 @@ model User {
   
   projectMessages  ProjectMessage[]
   projectMessageReplies ProjectMessageReply[]
+  portfolioMessages  PortfolioMessage[]
+  portfolioMessageReplies PortfolioMessageReply[]
   
   commentReactions CommentReaction[]
   activities    TaskActivity[]
@@ -362,6 +364,8 @@ model Portfolio {
   childPortfolios   PortfolioPortfolio[] @relation("ParentPortfolios")
   parentPortfolios  PortfolioPortfolio[] @relation("ChildPortfolios")
   starredBy         StarredPortfolio[]   @relation("PortfolioStars")
+  
+  portfolioMessages PortfolioMessage[]
 }
 
 model PortfolioProject {
@@ -416,6 +420,35 @@ model ProjectMessageReply {
 
   messageId String
   message   ProjectMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// --- YENİ MODEL: PORTFOLIO MESSAGES ---
+model PortfolioMessage {
+  id        String   @id @default(uuid())
+  subject   String?
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  portfolioId String
+  portfolio   Portfolio  @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  replies   PortfolioMessageReply[]
+}
+
+model PortfolioMessageReply {
+  id        String   @id @default(uuid())
+  text      String
+  createdAt DateTime @default(now())
+
+  messageId String
+  message   PortfolioMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)

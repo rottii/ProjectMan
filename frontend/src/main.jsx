@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import PublicDashboardView from './components/PublicDashboardView'
 import './index.css'
+import './i18n'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;

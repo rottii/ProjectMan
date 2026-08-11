@@ -1,7 +1,7 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from 'react';
 import RichTextEditor from './RichTextEditor';
 import { apiFetch } from '../api';
-
 const styles = {
   container: {
     padding: '24px 32px',
@@ -25,7 +25,8 @@ const styles = {
   },
   newMessageBtn: {
     padding: '8px 16px',
-    backgroundColor: '#4F46E5', // Indigo color matching primary buttons
+    backgroundColor: '#4F46E5',
+    // Indigo color matching primary buttons
     color: '#fff',
     border: 'none',
     borderRadius: '4px',
@@ -214,13 +215,18 @@ const styles = {
     color: 'var(--text-secondary)'
   }
 };
-
-export default function ProjectMessagesView({ selectedProject, token, currentUser }) {
+export default function ProjectMessagesView({
+  selectedProject,
+  token,
+  currentUser
+}) {
+  const {
+    t
+  } = useTranslation();
   const [messages, setMessages] = useState([]);
   const [isComposing, setIsComposing] = useState(false);
   const [newSubject, setNewSubject] = useState('');
   const [newBody, setNewBody] = useState('');
-  
   const [replyText, setReplyText] = useState({}); // messageId -> text
 
   const allUsers = React.useMemo(() => {
@@ -233,15 +239,15 @@ export default function ProjectMessagesView({ selectedProject, token, currentUse
     }
     return list;
   }, [selectedProject, currentUser]);
-
   useEffect(() => {
     fetchMessages();
   }, [selectedProject.id]);
-
   const fetchMessages = async () => {
     try {
       const res = await apiFetch(`/api/projects/${selectedProject.id}/messages`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       const data = await res.json();
       if (Array.isArray(data)) {
@@ -251,17 +257,19 @@ export default function ProjectMessagesView({ selectedProject, token, currentUse
       console.error(err);
     }
   };
-
   const handleSendMessage = async () => {
     if (!newBody.trim()) return;
     try {
       const res = await apiFetch(`/api/projects/${selectedProject.id}/messages`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ subject: newSubject, body: newBody })
+        body: JSON.stringify({
+          subject: newSubject,
+          body: newBody
+        })
       });
       if (res.ok) {
         const newMsg = await res.json();
@@ -274,89 +282,80 @@ export default function ProjectMessagesView({ selectedProject, token, currentUse
       console.error(err);
     }
   };
-
-  const handleSendReply = async (messageId) => {
+  const handleSendReply = async messageId => {
     const text = replyText[messageId];
     if (!text || !text.trim()) return;
-
     try {
       const res = await apiFetch(`/api/projects/${selectedProject.id}/messages/${messageId}/replies`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({
+          text
+        })
       });
       if (res.ok) {
         const newReply = await res.json();
         setMessages(prev => prev.map(msg => {
           if (msg.id === messageId) {
-            return { ...msg, replies: [...msg.replies, newReply] };
+            return {
+              ...msg,
+              replies: [...msg.replies, newReply]
+            };
           }
           return msg;
         }));
-        setReplyText(prev => ({ ...prev, [messageId]: '' }));
+        setReplyText(prev => ({
+          ...prev,
+          [messageId]: ''
+        }));
       }
     } catch (err) {
       console.error(err);
     }
   };
-
-  const formatDate = (dateStr) => {
+  const formatDate = dateStr => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
-
-  const getInitials = (name) => {
+  const getInitials = name => {
     if (!name) return '?';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
-
-  return (
-    <div style={styles.container}>
+  return <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>Messages</h2>
-        {!isComposing && (
-          <button style={styles.newMessageBtn} onClick={() => setIsComposing(true)}>
-            + New message
-          </button>
-        )}
+        <h2 style={styles.title}>{t("messages", "Messages")}</h2>
+        {!isComposing && <button style={styles.newMessageBtn} onClick={() => setIsComposing(true)}>{t("new_message", "+ New message")}</button>}
       </div>
 
-      {isComposing && (
-        <div style={styles.composerContainer}>
-          <input 
-            type="text" 
-            placeholder="Subject (optional)" 
-            style={styles.inputSubject}
-            value={newSubject}
-            onChange={(e) => setNewSubject(e.target.value)}
-          />
-          <RichTextEditor 
-            value={newBody}
-            onChange={(val) => setNewBody(val)}
-            users={allUsers}
-            minHeight="120px"
-          />
+      {isComposing && <div style={styles.composerContainer}>
+          <input type="text" placeholder={t("subject_optional", "Subject (optional)")} style={styles.inputSubject} value={newSubject} onChange={e => setNewSubject(e.target.value)} />
+          <RichTextEditor value={newBody} onChange={val => setNewBody(val)} users={allUsers} minHeight="120px" />
           <div style={styles.composerActions}>
-            <button style={styles.cancelBtn} onClick={() => setIsComposing(false)}>Cancel</button>
-            <button style={styles.submitBtn} onClick={handleSendMessage} disabled={!newBody.trim()}>Send</button>
+            <button style={styles.cancelBtn} onClick={() => setIsComposing(false)}>{t("cancel", "Cancel")}</button>
+            <button style={styles.submitBtn} onClick={handleSendMessage} disabled={!newBody.trim()}>{t("send", "Send")}</button>
           </div>
-        </div>
-      )}
+        </div>}
 
       <div className="messages-list">
-        {messages.length === 0 && !isComposing && (
-          <div style={styles.emptyState}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>💬</div>
-            <h3>Start a conversation</h3>
-            <p>Send a message to update your team, make an announcement, or share an idea.</p>
-          </div>
-        )}
+        {messages.length === 0 && !isComposing && <div style={styles.emptyState}>
+            <div style={{
+          fontSize: '48px',
+          marginBottom: '16px'
+        }}>💬</div>
+            <h3>{t("start_a_conversation", "Start a conversation")}</h3>
+            <p>{t("send_a_message_to_update_your_team_make_an_announc", "Send a message to update your team, make an announcement, or share an idea.")}</p>
+          </div>}
 
-        {messages.map(msg => (
-          <div key={msg.id} style={styles.messageCard}>
+        {messages.map(msg => <div key={msg.id} style={styles.messageCard}>
             <div style={styles.messageHeader}>
               <div style={styles.avatar}>{getInitials(msg.user?.name)}</div>
               <div>
@@ -366,42 +365,41 @@ export default function ProjectMessagesView({ selectedProject, token, currentUse
             </div>
             
             {msg.subject && <h3 style={styles.messageSubject}>{msg.subject}</h3>}
-            <div className="rich-text-content" style={styles.messageBody} dangerouslySetInnerHTML={{ __html: msg.body }} />
+            <div className="rich-text-content" style={styles.messageBody} dangerouslySetInnerHTML={{
+          __html: msg.body
+        }} />
 
             <div style={styles.repliesSection}>
-              {msg.replies && msg.replies.map(reply => (
-                <div key={reply.id} style={styles.replyCard}>
+              {msg.replies && msg.replies.map(reply => <div key={reply.id} style={styles.replyCard}>
                   <div style={styles.replyAvatar}>{getInitials(reply.user?.name)}</div>
                   <div style={styles.replyContent}>
-                    <p style={styles.replyAuthor}>{reply.user?.name || 'Unknown User'} <span style={{fontWeight: 'normal', color: 'var(--text-secondary)', marginLeft: 8}}>{formatDate(reply.createdAt)}</span></p>
-                    <div className="rich-text-content" style={styles.replyText} dangerouslySetInnerHTML={{ __html: reply.text }} />
+                    <p style={styles.replyAuthor}>{reply.user?.name || 'Unknown User'} <span style={{
+                  fontWeight: 'normal',
+                  color: 'var(--text-secondary)',
+                  marginLeft: 8
+                }}>{formatDate(reply.createdAt)}</span></p>
+                    <div className="rich-text-content" style={styles.replyText} dangerouslySetInnerHTML={{
+                __html: reply.text
+              }} />
                   </div>
-                </div>
-              ))}
+                </div>)}
 
               <div style={styles.replyComposer}>
-                <div style={styles.replyAvatar}>Me</div>
+                <div style={styles.replyAvatar}>{t("me", "Me")}</div>
                 <div style={styles.replyInputContainer}>
-                  <RichTextEditor
-                    value={replyText[msg.id] || ''}
-                    onChange={(val) => setReplyText(prev => ({ ...prev, [msg.id]: val }))}
-                    users={allUsers}
-                    minHeight="60px"
-                    placeholder="Write a reply..."
-                  />
-                  <button 
-                    style={{...styles.submitBtn, padding: '6px 12px', fontSize: '0.85rem'}} 
-                    onClick={() => handleSendReply(msg.id)}
-                    disabled={!(replyText[msg.id] || '').trim()}
-                  >
-                    Reply
-                  </button>
+                  <RichTextEditor value={replyText[msg.id] || ''} onChange={val => setReplyText(prev => ({
+                ...prev,
+                [msg.id]: val
+              }))} users={allUsers} minHeight="60px" placeholder={t("write_a_reply", "Write a reply...")} />
+                  <button style={{
+                ...styles.submitBtn,
+                padding: '6px 12px',
+                fontSize: '0.85rem'
+              }} onClick={() => handleSendReply(msg.id)} disabled={!(replyText[msg.id] || '').trim()}>{t("reply", "Reply")}</button>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          </div>)}
       </div>
-    </div>
-  );
+    </div>;
 }

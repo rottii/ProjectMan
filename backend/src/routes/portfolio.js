@@ -384,4 +384,73 @@ router.post('/:id/star', authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/portfolios/:id/messages
+router.get('/:id/messages', authenticateToken, async (req, res) => {
+  try {
+    const messages = await prisma.portfolioMessage.findMany({
+      where: { portfolioId: req.params.id },
+      include: {
+        user: true,
+        replies: {
+          include: { user: true },
+          orderBy: { createdAt: 'asc' }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(messages);
+  } catch (err) {
+    console.error("Error fetching portfolio messages:", err);
+    res.status(500).json({ error: 'Mesajlar alınamadı.' });
+  }
+});
+
+// POST /api/portfolios/:id/messages
+router.post('/:id/messages', authenticateToken, async (req, res) => {
+  try {
+    const { subject, body } = req.body;
+    if (!body) return res.status(400).json({ error: 'Mesaj içeriği gereklidir.' });
+
+    const message = await prisma.portfolioMessage.create({
+      data: {
+        subject,
+        body,
+        portfolioId: req.params.id,
+        userId: req.user.userId
+      },
+      include: {
+        user: true,
+        replies: true
+      }
+    });
+    res.status(201).json(message);
+  } catch (err) {
+    console.error("Error creating portfolio message:", err);
+    res.status(500).json({ error: 'Mesaj oluşturulamadı.' });
+  }
+});
+
+// POST /api/portfolios/:id/messages/:messageId/replies
+router.post('/:id/messages/:messageId/replies', authenticateToken, async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ error: 'Yanıt metni gereklidir.' });
+
+    const reply = await prisma.portfolioMessageReply.create({
+      data: {
+        text,
+        messageId: req.params.messageId,
+        userId: req.user.userId
+      },
+      include: {
+        user: true
+      }
+    });
+    res.status(201).json(reply);
+  } catch (err) {
+    console.error("Error adding reply to portfolio message:", err);
+    res.status(500).json({ error: 'Yanıt eklenemedi.' });
+  }
+});
+
 module.exports = router;

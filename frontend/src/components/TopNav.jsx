@@ -2,15 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import './TopNav.css';
 import QuickAddTaskModal from './QuickAddTaskModal';
 import { apiFetch } from '../api';
-
-export default function TopNav({ 
-  isSidebarCollapsed, 
-  setIsSidebarCollapsed, 
-  projects, 
+import { useTranslation } from 'react-i18next';
+export default function TopNav({
+  isSidebarCollapsed,
+  setIsSidebarCollapsed,
+  projects,
   setProjects,
   selectedProject,
-  setActiveView, 
-  handleSelectProject, 
+  setActiveView,
+  handleSelectProject,
   token,
   user,
   handleLogout,
@@ -20,21 +20,28 @@ export default function TopNav({
   activeWorkspaceId,
   setActiveWorkspaceId
 }) {
+  const {
+    t
+  } = useTranslation();
   const [showOmniCreate, setShowOmniCreate] = useState(false);
   const [showQuickAddTask, setShowQuickAddTask] = useState(false);
-
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState({ tasks: [], projects: [], users: [], portfolios: [], goals: [] });
+  const [searchResults, setSearchResults] = useState({
+    tasks: [],
+    projects: [],
+    users: [],
+    portfolios: [],
+    goals: []
+  });
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
-
   const createRef = useRef(null);
   const searchRef = useRef(null);
   const searchTimeoutRef = useRef(null);
 
   // Close dropdowns on outside click
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    const handleClickOutside = e => {
       if (createRef.current && !createRef.current.contains(e.target)) {
         setShowOmniCreate(false);
       }
@@ -49,18 +56,24 @@ export default function TopNav({
   // Debounced search
   useEffect(() => {
     if (searchQuery.trim().length < 2) {
-      setSearchResults({ tasks: [], projects: [], users: [], portfolios: [], goals: [] });
+      setSearchResults({
+        tasks: [],
+        projects: [],
+        users: [],
+        portfolios: [],
+        goals: []
+      });
       setIsSearching(false);
       return;
     }
-
     setIsSearching(true);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-
     searchTimeoutRef.current = setTimeout(async () => {
       try {
         const response = await apiFetch(`/api/search?q=${encodeURIComponent(searchQuery)}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         });
         if (response.ok) {
           const data = await response.json();
@@ -73,14 +86,11 @@ export default function TopNav({
         setIsSearching(false);
       }
     }, 400);
-
     return () => clearTimeout(searchTimeoutRef.current);
   }, [searchQuery, token]);
-
   const handleSearchResultClick = (type, item) => {
     setShowSearchDropdown(false);
     setSearchQuery('');
-    
     if (type === 'project') {
       const p = projects.find(proj => proj.id === item.id);
       if (p) {
@@ -102,8 +112,7 @@ export default function TopNav({
       setActiveView('goals');
     }
   };
-
-  const handleOmniAction = (action) => {
+  const handleOmniAction = action => {
     setShowOmniCreate(false);
     if (action === 'task') {
       setShowQuickAddTask(true);
@@ -115,167 +124,132 @@ export default function TopNav({
       setActiveView('goals');
     }
   };
-
-  const hasSearchResults = 
-    searchResults.tasks.length > 0 || 
-    searchResults.projects.length > 0 || 
-    searchResults.users.length > 0 || 
-    searchResults.portfolios.length > 0 || 
-    searchResults.goals.length > 0;
-
+  const hasSearchResults = searchResults.tasks.length > 0 || searchResults.projects.length > 0 || searchResults.users.length > 0 || searchResults.portfolios.length > 0 || searchResults.goals.length > 0;
   const toggleDarkMode = () => {
     const newVal = !isDarkMode;
     setIsDarkMode(newVal);
     localStorage.setItem('darkMode', newVal.toString());
   };
-
-  return (
-    <>
+  return <>
       <div className="topnav-container">
         <div className="topnav-left">
-          <button 
-            className="topnav-hamburger" 
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          >
+          <button className="topnav-hamburger" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
             ≡
           </button>
           
-          <div style={{ position: 'relative' }} ref={createRef}>
+          <div style={{
+          position: 'relative'
+        }} ref={createRef}>
             <button className="topnav-create-btn" onClick={() => setShowOmniCreate(!showOmniCreate)}>
-              <span className="create-icon">+</span> Create
-            </button>
-            {showOmniCreate && (
-              <div className="omni-create-dropdown">
-                <div className="omni-create-item" onClick={() => handleOmniAction('task')}>✅ Task</div>
-                <div className="omni-create-item" onClick={() => handleOmniAction('project')}>📋 Project</div>
-                <div className="omni-create-item" onClick={() => handleOmniAction('portfolio')}>📁 Portfolio</div>
-                <div className="omni-create-item" onClick={() => handleOmniAction('goal')}>🎯 Goal</div>
-              </div>
-            )}
+              <span className="create-icon">+</span>{t("create", "Create")}</button>
+            {showOmniCreate && <div className="omni-create-dropdown">
+                <div className="omni-create-item" onClick={() => handleOmniAction('task')}>{t("task", "\u2705 Task")}</div>
+                <div className="omni-create-item" onClick={() => handleOmniAction('project')}>{t("project", "\uD83D\uDCCB Project")}</div>
+                <div className="omni-create-item" onClick={() => handleOmniAction('portfolio')}>{t("portfolio", "\uD83D\uDCC1 Portfolio")}</div>
+                <div className="omni-create-item" onClick={() => handleOmniAction('goal')}>{t("goal", "\uD83C\uDFAF Goal")}</div>
+              </div>}
           </div>
 
         </div>
         
         <div className="topnav-center">
-          <div className="topnav-search-bar" ref={searchRef} style={{ position: 'relative' }}>
+          <div className="topnav-search-bar" ref={searchRef} style={{
+          position: 'relative'
+        }}>
             <span className="search-icon">🔍</span>
-            <input 
-              type="text" 
-              placeholder="Search tasks, projects, people..." 
-              className="topnav-search-input" 
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                if (e.target.value.trim().length >= 2) setShowSearchDropdown(true);
-              }}
-              onFocus={() => {
-                if (searchQuery.trim().length >= 2) setShowSearchDropdown(true);
-              }}
-            />
-            {isSearching && <span style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', position: 'absolute', right: '16px' }}>Searching...</span>}
+            <input type="text" placeholder={t('search')} className="topnav-search-input" value={searchQuery} onChange={e => {
+            setSearchQuery(e.target.value);
+            if (e.target.value.trim().length >= 2) setShowSearchDropdown(true);
+          }} onFocus={() => {
+            if (searchQuery.trim().length >= 2) setShowSearchDropdown(true);
+          }} />
+            {isSearching && <span style={{
+            color: 'var(--text-tertiary)',
+            fontSize: '0.8rem',
+            position: 'absolute',
+            right: '16px'
+          }}>{t("searching", "Searching...")}</span>}
             
-            {showSearchDropdown && hasSearchResults && (
-              <div className="search-dropdown">
-                {searchResults.projects.length > 0 && (
-                  <div>
-                    <div className="search-group-title">Projects</div>
-                    {searchResults.projects.map(p => (
-                      <div key={`p-${p.id}`} className="search-item" onClick={() => handleSearchResultClick('project', p)}>
+            {showSearchDropdown && hasSearchResults && <div className="search-dropdown">
+                {searchResults.projects.length > 0 && <div>
+                    <div className="search-group-title">{t('projects')}</div>
+                    {searchResults.projects.map(p => <div key={`p-${p.id}`} className="search-item" onClick={() => handleSearchResultClick('project', p)}>
                         📋 {p.name}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      </div>)}
+                  </div>}
                 
-                {searchResults.tasks.length > 0 && (
-                  <div>
-                    <div className="search-group-title">Tasks</div>
-                    {searchResults.tasks.map(t => (
-                      <div key={`t-${t.id}`} className="search-item" onClick={() => handleSearchResultClick('task', t)}>
+                {searchResults.tasks.length > 0 && <div>
+                    <div className="search-group-title">{t('tasks')}</div>
+                    {searchResults.tasks.map(t => <div key={`t-${t.id}`} className="search-item" onClick={() => handleSearchResultClick('task', t)}>
                         ✅ {t.title} <span className="search-item-meta">{t.section?.project?.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      </div>)}
+                  </div>}
                 
-                {searchResults.users.length > 0 && (
-                  <div>
-                    <div className="search-group-title">People</div>
-                    {searchResults.users.map(u => (
-                      <div key={`u-${u.id}`} className="search-item" onClick={() => handleSearchResultClick('user', u)}>
+                {searchResults.users.length > 0 && <div>
+                    <div className="search-group-title">{t('users')}</div>
+                    {searchResults.users.map(u => <div key={`u-${u.id}`} className="search-item" onClick={() => handleSearchResultClick('user', u)}>
                         👤 {u.name} <span className="search-item-meta">{u.email}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      </div>)}
+                  </div>}
 
-                {searchResults.portfolios.length > 0 && (
-                  <div>
-                    <div className="search-group-title">Portfolios</div>
-                    {searchResults.portfolios.map(p => (
-                      <div key={`port-${p.id}`} className="search-item" onClick={() => handleSearchResultClick('portfolio', p)}>
+                {searchResults.portfolios.length > 0 && <div>
+                    <div className="search-group-title">{t('portfolios')}</div>
+                    {searchResults.portfolios.map(p => <div key={`port-${p.id}`} className="search-item" onClick={() => handleSearchResultClick('portfolio', p)}>
                         📁 {p.name}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      </div>)}
+                  </div>}
 
-                {searchResults.goals.length > 0 && (
-                  <div>
-                    <div className="search-group-title">Goals</div>
-                    {searchResults.goals.map(g => (
-                      <div key={`g-${g.id}`} className="search-item" onClick={() => handleSearchResultClick('goal', g)}>
+                {searchResults.goals.length > 0 && <div>
+                    <div className="search-group-title">{t('goals')}</div>
+                    {searchResults.goals.map(g => <div key={`g-${g.id}`} className="search-item" onClick={() => handleSearchResultClick('goal', g)}>
                         🎯 {g.title} <span className="search-item-meta">{g.status}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+                      </div>)}
+                  </div>}
+              </div>}
           </div>
         </div>
-        <div className="topnav-right" style={{ display: 'flex', justifyContent: 'flex-end', position: 'relative' }}>
+        <div className="topnav-right" style={{
+        display: 'flex',
+        justifyContent: 'flex-end',
+        position: 'relative'
+      }}>
           {/* User profile menu moved to Sidebar */}
         </div>
       </div>
 
-      {showQuickAddTask && (
-        <QuickAddTaskModal 
-          projects={projects || []}
-          token={token}
-          onClose={() => setShowQuickAddTask(false)}
-          onTaskCreated={(task) => {
-            console.log("Quick added task:", task);
-            if (task.section && task.section.projectId) {
-              let updatedCurrentProject = null;
-              
-              const updatedProjects = projects.map(p => {
-                if (p.id === task.section.projectId) {
-                  const updatedSections = p.sections.map(s => {
-                    if (s.id === task.sectionId) {
-                      return { ...s, tasks: [...(s.tasks || []), task] };
-                    }
-                    return s;
-                  });
-                  const updatedProj = { ...p, sections: updatedSections };
-                  if (selectedProject && selectedProject.id === p.id) {
-                    updatedCurrentProject = updatedProj;
-                  }
-                  return updatedProj;
-                }
-                return p;
-              });
-              setProjects(updatedProjects);
-              
-              if (updatedCurrentProject) {
-                handleSelectProject(updatedCurrentProject);
-              } else {
-                alert(`Task created in ${task.section?.project?.name || 'project'}`);
+      {showQuickAddTask && <QuickAddTaskModal projects={projects || []} token={token} onClose={() => setShowQuickAddTask(false)} onTaskCreated={task => {
+      console.log("Quick added task:", task);
+      if (task.section && task.section.projectId) {
+        let updatedCurrentProject = null;
+        const updatedProjects = projects.map(p => {
+          if (p.id === task.section.projectId) {
+            const updatedSections = p.sections.map(s => {
+              if (s.id === task.sectionId) {
+                return {
+                  ...s,
+                  tasks: [...(s.tasks || []), task]
+                };
               }
+              return s;
+            });
+            const updatedProj = {
+              ...p,
+              sections: updatedSections
+            };
+            if (selectedProject && selectedProject.id === p.id) {
+              updatedCurrentProject = updatedProj;
             }
-          }}
-        />
-      )}
-    </>
-  );
+            return updatedProj;
+          }
+          return p;
+        });
+        setProjects(updatedProjects);
+        if (updatedCurrentProject) {
+          handleSelectProject(updatedCurrentProject);
+        } else {
+          alert(`Task created in ${task.section?.project?.name || 'project'}`);
+        }
+      }
+    }} />}
+    </>;
 }

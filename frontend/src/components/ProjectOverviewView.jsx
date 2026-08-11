@@ -1,30 +1,63 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useRef, useEffect } from 'react';
 import RichTextEditor from './RichTextEditor';
 import UserAvatar from './UserAvatar';
 import { apiFetch } from '../api';
-
-const statusConfig = {
-  NONE: { color: 'var(--text-tertiary)', label: 'Set status', desc: 'No status set. Click to update.' },
-  ON_TRACK: { color: 'var(--accent-success)', label: 'On track', desc: 'Everything is running smoothly.' },
-  AT_RISK: { color: '#F59E0B', label: 'At risk', desc: 'There are some concerns.' },
-  OFF_TRACK: { color: 'var(--accent-danger)', label: 'Off track', desc: 'Requires immediate attention.' },
-  ON_HOLD: { color: 'var(--text-secondary)', label: 'On hold', desc: 'Project is paused.' },
-  COMPLETE: { color: 'var(--accent-primary)', label: 'Complete', desc: 'Project is finished.' }
-};
-
-export default function ProjectOverviewView({ selectedProject, projectRole, isReadOnly, token, currentUser, onUpdate, onOpenShareModal }) {
+export default function ProjectOverviewView({
+  selectedProject,
+  projectRole,
+  isReadOnly,
+  token,
+  currentUser,
+  onUpdate,
+  onOpenShareModal
+}) {
+  const {
+    t
+  } = useTranslation();
+  
+  const statusConfig = {
+    NONE: {
+      color: 'var(--text-tertiary)',
+      label: t('set_status', 'Set status'),
+      desc: t('no_status_set', 'No status set. Click to update.')
+    },
+    ON_TRACK: {
+      color: 'var(--accent-success)',
+      label: t('on_track', 'On track'),
+      desc: t('everything_is_running_smoothly', 'Everything is running smoothly.')
+    },
+    AT_RISK: {
+      color: '#F59E0B',
+      label: t('at_risk', 'At risk'),
+      desc: t('there_are_some_concerns', 'There are some concerns.')
+    },
+    OFF_TRACK: {
+      color: 'var(--accent-danger)',
+      label: t('off_track', 'Off track'),
+      desc: t('requires_immediate_attention', 'Requires immediate attention.')
+    },
+    ON_HOLD: {
+      color: 'var(--text-secondary)',
+      label: t('on_hold', 'On hold'),
+      desc: t('project_is_paused', 'Project is paused.')
+    },
+    COMPLETE: {
+      color: 'var(--accent-primary)',
+      label: t('complete', 'Complete'),
+      desc: t('project_is_finished', 'Project is finished.')
+    }
+  };
   const [isEditingDesc, setIsEditingDesc] = useState(false);
   const [descInput, setDescInput] = useState(selectedProject.description || '');
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const statusMenuRef = useRef(null);
-
   const [isEditingGithub, setIsEditingGithub] = useState(false);
   const [githubInput, setGithubInput] = useState(selectedProject.githubRepo || '');
   const [githubDetails, setGithubDetails] = useState(null);
   const [isHoveringStatus, setIsHoveringStatus] = useState(false);
   const [isSyncingPRs, setIsSyncingPRs] = useState(false);
   const [includeClosedPRs, setIncludeClosedPRs] = useState(false);
-
   const allUsers = React.useMemo(() => {
     let list = selectedProject?.members?.map(m => m.user) || [];
     if (selectedProject?.owner && !list.find(u => u.id === selectedProject.owner.id)) {
@@ -35,23 +68,18 @@ export default function ProjectOverviewView({ selectedProject, projectRole, isRe
     }
     return list;
   }, [selectedProject, currentUser]);
-
   useEffect(() => {
     if (selectedProject.githubRepo && !isEditingGithub) {
       let repoPath = selectedProject.githubRepo.replace('https://github.com/', '').trim();
-      fetch(`https://api.github.com/repos/${repoPath}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data && !data.message) {
-            setGithubDetails(data);
-          }
-        })
-        .catch(err => console.error(err));
+      fetch(`https://api.github.com/repos/${repoPath}`).then(res => res.json()).then(data => {
+        if (data && !data.message) {
+          setGithubDetails(data);
+        }
+      }).catch(err => console.error(err));
     }
   }, [selectedProject.githubRepo, isEditingGithub]);
-
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    const handleClickOutside = e => {
       if (statusMenuRef.current && !statusMenuRef.current.contains(e.target)) {
         setIsStatusMenuOpen(false);
       }
@@ -59,14 +87,18 @@ export default function ProjectOverviewView({ selectedProject, projectRole, isRe
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const handleUpdateStatus = async (newStatus) => {
+  const handleUpdateStatus = async newStatus => {
     if (isReadOnly) return;
     try {
       const response = await apiFetch(`/api/projects/${selectedProject.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ status: newStatus })
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          status: newStatus
+        })
       });
       const data = await response.json();
       if (response.ok && onUpdate) {
@@ -77,14 +109,18 @@ export default function ProjectOverviewView({ selectedProject, projectRole, isRe
       console.error(err);
     }
   };
-
   const handleSaveDescription = async () => {
     if (isReadOnly) return;
     try {
       const response = await apiFetch(`/api/projects/${selectedProject.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ description: descInput.trim() })
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          description: descInput.trim()
+        })
       });
       const data = await response.json();
       if (response.ok && onUpdate) {
@@ -95,12 +131,12 @@ export default function ProjectOverviewView({ selectedProject, projectRole, isRe
       console.error(err);
     }
   };
-
   const handleSaveGithub = async () => {
     if (isReadOnly) return;
     try {
-      const updates = { githubRepo: githubInput.trim() };
-      
+      const updates = {
+        githubRepo: githubInput.trim()
+      };
       if (updates.githubRepo && updates.githubRepo !== '') {
         const hasGithubField = selectedProject.customFieldSettings?.some(f => f.type === 'github_pr');
         if (!hasGithubField) {
@@ -113,10 +149,12 @@ export default function ProjectOverviewView({ selectedProject, projectRole, isRe
           updates.customFieldSettings = [...(selectedProject.customFieldSettings || []), newField];
         }
       }
-
       const response = await apiFetch(`/api/projects/${selectedProject.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(updates)
       });
       const data = await response.json();
@@ -128,7 +166,6 @@ export default function ProjectOverviewView({ selectedProject, projectRole, isRe
       console.error(err);
     }
   };
-
   const handleSyncGithubPRs = async () => {
     if (isReadOnly || !selectedProject.githubRepo) return;
     setIsSyncingPRs(true);
@@ -136,7 +173,6 @@ export default function ProjectOverviewView({ selectedProject, projectRole, isRe
       // Ensure custom field exists
       let customFields = selectedProject.customFieldSettings || [];
       const hasGithubField = customFields.some(f => f.type === 'github_pr');
-      
       if (!hasGithubField) {
         const newField = {
           id: Date.now().toString(),
@@ -147,99 +183,104 @@ export default function ProjectOverviewView({ selectedProject, projectRole, isRe
         customFields = [...customFields, newField];
         const resFields = await apiFetch(`/api/projects/${selectedProject.id}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ customFieldSettings: customFields })
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            customFieldSettings: customFields
+          })
         });
         if (resFields.ok) {
-           const projData = await resFields.json();
-           if (onUpdate) onUpdate(projData);
+          const projData = await resFields.json();
+          if (onUpdate) onUpdate(projData);
         }
       }
-
       const prsResponse = await apiFetch(`/api/github/prs`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repoUrl: selectedProject.githubRepo, includeClosed: includeClosedPRs })
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          repoUrl: selectedProject.githubRepo,
+          includeClosed: includeClosedPRs
+        })
       });
-      
       if (!prsResponse.ok) throw new Error('Failed to fetch PRs');
-      
       const prs = await prsResponse.json();
-      
+
       // Find already synced PRs
       const existingSyncedPRUrls = new Set();
       if (selectedProject.sections) {
         selectedProject.sections.forEach(section => {
           if (section.tasks) {
             section.tasks.forEach(task => {
-               if (task.githubPRs) {
-                 try {
-                   const prsData = typeof task.githubPRs === 'string' ? JSON.parse(task.githubPRs) : task.githubPRs;
-                   if (Array.isArray(prsData)) {
-                     prsData.forEach(p => existingSyncedPRUrls.add(p.url));
-                   }
-                 } catch (e) {
-                   // ignore parse errors
-                 }
-               }
+              if (task.githubPRs) {
+                try {
+                  const prsData = typeof task.githubPRs === 'string' ? JSON.parse(task.githubPRs) : task.githubPRs;
+                  if (Array.isArray(prsData)) {
+                    prsData.forEach(p => existingSyncedPRUrls.add(p.url));
+                  }
+                } catch (e) {
+                  // ignore parse errors
+                }
+              }
             });
           }
         });
       }
-
       const newPrs = prs.filter(pr => !existingSyncedPRUrls.has(pr.url));
-
       if (newPrs.length === 0) {
-         alert("No new PRs found to sync.");
-         setIsSyncingPRs(false);
-         return;
+        alert("No new PRs found to sync.");
+        setIsSyncingPRs(false);
+        return;
       }
-      
       const targetSectionId = selectedProject.sections?.[0]?.id;
       if (!targetSectionId) {
-         alert("No section found to add tasks.");
-         setIsSyncingPRs(false);
-         return;
+        alert("No section found to add tasks.");
+        setIsSyncingPRs(false);
+        return;
       }
-
       for (const pr of newPrs) {
-         let title = pr.title;
-         // Strip 'Auto-implemented task: ' prefix if it exists
-         if (title.toLowerCase().startsWith('auto-implemented task:')) {
-           title = title.replace(/^auto-implemented task:\s*/i, '');
-         }
-         
-         const description = pr.body || '';
-         const githubPRData = JSON.stringify([pr]);
-         const isCompleted = pr.state === 'closed';
-
-         const startDate = pr.createdAt || null;
-         let dueDate = null;
-         if (isCompleted) {
-            dueDate = pr.mergedAt || pr.closedAt || null;
-         }
-
-         await apiFetch('/api/projects/tasks', {
-           method: 'POST',
-           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-           body: JSON.stringify({
-              title,
-              description,
-              sectionId: targetSectionId,
-              githubPRs: githubPRData,
-              isCompleted,
-              startDate,
-              dueDate
-           })
-         });
+        let title = pr.title;
+        // Strip 'Auto-implemented task: ' prefix if it exists
+        if (title.toLowerCase().startsWith('auto-implemented task:')) {
+          title = title.replace(/^auto-implemented task:\s*/i, '');
+        }
+        const description = pr.body || '';
+        const githubPRData = JSON.stringify([pr]);
+        const isCompleted = pr.state === 'closed';
+        const startDate = pr.createdAt || null;
+        let dueDate = null;
+        if (isCompleted) {
+          dueDate = pr.mergedAt || pr.closedAt || null;
+        }
+        await apiFetch('/api/projects/tasks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            sectionId: targetSectionId,
+            githubPRs: githubPRData,
+            isCompleted,
+            startDate,
+            dueDate
+          })
+        });
       }
-
       alert(`Successfully synced ${prs.length} PRs as tasks.`);
-      
-      const getProjRes = await apiFetch(`/api/projects/${selectedProject.id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const getProjRes = await apiFetch(`/api/projects/${selectedProject.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (getProjRes.ok) {
-         const refreshedProject = await getProjRes.json();
-         if (onUpdate) onUpdate(refreshedProject);
+        const refreshedProject = await getProjRes.json();
+        if (onUpdate) onUpdate(refreshedProject);
       }
     } catch (err) {
       console.error(err);
@@ -248,15 +289,19 @@ export default function ProjectOverviewView({ selectedProject, projectRole, isRe
       setIsSyncingPRs(false);
     }
   };
-
-  const handleToggleAutoCode = async (e) => {
+  const handleToggleAutoCode = async e => {
     if (isReadOnly) return;
     const newValue = e.target.checked;
     try {
       const response = await apiFetch(`/api/projects/${selectedProject.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ allowAutoCodeOnPR: newValue })
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          allowAutoCodeOnPR: newValue
+        })
       });
       const data = await response.json();
       if (response.ok && onUpdate) {
@@ -268,196 +313,389 @@ export default function ProjectOverviewView({ selectedProject, projectRole, isRe
   };
 
   // Format roles from UPPERCASE to Title Case
-  const formatRole = (role) => {
+  const formatRole = role => {
     if (!role) return '';
     return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
   };
 
   // Members list calculation
-  const allMembers = [
-    { ...selectedProject.owner, role: 'Owner' },
-    ...(selectedProject.members || []).map(m => ({ ...m.user, role: formatRole(m.role) }))
-  ];
-  
-  // Deduplicate by user id so the owner isn't listed twice
-  const members = allMembers.filter((member, index, self) => 
-    index === self.findIndex((t) => t.id === member.id)
-  );
+  const allMembers = [{
+    ...selectedProject.owner,
+    role: 'Owner'
+  }, ...(selectedProject.members || []).map(m => ({
+    ...m.user,
+    role: formatRole(m.role)
+  }))];
 
-  return (
-    <div style={styles.overviewContainer}>
+  // Deduplicate by user id so the owner isn't listed twice
+  const members = allMembers.filter((member, index, self) => index === self.findIndex(t => t.id === member.id));
+  return <div style={styles.overviewContainer}>
       <div style={styles.mainContent}>
         {/* Project Details Section */}
         <div style={styles.sectionCard}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 style={{ ...styles.sectionTitle, marginBottom: 0 }}>Project description</h2>
-            {!isReadOnly && selectedProject.description && !isEditingDesc && (
-              <button style={styles.editBtn} onClick={() => { setDescInput(selectedProject.description); setIsEditingDesc(true); }}>Edit</button>
-            )}
+          <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1rem'
+        }}>
+            <h2 style={{
+            ...styles.sectionTitle,
+            marginBottom: 0
+          }}>{t("project_description", "Project description")}</h2>
+            {!isReadOnly && selectedProject.description && !isEditingDesc && <button style={styles.editBtn} onClick={() => {
+            setDescInput(selectedProject.description);
+            setIsEditingDesc(true);
+          }}>{t("edit", "Edit")}</button>}
           </div>
           <div style={styles.descriptionBox}>
-            {isEditingDesc ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <RichTextEditor
-                    value={descInput}
-                    onChange={setDescInput}
-                    users={allUsers}
-                    minHeight="200px"
-                    autoFocus
-                  /><div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                  <button style={styles.cancelBtn} onClick={() => { setIsEditingDesc(false); setDescInput(selectedProject.description || ''); }}>Cancel</button>
-                  <button style={styles.saveBtn} onClick={handleSaveDescription}>Save</button>
+            {isEditingDesc ? <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem'
+          }}>
+                  <RichTextEditor value={descInput} onChange={setDescInput} users={allUsers} minHeight="200px" autoFocus /><div style={{
+              display: 'flex',
+              gap: '0.5rem',
+              justifyContent: 'flex-end'
+            }}>
+                  <button style={styles.cancelBtn} onClick={() => {
+                setIsEditingDesc(false);
+                setDescInput(selectedProject.description || '');
+              }}>{t("cancel", "Cancel")}</button>
+                  <button style={styles.saveBtn} onClick={handleSaveDescription}>{t("save", "Save")}</button>
                 </div>
-              </div>
-            ) : selectedProject.description ? (
-              <div className="rich-text-content" style={{ color: 'var(--text-primary)', fontSize: '0.95rem', lineHeight: '1.5', wordBreak: 'break-word', overflowWrap: 'break-word' }} dangerouslySetInnerHTML={{ __html: selectedProject.description }} />
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2rem 0', color: '#9CA3AF' }}>
-                <span style={{ fontSize: '2rem', marginBottom: '1rem' }}>📝</span>
-                <p>Welcome your team and set the tone for how you'll work together in this project.</p>
-                {!isReadOnly && <button style={styles.addDescriptionBtn} onClick={() => { setDescInput(''); setIsEditingDesc(true); }}>Add description</button>}
-              </div>
-            )}
+              </div> : selectedProject.description ? <div className="rich-text-content" style={{
+            color: 'var(--text-primary)',
+            fontSize: '0.95rem',
+            lineHeight: '1.5',
+            wordBreak: 'break-word',
+            overflowWrap: 'break-word'
+          }} dangerouslySetInnerHTML={{
+            __html: selectedProject.description
+          }} /> : <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            padding: '2rem 0',
+            color: '#9CA3AF'
+          }}>
+                <span style={{
+              fontSize: '2rem',
+              marginBottom: '1rem'
+            }}>📝</span>
+                <p>{t("welcome_your_team_and_set_the_tone_for_how_you_ll_", "Welcome your team and set the tone for how you'll work together in this project.")}</p>
+                {!isReadOnly && <button style={styles.addDescriptionBtn} onClick={() => {
+              setDescInput('');
+              setIsEditingDesc(true);
+            }}>{t("add_description", "Add description")}</button>}
+              </div>}
           </div>
         </div>
 
         {/* Key Resources Section */}
         <div style={styles.sectionCard}>
-          <h2 style={styles.sectionTitle}>Key resources</h2>
+          <h2 style={styles.sectionTitle}>{t("key_resources", "Key resources")}</h2>
           <div style={styles.resourcesGrid}>
             <div style={styles.resourceItem}>
               <div style={styles.resourceIcon}>📎</div>
               <div>
-                <div style={styles.resourceName}>Project Brief</div>
-                <div style={styles.resourceMeta}>Created by {selectedProject.owner?.name}</div>
+                <div style={styles.resourceName}>{t("project_brief", "Project Brief")}</div>
+                <div style={styles.resourceMeta}>{t("created_by", "Created by")}{selectedProject.owner?.name}</div>
               </div>
             </div>
-            {!isReadOnly && (
-              <div style={{ ...styles.resourceItem, ...styles.resourceItemAdd }}>
-                <div style={{ fontSize: '1.2rem', color: 'var(--text-secondary)' }}>+</div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>Add resource</div>
-              </div>
-            )}
+            {!isReadOnly && <div style={{
+            ...styles.resourceItem,
+            ...styles.resourceItemAdd
+          }}>
+                <div style={{
+              fontSize: '1.2rem',
+              color: 'var(--text-secondary)'
+            }}>+</div>
+                <div style={{
+              fontSize: '0.9rem',
+              color: 'var(--text-secondary)',
+              fontWeight: '500'
+            }}>{t("add_resource", "Add resource")}</div>
+              </div>}
           </div>
         </div>
 
         {/* GitHub Integration Section */}
         <div style={styles.sectionCard}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 style={{ ...styles.sectionTitle, marginBottom: 0 }}>GitHub Integration</h2>
-            {!isReadOnly && selectedProject.githubRepo && !isEditingGithub && (
-              <button style={styles.editBtn} onClick={() => { setGithubInput(selectedProject.githubRepo); setIsEditingGithub(true); }}>Edit</button>
-            )}
+          <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1rem'
+        }}>
+            <h2 style={{
+            ...styles.sectionTitle,
+            marginBottom: 0
+          }}>{t("github_integration", "GitHub Integration")}</h2>
+            {!isReadOnly && selectedProject.githubRepo && !isEditingGithub && <button style={styles.editBtn} onClick={() => {
+            setGithubInput(selectedProject.githubRepo);
+            setIsEditingGithub(true);
+          }}>{t("edit", "Edit")}</button>}
           </div>
           <div style={styles.descriptionBox}>
-            {isEditingGithub ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <input
-                  type="text"
-                  placeholder="e.g. koala73/worldmonitor or https://github.com/koala73/worldmonitor"
-                  value={githubInput}
-                  onChange={(e) => setGithubInput(e.target.value)}
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', outline: 'none' }}
-                />
-                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-                  <button style={styles.cancelBtn} onClick={() => { setIsEditingGithub(false); setGithubInput(selectedProject.githubRepo || ''); }}>Cancel</button>
-                  <button style={styles.saveBtn} onClick={handleSaveGithub}>Save</button>
+            {isEditingGithub ? <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem'
+          }}>
+                <input type="text" placeholder={t("e_g_koala73_worldmonitor_or_https_github_com_koala", "e.g. koala73/worldmonitor or https://github.com/koala73/worldmonitor")} value={githubInput} onChange={e => setGithubInput(e.target.value)} style={{
+              width: '100%',
+              padding: '0.6rem',
+              borderRadius: '6px',
+              border: '1px solid var(--border-color)',
+              backgroundColor: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              outline: 'none'
+            }} />
+                <div style={{
+              display: 'flex',
+              gap: '0.5rem',
+              justifyContent: 'flex-end',
+              marginTop: '0.5rem'
+            }}>
+                  <button style={styles.cancelBtn} onClick={() => {
+                setIsEditingGithub(false);
+                setGithubInput(selectedProject.githubRepo || '');
+              }}>{t("cancel", "Cancel")}</button>
+                  <button style={styles.saveBtn} onClick={handleSaveGithub}>{t("save", "Save")}</button>
                 </div>
-              </div>
-            ) : selectedProject.githubRepo ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {githubDetails ? (
-                  <div style={{ border: '1px solid var(--border-color)', borderRadius: '6px', padding: '16px', backgroundColor: 'var(--bg-primary)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                      <img src={githubDetails.owner?.avatar_url} alt="Owner Avatar" style={{ width: '24px', height: '24px', borderRadius: '50%' }} />
-                      <a href={githubDetails.html_url} target="_blank" rel="noreferrer" style={{ color: '#0969da', fontWeight: '600', fontSize: '1.1rem', textDecoration: 'none' }}>
+              </div> : selectedProject.githubRepo ? <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem'
+          }}>
+                {githubDetails ? <div style={{
+              border: '1px solid var(--border-color)',
+              borderRadius: '6px',
+              padding: '16px',
+              backgroundColor: 'var(--bg-primary)'
+            }}>
+                    <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '8px'
+              }}>
+                      <img src={githubDetails.owner?.avatar_url} alt={t("owner_avatar", "Owner Avatar")} style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%'
+                }} />
+                      <a href={githubDetails.html_url} target="_blank" rel="noreferrer" style={{
+                  color: '#0969da',
+                  fontWeight: '600',
+                  fontSize: '1.1rem',
+                  textDecoration: 'none'
+                }}>
                         {githubDetails.full_name}
                       </a>
-                      <span style={{ padding: '2px 7px', fontSize: '0.75rem', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', borderRadius: '2em', marginLeft: '4px' }}>
+                      <span style={{
+                  padding: '2px 7px',
+                  fontSize: '0.75rem',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '2em',
+                  marginLeft: '4px'
+                }}>
                         {githubDetails.private ? 'Private' : 'Public'}
                       </span>
                     </div>
-                    {githubDetails.description && (
-                      <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '16px' }}>
+                    {githubDetails.description && <div style={{
+                color: 'var(--text-secondary)',
+                fontSize: '0.9rem',
+                marginBottom: '16px'
+              }}>
                         {githubDetails.description}
-                      </div>
-                    )}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                      {githubDetails.language && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#f1e05a' }}></span>
+                      </div>}
+                    <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                fontSize: '0.75rem',
+                color: 'var(--text-secondary)'
+              }}>
+                      {githubDetails.language && <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                          <span style={{
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    backgroundColor: '#f1e05a'
+                  }}></span>
                           {githubDetails.language}
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        </div>}
+                      <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
                         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"></path></svg>
                         {githubDetails.stargazers_count}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
                         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
                         {githubDetails.forks_count}
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div style={{ color: 'var(--text-primary)', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  </div> : <div style={{
+              color: 'var(--text-primary)',
+              fontSize: '0.95rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                       <path fillRule="evenodd" d="M7.177 3.073L9.573.677A.25.25 0 0110 .854v4.792a.25.25 0 01-.427.177L7.177 3.427a.25.25 0 010-.354zM3.75 2.5a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a2.25 2.25 0 113 2.122v5.256a2.25 2.25 0 11-1.5 0V5.372A2.25 2.25 0 011.5 3.25zM11 7.425A3.155 3.155 0 0012.75 12h.75a.75.75 0 01.75.75v.5a.75.75 0 01-.75.75H12a4.655 4.655 0 01-4.655-4.655V5.372a2.25 2.25 0 111.5 0v3.983c0 .713.273 1.398.75 1.916V7.425z"></path>
                     </svg>
                     <span>{selectedProject.githubRepo}</span>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', marginLeft: '8px' }}>(Loading GitHub data...)</span>
-                  </div>
-                )}
+                    <span style={{
+                fontSize: '0.85rem',
+                color: 'var(--text-tertiary)',
+                marginLeft: '8px'
+              }}>{t("loading_github_data", "(Loading GitHub data...)")}</span>
+                  </div>}
                 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', border: '1px solid var(--border-color)', borderRadius: '6px', backgroundColor: 'var(--bg-primary)' }}>
+                <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px',
+              border: '1px solid var(--border-color)',
+              borderRadius: '6px',
+              backgroundColor: 'var(--bg-primary)'
+            }}>
                     <div>
-                        <div style={{ fontWeight: '600', fontSize: '0.95rem', color: 'var(--text-primary)' }}>Allow Auto-Code on open PRs</div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>If enabled, Auto-Code can generate code even if there are open pull requests waiting.</div>
+                        <div style={{
+                  fontWeight: '600',
+                  fontSize: '0.95rem',
+                  color: 'var(--text-primary)'
+                }}>{t("allow_auto_code_on_open_prs", "Allow Auto-Code on open PRs")}</div>
+                        <div style={{
+                  fontSize: '0.85rem',
+                  color: 'var(--text-secondary)',
+                  marginTop: '4px'
+                }}>{t("if_enabled_auto_code_can_generate_code_even_if_the", "If enabled, Auto-Code can generate code even if there are open pull requests waiting.")}</div>
                     </div>
-                    <label style={{ position: 'relative', display: 'inline-block', width: '44px', height: '24px', flexShrink: 0 }}>
-                        <input type="checkbox" style={{ opacity: 0, width: 0, height: 0 }} checked={!!selectedProject.allowAutoCodeOnPR} onChange={handleToggleAutoCode} disabled={isReadOnly} />
-                        <span style={{ position: 'absolute', cursor: isReadOnly ? 'default' : 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: selectedProject.allowAutoCodeOnPR ? 'var(--accent-primary)' : 'var(--bg-tertiary)', transition: '.4s', borderRadius: '34px', border: selectedProject.allowAutoCodeOnPR ? 'none' : '1px solid var(--border-color)' }}>
-                            <span style={{ position: 'absolute', content: '""', height: '18px', width: '18px', left: selectedProject.allowAutoCodeOnPR ? '22px' : '2px', bottom: selectedProject.allowAutoCodeOnPR ? '3px' : '2px', backgroundColor: 'white', transition: '.4s', borderRadius: '50%', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }}></span>
+                    <label style={{
+                position: 'relative',
+                display: 'inline-block',
+                width: '44px',
+                height: '24px',
+                flexShrink: 0
+              }}>
+                        <input type="checkbox" style={{
+                  opacity: 0,
+                  width: 0,
+                  height: 0
+                }} checked={!!selectedProject.allowAutoCodeOnPR} onChange={handleToggleAutoCode} disabled={isReadOnly} />
+                        <span style={{
+                  position: 'absolute',
+                  cursor: isReadOnly ? 'default' : 'pointer',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: selectedProject.allowAutoCodeOnPR ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                  transition: '.4s',
+                  borderRadius: '34px',
+                  border: selectedProject.allowAutoCodeOnPR ? 'none' : '1px solid var(--border-color)'
+                }}>
+                            <span style={{
+                    position: 'absolute',
+                    content: '""',
+                    height: '18px',
+                    width: '18px',
+                    left: selectedProject.allowAutoCodeOnPR ? '22px' : '2px',
+                    bottom: selectedProject.allowAutoCodeOnPR ? '3px' : '2px',
+                    backgroundColor: 'white',
+                    transition: '.4s',
+                    borderRadius: '50%',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.2)'
+                  }}></span>
                         </span>
                     </label>
                 </div>
                 
                 {/* Sync PRs Button */}
-                <div style={{ display: 'flex', flexDirection: 'column', padding: '16px', border: '1px solid var(--border-color)', borderRadius: '6px', backgroundColor: 'var(--bg-primary)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '16px',
+              border: '1px solid var(--border-color)',
+              borderRadius: '6px',
+              backgroundColor: 'var(--bg-primary)'
+            }}>
+                    <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}>
                         <div>
-                            <div style={{ fontWeight: '600', fontSize: '0.95rem', color: 'var(--text-primary)' }}>Sync Pull Requests</div>
-                            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Take PRs from the connected project and make them tasks.</div>
+                            <div style={{
+                    fontWeight: '600',
+                    fontSize: '0.95rem',
+                    color: 'var(--text-primary)'
+                  }}>{t("sync_pull_requests", "Sync Pull Requests")}</div>
+                            <div style={{
+                    fontSize: '0.85rem',
+                    color: 'var(--text-secondary)',
+                    marginTop: '4px'
+                  }}>{t("take_prs_from_the_connected_project_and_make_them_", "Take PRs from the connected project and make them tasks.")}</div>
                         </div>
-                        <button 
-                          style={{ ...styles.editBtn, padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '8px' }}
-                          onClick={handleSyncGithubPRs}
-                          disabled={isReadOnly || isSyncingPRs}
-                        >
+                        <button style={{
+                  ...styles.editBtn,
+                  padding: '0.5rem 1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }} onClick={handleSyncGithubPRs} disabled={isReadOnly || isSyncingPRs}>
                           <span>{isSyncingPRs ? 'Syncing...' : 'Sync PRs to Tasks'}</span>
                         </button>
                     </div>
-                    <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <input 
-                            type="checkbox" 
-                            id="includeClosedPRs" 
-                            checked={includeClosedPRs} 
-                            onChange={(e) => setIncludeClosedPRs(e.target.checked)} 
-                            disabled={isReadOnly || isSyncingPRs}
-                        />
-                        <label htmlFor="includeClosedPRs" style={{ fontSize: '0.85rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
-                            Include closed and merged PRs
-                        </label>
+                    <div style={{
+                marginTop: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                        <input type="checkbox" id="includeClosedPRs" checked={includeClosedPRs} onChange={e => setIncludeClosedPRs(e.target.checked)} disabled={isReadOnly || isSyncingPRs} />
+                        <label htmlFor="includeClosedPRs" style={{
+                  fontSize: '0.85rem',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer'
+                }}>{t("include_closed_and_merged_prs", "Include closed and merged PRs")}</label>
                     </div>
                 </div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2rem 0', color: '#9CA3AF' }}>
-                <span style={{ fontSize: '2rem', marginBottom: '1rem' }}>🐙</span>
-                <p>Connect a GitHub repository to enable Auto-Code AI features.</p>
-                {!isReadOnly && <button style={styles.addDescriptionBtn} onClick={() => { setGithubInput(''); setIsEditingGithub(true); }}>Connect Repository</button>}
-              </div>
-            )}
+              </div> : <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            padding: '2rem 0',
+            color: '#9CA3AF'
+          }}>
+                <span style={{
+              fontSize: '2rem',
+              marginBottom: '1rem'
+            }}>🐙</span>
+                <p>{t("connect_a_github_repository_to_enable_auto_code_ai", "Connect a GitHub repository to enable Auto-Code AI features.")}</p>
+                {!isReadOnly && <button style={styles.addDescriptionBtn} onClick={() => {
+              setGithubInput('');
+              setIsEditingGithub(true);
+            }}>{t("connect_repository", "Connect Repository")}</button>}
+              </div>}
           </div>
         </div>
       </div>
@@ -465,87 +703,277 @@ export default function ProjectOverviewView({ selectedProject, projectRole, isRe
       <div style={styles.sidePanel}>
         {/* Status Update Section */}
         <div style={styles.sideSection}>
-          <h3 style={styles.sideSectionTitle}>Project status</h3>
+          <h3 style={styles.sideSectionTitle}>{t("project_status", "Project status")}</h3>
           <div style={styles.statusBox}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <div style={{ ...styles.statusDot, backgroundColor: (statusConfig[selectedProject.status] || statusConfig.NONE).color }}></div>
-              <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>{(statusConfig[selectedProject.status] || statusConfig.NONE).label}</span>
+            <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginBottom: '1rem'
+          }}>
+              <div style={{
+              ...styles.statusDot,
+              backgroundColor: (statusConfig[selectedProject.status] || statusConfig.NONE).color
+            }}></div>
+              <span style={{
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              color: 'var(--text-primary)'
+            }}>{(statusConfig[selectedProject.status] || statusConfig.NONE).label}</span>
             </div>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>{(statusConfig[selectedProject.status] || statusConfig.NONE).desc}</p>
-            {!isReadOnly && (
-              <div style={{ position: 'relative' }} ref={statusMenuRef}>
-                <button 
-                  style={styles.updateStatusBtn} 
-                  onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
-                >
-                  Update status
-                </button>
-                {isStatusMenuOpen && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '8px', width: '200px', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, display: 'flex', flexDirection: 'column', padding: '8px 0' }}>
-                    {Object.entries(statusConfig).map(([key, config]) => (
-                      <button
-                        key={key}
-                        onClick={() => handleUpdateStatus(key)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', border: 'none', background: 'transparent', width: '100%', textAlign: 'left', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--text-primary)' }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: config.color }}></div>
+            <p style={{
+            fontSize: '0.85rem',
+            color: 'var(--text-secondary)',
+            marginBottom: '1rem'
+          }}>{(statusConfig[selectedProject.status] || statusConfig.NONE).desc}</p>
+            {!isReadOnly && <div style={{
+            position: 'relative'
+          }} ref={statusMenuRef}>
+                <button style={styles.updateStatusBtn} onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}>{t("update_status", "Update status")}</button>
+                {isStatusMenuOpen && <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              marginTop: '8px',
+              width: '200px',
+              backgroundColor: 'var(--bg-primary)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              zIndex: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '8px 0'
+            }}>
+                    {Object.entries(statusConfig).map(([key, config]) => <button key={key} onClick={() => handleUpdateStatus(key)} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 16px',
+                border: 'none',
+                background: 'transparent',
+                width: '100%',
+                textAlign: 'left',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                color: 'var(--text-primary)'
+              }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                        <div style={{
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                  backgroundColor: config.color
+                }}></div>
                         {config.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+                      </button>)}
+                  </div>}
+              </div>}
           </div>
         </div>
 
         {/* Project Roles / Members */}
         <div style={styles.sideSection}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h3 style={styles.sideSectionTitle}>Project roles</h3>
-            {!isReadOnly && <span style={styles.addMemberLink} onClick={onOpenShareModal}>Add member</span>}
+          <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1rem'
+        }}>
+            <h3 style={styles.sideSectionTitle}>{t("project_roles", "Project roles")}</h3>
+            {!isReadOnly && <span style={styles.addMemberLink} onClick={onOpenShareModal}>{t("add_member", "Add member")}</span>}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {members.map((member, idx) => (
-              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem'
+        }}>
+            {members.map((member, idx) => <div key={idx} style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+          }}>
                 <UserAvatar name={member.name} userId={member.id} profilePhoto={member.profilePhoto} size={32} />
                 <div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>{member.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{member.role}</div>
+                  <div style={{
+                fontSize: '0.9rem',
+                fontWeight: '600',
+                color: 'var(--text-primary)'
+              }}>{member.name}</div>
+                  <div style={{
+                fontSize: '0.75rem',
+                color: 'var(--text-secondary)'
+              }}>{member.role}</div>
                 </div>
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
-
 const styles = {
-  overviewContainer: { display: 'flex', gap: '2rem', padding: '2rem', maxWidth: '1200px', margin: '0 auto', width: '100%', boxSizing: 'border-box', overflowY: 'auto', backgroundColor: 'var(--bg-secondary)' },
-  mainContent: { flex: 2, display: 'flex', flexDirection: 'column', gap: '2rem' },
-  sidePanel: { flex: 1, display: 'flex', flexDirection: 'column', gap: '2rem' },
-  sectionCard: { backgroundColor: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '1.5rem', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' },
-  sectionTitle: { fontSize: '1.25rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '1rem', marginTop: 0 },
-  descriptionBox: { minHeight: '150px' },
-  addDescriptionBtn: { backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: '500', color: 'var(--text-primary)', cursor: 'pointer', marginTop: '1rem' },
-  resourcesGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' },
-  resourceItem: { display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px', cursor: 'pointer', transition: 'border-color 0.2s' },
-  resourceItemAdd: { borderStyle: 'dashed', justifyContent: 'center', backgroundColor: 'var(--bg-tertiary)' },
-  resourceIcon: { fontSize: '1.5rem' },
-  resourceName: { fontSize: '0.9rem', fontWeight: '500', color: 'var(--text-primary)' },
-  resourceMeta: { fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.2rem' },
-  sideSection: { backgroundColor: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '1.5rem', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' },
-  sideSectionTitle: { fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', margin: 0 },
-  statusBox: { marginTop: '1rem' },
-  statusDot: { width: '12px', height: '12px', borderRadius: '50%', backgroundColor: 'var(--accent-success)' },
-  updateStatusBtn: { width: '100%', backgroundColor: 'var(--bg-tertiary)', border: 'none', borderRadius: '6px', padding: '0.5rem', fontSize: '0.85rem', fontWeight: '500', color: 'var(--text-primary)', cursor: 'pointer' },
-  addMemberLink: { fontSize: '0.85rem', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: '500' },
-  avatarCircle: { width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#EC4899', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 'bold' },
-  saveBtn: { backgroundColor: 'var(--accent-primary)', border: 'none', borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.85rem', fontWeight: '500', color: '#FFF', cursor: 'pointer' },
-  cancelBtn: { backgroundColor: 'transparent', border: 'none', borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.85rem', fontWeight: '500', color: 'var(--text-secondary)', cursor: 'pointer' },
-  editBtn: { backgroundColor: 'transparent', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.2rem 0.6rem', fontSize: '0.75rem', fontWeight: '500', color: 'var(--text-primary)', cursor: 'pointer' }
+  overviewContainer: {
+    display: 'flex',
+    gap: '2rem',
+    padding: '2rem',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    width: '100%',
+    boxSizing: 'border-box',
+    overflowY: 'auto',
+    backgroundColor: 'var(--bg-secondary)'
+  },
+  mainContent: {
+    flex: 2,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2rem'
+  },
+  sidePanel: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2rem'
+  },
+  sectionCard: {
+    backgroundColor: 'var(--bg-primary)',
+    borderRadius: '8px',
+    border: '1px solid var(--border-color)',
+    padding: '1.5rem',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+  },
+  sectionTitle: {
+    fontSize: '1.25rem',
+    fontWeight: '600',
+    color: 'var(--text-primary)',
+    marginBottom: '1rem',
+    marginTop: 0
+  },
+  descriptionBox: {
+    minHeight: '150px'
+  },
+  addDescriptionBtn: {
+    backgroundColor: 'var(--bg-primary)',
+    border: '1px solid var(--border-color)',
+    borderRadius: '6px',
+    padding: '0.5rem 1rem',
+    fontSize: '0.85rem',
+    fontWeight: '500',
+    color: 'var(--text-primary)',
+    cursor: 'pointer',
+    marginTop: '1rem'
+  },
+  resourcesGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+    gap: '1rem'
+  },
+  resourceItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '1rem',
+    border: '1px solid var(--border-color)',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'border-color 0.2s'
+  },
+  resourceItemAdd: {
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    backgroundColor: 'var(--bg-tertiary)'
+  },
+  resourceIcon: {
+    fontSize: '1.5rem'
+  },
+  resourceName: {
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    color: 'var(--text-primary)'
+  },
+  resourceMeta: {
+    fontSize: '0.75rem',
+    color: 'var(--text-secondary)',
+    marginTop: '0.2rem'
+  },
+  sideSection: {
+    backgroundColor: 'var(--bg-primary)',
+    borderRadius: '8px',
+    border: '1px solid var(--border-color)',
+    padding: '1.5rem',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+  },
+  sideSectionTitle: {
+    fontSize: '1rem',
+    fontWeight: '600',
+    color: 'var(--text-primary)',
+    margin: 0
+  },
+  statusBox: {
+    marginTop: '1rem'
+  },
+  statusDot: {
+    width: '12px',
+    height: '12px',
+    borderRadius: '50%',
+    backgroundColor: 'var(--accent-success)'
+  },
+  updateStatusBtn: {
+    width: '100%',
+    backgroundColor: 'var(--bg-tertiary)',
+    border: 'none',
+    borderRadius: '6px',
+    padding: '0.5rem',
+    fontSize: '0.85rem',
+    fontWeight: '500',
+    color: 'var(--text-primary)',
+    cursor: 'pointer'
+  },
+  addMemberLink: {
+    fontSize: '0.85rem',
+    color: 'var(--accent-primary)',
+    cursor: 'pointer',
+    fontWeight: '500'
+  },
+  avatarCircle: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    backgroundColor: '#EC4899',
+    color: '#FFF',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1rem',
+    fontWeight: 'bold'
+  },
+  saveBtn: {
+    backgroundColor: 'var(--accent-primary)',
+    border: 'none',
+    borderRadius: '6px',
+    padding: '0.4rem 0.8rem',
+    fontSize: '0.85rem',
+    fontWeight: '500',
+    color: '#FFF',
+    cursor: 'pointer'
+  },
+  cancelBtn: {
+    backgroundColor: 'transparent',
+    border: 'none',
+    borderRadius: '6px',
+    padding: '0.4rem 0.8rem',
+    fontSize: '0.85rem',
+    fontWeight: '500',
+    color: 'var(--text-secondary)',
+    cursor: 'pointer'
+  },
+  editBtn: {
+    backgroundColor: 'transparent',
+    border: '1px solid var(--border-color)',
+    borderRadius: '6px',
+    padding: '0.2rem 0.6rem',
+    fontSize: '0.75rem',
+    fontWeight: '500',
+    color: 'var(--text-primary)',
+    cursor: 'pointer'
+  }
 };
