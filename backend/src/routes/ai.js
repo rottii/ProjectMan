@@ -6,9 +6,8 @@ const os = require('os');
 const { exec } = require('child_process');
 const util = require('util');
 const { authenticateToken } = require('../middleware/auth');
-const { PrismaClient } = require('@prisma/client');
 
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const execPromise = util.promisify(exec);
 
 const getFilesRecursive = async (dir, baseDir, ignoreList = [], fileList = []) => {

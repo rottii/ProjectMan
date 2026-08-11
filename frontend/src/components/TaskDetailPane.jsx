@@ -954,7 +954,13 @@ export default function TaskDetailPane({ task, selectedProject, onClose, onTaskU
                             <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', padding: '8px', zIndex: 100, width: '250px' }}>
                               {availableProjects.length > 0 ? (
                                 <div style={{ maxHeight: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                  {availableProjects.filter(p => p.id !== task.section?.projectId && !task.secondaryProjects?.find(sp => sp.projectId === p.id)).map(proj => (
+                                  {availableProjects.filter(p => {
+                                    const currentWorkspaceId = selectedProject?.workspaceId || task.section?.project?.workspaceId;
+                                    const inSameWorkspace = !currentWorkspaceId || p.workspaceId === currentWorkspaceId;
+                                    const isNotMyTasks = p.status !== 'MY_TASKS' && p.name !== 'My Tasks';
+                                    const isNotAlreadyAdded = p.id !== task.section?.projectId && !task.secondaryProjects?.find(sp => sp.projectId === p.id);
+                                    return inSameWorkspace && isNotMyTasks && isNotAlreadyAdded;
+                                  }).map(proj => (
                                     <div
                                       key={proj.id}
                                       onClick={() => handleAddToProject(proj.id)}
@@ -1169,7 +1175,7 @@ export default function TaskDetailPane({ task, selectedProject, onClose, onTaskU
                                       const member = members.find(m => m.id === uid);
                                       return (
                                         <span key={uid} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', backgroundColor: '#EDE9FE', color: '#4F46E5', padding: '0.15rem 0.5rem', borderRadius: '12px', fontSize: '0.8rem' }}>
-                                          <UserAvatar name={member?.name || 'Unknown'} size={16} />
+                                          <UserAvatar name={member?.name || 'Unknown'} userId={member?.id} profilePhoto={member?.profilePhoto} size={16} />
                                           {member?.name || 'Unknown'}
                                         </span>
                                       );
@@ -1192,7 +1198,7 @@ export default function TaskDetailPane({ task, selectedProject, onClose, onTaskU
                                             <div style={{ width: 14, height: 14, borderRadius: '3px', border: isSelected ? 'none' : '1px solid #D1D5DB', backgroundColor: isSelected ? '#4F46E5' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '10px', color: '#fff' }}>
                                               {isSelected && '✓'}
                                             </div>
-                                            <UserAvatar name={m.name || m.email} size={18} />
+                                            <UserAvatar name={m.name || m.email} userId={m.id} profilePhoto={m.profilePhoto} size={18} />
                                             <span>{m.name || m.email}</span>
                                           </button>
                                         );
@@ -1526,8 +1532,10 @@ export default function TaskDetailPane({ task, selectedProject, onClose, onTaskU
                 style={{
                   ...styles.dropZone,
                   borderColor: isDragOver ? 'var(--accent-primary)' : 'var(--border-color)',
-                  backgroundColor: isDragOver ? 'rgba(79, 70, 229, 0.05)' : 'transparent'
+                  backgroundColor: isDragOver ? 'rgba(79, 70, 229, 0.05)' : 'transparent',
+                  cursor: 'pointer'
                 }}
+                onClick={() => fileInputRef.current?.click()}
               >
                 <span style={{ fontSize: '1.5rem' }}>📁</span>
                 <span style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>Drop files here to attach</span>
@@ -1538,7 +1546,8 @@ export default function TaskDetailPane({ task, selectedProject, onClose, onTaskU
               <div style={styles.attachmentList}>
                 {task.attachments.map(att => {
                   const isImage = att.mimeType?.startsWith('image/');
-                  const fileUrl = assetUrl(`/uploads/${att.filename}`);
+                  const token = localStorage.getItem('token');
+                  const fileUrl = assetUrl(`/api/projects/attachments/${att.id}/download?token=${token}`);
                   const sizeStr = att.size < 1024 ? `${att.size} B`
                     : att.size < 1024 * 1024 ? `${(att.size / 1024).toFixed(1)} KB`
                       : `${(att.size / (1024 * 1024)).toFixed(1)} MB`;
@@ -1637,7 +1646,7 @@ export default function TaskDetailPane({ task, selectedProject, onClose, onTaskU
                         onMouseEnter={() => setHoveredCommentId(item.id)}
                         onMouseLeave={() => setHoveredCommentId(null)}
                       >
-                        <UserAvatar name={item.user?.name} size={32} />
+                        <UserAvatar name={item.user?.name} userId={item.user?.id} profilePhoto={item.user?.profilePhoto} size={32} />
                         <div style={{ ...styles.commentContent, position: 'relative' }}>
                           <div style={styles.commentHeader}>
                             <span style={styles.commentAuthor}>{item.user?.name || 'Unknown'}</span>
@@ -1702,7 +1711,7 @@ export default function TaskDetailPane({ task, selectedProject, onClose, onTaskU
                     try { pr = JSON.parse(item.newValue); } catch (e) { }
                     return (
                       <div key={`activity-${item.id}`} style={styles.activityItem}>
-                        <UserAvatar name={item.user?.name} size={32} />
+                        <UserAvatar name={item.user?.name} userId={item.user?.id} profilePhoto={item.user?.profilePhoto} size={32} />
                         <div style={styles.activityContent}>
                           <span style={styles.activityAuthor}>{item.user?.name || 'Unknown'}</span> attached
                           <span style={styles.activityTime}>
@@ -1727,7 +1736,7 @@ export default function TaskDetailPane({ task, selectedProject, onClose, onTaskU
                   } else {
                     return (
                       <div key={`activity-${item.id}`} style={styles.activityItem}>
-                        <UserAvatar name={item.user?.name} size={32} />
+                        <UserAvatar name={item.user?.name} userId={item.user?.id} profilePhoto={item.user?.profilePhoto} size={32} />
                         <div style={styles.activityContent}>
                           <span style={styles.activityAuthor}>{item.user?.name || 'Unknown'}</span> {item.action}
                           {item.oldValue && item.newValue && (
@@ -1745,7 +1754,7 @@ export default function TaskDetailPane({ task, selectedProject, onClose, onTaskU
             </div>
             {projectRole !== 'VIEWER' && (
               <div style={styles.commentForm}>
-                <UserAvatar name={currentUser?.name} size={32} />
+                <UserAvatar name={currentUser?.name} userId={currentUser?.id} profilePhoto={currentUser?.profilePhoto} size={32} />
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <RichTextEditor
                     value={newCommentText}

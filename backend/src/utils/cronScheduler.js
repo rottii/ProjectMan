@@ -1,6 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
 const { evaluateRules } = require('./ruleEngine');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
+
 
 const startCronScheduler = () => {
   // Check every 1 minute for time-based triggers

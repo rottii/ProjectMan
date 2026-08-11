@@ -8,7 +8,9 @@
   display: flex;
   height: 100%;
   transition: width 0.2s ease;
-  overflow: hidden;
+  overflow: visible;
+  z-index: 100; /* Ensure dropdowns overlay the main pane */
+  position: relative;
   font-family: system-ui, -apple-system, sans-serif;
 }
 
@@ -197,7 +199,6 @@
 
 .sidebar-nav-item.active {
   background: var(--nav-bg-hover);
-  font-weight: 500;
 }
 
 .sidebar-nav-icon {
@@ -273,7 +274,6 @@
 
 .sidebar-project-item.active {
   background: var(--nav-bg-hover);
-  font-weight: 500;
 }
 
 .sidebar-project-icon-box {
@@ -410,4 +410,43 @@
 }
 .sidebar-resizer:hover, .sidebar-resizer.resizing {
   background-color: var(--accent-primary);
+}
+
+/* When collapsed class is present, we slide it out of view */
+.sidebar-wrapper.collapsed {
+  display: none;
+}
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+  .sidebar-wrapper {
+    position: fixed;
+    top: 52px;
+    bottom: 0;
+    left: 0;
+    height: calc(100% - 52px);
+    z-index: 100;
+    transform: translateX(0);
+    transition: transform 0.3s ease, visibility 0.3s;
+    border-right: none;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+  }
+
+  /* When collapsed class is present, we slide it out of view */
+  .sidebar-wrapper.collapsed {
+    display: flex;
+    transform: translateX(-100%);
+    box-shadow: none;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .sidebar-resizer {
+    display: none !important;
+  }
+
+  .sidebar-wide {
+    width: calc(100vw - 120px) !important; /* Leave at least 60px for the backdrop */
+    max-width: 280px;
+  }
 }

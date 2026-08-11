@@ -801,6 +801,46 @@
   line-height: 1.6;
 }
 
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem 1rem 4rem 1rem;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-widget.span-2 {
+    grid-column: span 1;
+  }
+
+  .dashboard-widget.row-1 {
+    min-height: 350px;
+    max-height: 350px;
+  }
+
+  .dashboard-widget.row-2 {
+    min-height: 400px;
+    max-height: 400px;
+  }
+  
+  .widget-picker-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .widget-picker-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .widget-notepad-textarea::placeholder {
   color: var(--text-tertiary);
 }

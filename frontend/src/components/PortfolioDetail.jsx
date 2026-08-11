@@ -234,7 +234,7 @@ export default function PortfolioDetail({ portfolio, setPortfolio, portfolios, s
             </div>
           </div>
           <div style={styles.headerRight}>
-            <div style={styles.memberBadge}><UserAvatar name={details.owner?.name} size={32} /></div>
+            <div style={styles.memberBadge}><UserAvatar name={details.owner?.name} userId={details.owner?.id} profilePhoto={details.owner?.profilePhoto} size={32} /></div>
             <button style={styles.shareBtn}>
               <span style={{ marginRight: 4 }}>👥</span> Share
             </button>
@@ -377,7 +377,7 @@ export default function PortfolioDetail({ portfolio, setPortfolio, portfolios, s
 
                     <div style={{ ...styles.tableCell, flex: 1.5 }}>
                       <div style={styles.ownerWrapper}>
-                        <div style={styles.memberBadgeSmall}><UserAvatar name={port.owner?.name} size={24} /></div>
+                        <div style={styles.memberBadgeSmall}><UserAvatar name={port.owner?.name} userId={port.owner?.id} profilePhoto={port.owner?.profilePhoto} size={24} /></div>
                         <span style={styles.ownerName}>{port.owner?.name || 'Unknown'}</span>
                       </div>
                     </div>
@@ -420,7 +420,7 @@ export default function PortfolioDetail({ portfolio, setPortfolio, portfolios, s
 
                     <div style={{ ...styles.tableCell, flex: 1.5 }}>
                       <div style={styles.ownerWrapper}>
-                        <div style={styles.memberBadgeSmall}><UserAvatar name={proj.owner?.name} size={24} /></div>
+                        <div style={styles.memberBadgeSmall}><UserAvatar name={proj.owner?.name} userId={proj.owner?.id} profilePhoto={proj.owner?.profilePhoto} size={24} /></div>
                         <span style={styles.ownerName}>{proj.owner?.name || 'Unknown'}</span>
                       </div>
                     </div>

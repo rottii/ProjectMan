@@ -352,7 +352,7 @@ export default function ProjectCalendarView({ selectedProject, applyTaskFilter, 
                       }}
                     >
                       {task.assignee && (
-                        <UserAvatar name={task.assignee.name} size={16} style={{ marginRight: '6px' }} />
+                        <UserAvatar name={task.assignee.name} userId={task.assignee.id} profilePhoto={task.assignee.profilePhoto} size={16} style={{ marginRight: '6px' }} />
                       )}
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', pointerEvents: 'none' }}>
                         {task.title}

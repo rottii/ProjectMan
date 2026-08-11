@@ -260,7 +260,7 @@ export default function ProjectWorkloadView({
                   onClick={() => toggleExpand(assignee.name)}
                 >
                   <span style={{ ...styles.chevron, transform: expandedAssignees[assignee.name] ? 'rotate(90deg)' : 'rotate(0)' }}>▶</span>
-                  <UserAvatar name={assignee.name} size={24} style={{ marginRight: '8px' }} />
+                  <UserAvatar name={assignee.name} userId={assignee.id} profilePhoto={assignee.profilePhoto} size={24} style={{ marginRight: '8px' }} />
                   <span style={styles.assigneeName}>{assignee.name}</span>
                 </div>
                 {expandedAssignees[assignee.name] && (

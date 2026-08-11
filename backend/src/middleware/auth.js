@@ -1,11 +1,14 @@
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const { JWT_SECRET } = require('../config/env');
 
 const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  let token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token && req.query.token) {
+    token = req.query.token;
+  }
   
   if (!token) {
     return res.status(401).json({ error: 'Giriş yapmanız gerekiyor. (Authentication required)' });

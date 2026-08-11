@@ -17,6 +17,8 @@ import Goals from './components/Goals'
 import Reporting from './components/Reporting'
 import PublicForm from './components/PublicForm'
 import AdminConsoleView from './components/AdminConsoleView'
+import InvitePage from './components/InvitePage'
+import ResetPasswordPage from './components/ResetPasswordPage'
 import { UndoProvider } from './context/UndoContext'
 
 export default function App() {
@@ -73,7 +75,7 @@ export default function App() {
     }
     return localStorage.getItem('activeView') || 'home';
   }) 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => window.innerWidth <= 768)
   const previousViewRef = useRef((() => {
     const stored = localStorage.getItem('activeView') || 'home'
     return stored === 'create_project' ? 'home' : stored
@@ -121,6 +123,13 @@ export default function App() {
 
   // State to URL Sync
   useEffect(() => {
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith('/invite/') || 
+        currentPath.startsWith('/reset-password/') || 
+        currentPath.startsWith('/form/')) {
+      return; // Do not overwrite these special URLs
+    }
+
     let newPath = '/';
     if (activeView === 'project' && selectedProject) {
       newPath = `/project/${selectedProject.id}`;
@@ -146,7 +155,10 @@ export default function App() {
       previousViewRef.current = activeView
     }
     localStorage.setItem('activeView', activeView)
-  }, [activeView])
+    if (window.innerWidth <= 768) {
+      setIsSidebarCollapsed(true)
+    }
+  }, [activeView, selectedProject, selectedPortfolio, activeWorkspaceId])
 
   useEffect(() => {
     const handleAuthExpired = () => {
@@ -343,6 +355,16 @@ export default function App() {
     return <PublicForm />;
   }
 
+  const isInvitePage = window.location.pathname.startsWith('/invite/');
+  if (isInvitePage) {
+    return <InvitePage token={window.location.pathname.split('/')[2]} setToken={setToken} setUser={setUser} currentUser={user} authToken={token} />;
+  }
+
+  const isResetPasswordPage = window.location.pathname.startsWith('/reset-password/');
+  if (isResetPasswordPage) {
+    return <ResetPasswordPage token={window.location.pathname.split('/')[2]} />;
+  }
+
   if (!token) {
     return <Auth setToken={setToken} setUser={setUser} />
   }
@@ -374,7 +396,13 @@ export default function App() {
         activeWorkspaceId={activeWorkspaceId}
         setActiveWorkspaceId={handleWorkspaceChange}
       />
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+        {!isSidebarCollapsed && (
+          <div 
+            className="mobile-sidebar-backdrop hide-on-desktop" 
+            onClick={() => setIsSidebarCollapsed(true)} 
+          />
+        )}
         <Sidebar 
           isSidebarCollapsed={isSidebarCollapsed}
           setIsSidebarCollapsed={setIsSidebarCollapsed}

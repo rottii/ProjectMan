@@ -2,12 +2,31 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { PrismaClient } = require('@prisma/client');
 const { OAuth2Client } = require('google-auth-library');
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Configure multer for profile photos
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'avatars');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage: storage });
+
 const { JWT_SECRET } = require('../config/env');
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
@@ -139,7 +158,7 @@ router.post('/google', async (req, res) => {
       message: 'Google login successful!',
       token: tokens.accessToken,
       refreshToken: tokens.refreshToken,
-      user: { id: user.id, name: user.name, email: user.email, darkMode: user.darkMode }
+      user: { id: user.id, name: user.name, email: user.email, darkMode: user.darkMode, profilePhoto: user.profilePhoto }
     });
 
   } catch (error) {
@@ -233,7 +252,7 @@ router.post('/register', async (req, res) => {
       userId: newUser.id,
       token: tokens.accessToken,
       refreshToken: tokens.refreshToken,
-      user: { id: newUser.id, name: newUser.name, email: newUser.email, darkMode: newUser.darkMode }
+      user: { id: newUser.id, name: newUser.name, email: newUser.email, darkMode: newUser.darkMode, profilePhoto: newUser.profilePhoto }
     });
   } catch (error) {
     res.status(500).json({ error: 'Kayıt esnasında bir hata oluştu.', details: error.message });
@@ -268,7 +287,7 @@ router.post('/login', async (req, res) => {
       message: 'Giriş başarılı!',
       token: tokens.accessToken,
       refreshToken: tokens.refreshToken,
-      user: { id: user.id, name: user.name, email: user.email, darkMode: user.darkMode }
+      user: { id: user.id, name: user.name, email: user.email, darkMode: user.darkMode, profilePhoto: user.profilePhoto }
     });
   } catch (error) {
     res.status(500).json({ error: 'Giriş esnasında bir hata oluştu.', details: error.message });
@@ -343,12 +362,153 @@ router.patch('/me/preferences', authenticateToken, async (req, res) => {
   try {
     const { darkMode } = req.body;
     const updatedUser = await prisma.user.update({
-      where: { id: req.user.id },
+      where: { id: req.user.userId },
       data: { darkMode }
     });
-    res.json({ message: 'Preferences updated', user: { id: updatedUser.id, name: updatedUser.name, email: updatedUser.email, darkMode: updatedUser.darkMode } });
+    res.json({ message: 'Preferences updated', user: { id: updatedUser.id, name: updatedUser.name, email: updatedUser.email, darkMode: updatedUser.darkMode, profilePhoto: updatedUser.profilePhoto } });
   } catch (error) {
     res.status(500).json({ error: 'Failed to update preferences', details: error.message });
+  }
+});
+
+// 6. GENERATE PASSWORD RESET LINK (Admin Only) - POST /api/auth/generate-reset-link
+router.post('/generate-reset-link', authenticateToken, async (req, res) => {
+  try {
+    const { targetUserId, workspaceId } = req.body;
+    const adminId = req.user.userId;
+
+    if (!targetUserId || !workspaceId) {
+       return res.status(400).json({ error: 'targetUserId and workspaceId are required.' });
+    }
+
+    // Verify admin is actually admin of the workspace
+    const adminMembership = await prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: adminId } }
+    });
+    if (!adminMembership || adminMembership.role !== 'ADMIN') {
+       return res.status(403).json({ error: 'Only workspace admins can generate reset links.' });
+    }
+
+    // Verify targetUser is in that workspace
+    const targetMembership = await prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: targetUserId } }
+    });
+    if (!targetMembership) {
+       return res.status(404).json({ error: 'Target user is not in this workspace.' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24); // 24 hours expiry
+
+    const resetToken = await prisma.passwordResetToken.create({
+      data: {
+        token,
+        userId: targetUserId,
+        expiresAt
+      }
+    });
+
+    res.json({ token, expiresAt });
+  } catch (error) {
+    console.error('Error generating reset link:', error);
+    res.status(500).json({ error: 'Failed to generate reset link.' });
+  }
+});
+
+// 7. RESET PASSWORD - POST /api/auth/reset-password
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token and newPassword are required.' });
+    }
+
+    const resetToken = await prisma.passwordResetToken.findUnique({
+      where: { token }
+    });
+
+    if (!resetToken || resetToken.isUsed) {
+      return res.status(400).json({ error: 'Invalid or already used reset token.' });
+    }
+
+    if (new Date() > resetToken.expiresAt) {
+      return res.status(400).json({ error: 'Reset token has expired.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user's password
+    await prisma.user.update({
+      where: { id: resetToken.userId },
+      data: { password: hashedPassword }
+    });
+
+    // Mark token as used
+    await prisma.passwordResetToken.update({
+      where: { id: resetToken.id },
+      data: { isUsed: true }
+    });
+
+    // Optionally: delete all active sessions to force re-login everywhere for security
+    await prisma.session.deleteMany({
+      where: { userId: resetToken.userId }
+    });
+
+    res.json({ message: 'Password has been successfully reset.' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ error: 'Failed to reset password.' });
+  }
+});
+
+// PROFILE PHOTO ROUTES
+
+// Upload profile photo
+router.post('/profile-photo', authenticateToken, upload.single('photo'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const userId = req.user.userId;
+    const filename = req.file.filename;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { profilePhoto: filename }
+    });
+
+    res.json({ message: 'Profile photo updated', profilePhoto: filename });
+  } catch (error) {
+    console.error('Error uploading profile photo:', error);
+    res.status(500).json({ error: 'Failed to upload profile photo' });
+  }
+});
+
+// Serve profile photo
+router.get('/users/:userId/photo', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { profilePhoto: true }
+    });
+
+    if (!user || !user.profilePhoto) {
+      return res.status(404).json({ error: 'Profile photo not found' });
+    }
+
+    const filePath = path.join(__dirname, '..', '..', 'uploads', 'avatars', user.profilePhoto);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'Profile photo file not found' });
+    }
+
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error('Error serving profile photo:', error);
+    res.status(500).json({ error: 'Failed to serve profile photo' });
   }
 });
 

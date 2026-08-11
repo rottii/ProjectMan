@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const { evaluateRules } = require('../utils/ruleEngine');
 const {
     getProjectRole,
@@ -101,21 +100,9 @@ exports.createTask = async (req, res) => {
         // Multi-home to assignee's My Tasks project
         if (assigneeId) {
             try {
-                const myTasksProj = await ensureMyTasksProject(assigneeId);
-                // Find "Recently assigned" section
-                const recentlyAssignedSec = await prisma.section.findFirst({
-                    where: { projectId: myTasksProj.id, name: 'Recently assigned' }
-                });
-                if (recentlyAssignedSec) {
-                    await prisma.taskProject.create({
-                        data: {
-                            taskId: newTask.id,
-                            projectId: myTasksProj.id,
-                            sectionId: recentlyAssignedSec.id,
-                            order: 0
-                        }
-                    });
-                }
+                const sectionData = await prisma.section.findUnique({ where: { id: sectionId }, include: { project: true } });
+                const workspaceId = sectionData?.project?.workspaceId;
+                await ensureMyTasksProject(assigneeId, workspaceId);
             } catch (err) {
                 console.error('Error multi-homing to My Tasks on create:', err);
             }
@@ -590,20 +577,9 @@ exports.updateTask = async (req, res) => {
 
                 // Add to new assignee's My Tasks
                 if (assigneeId) {
-                    const newMyTasksProj = await ensureMyTasksProject(assigneeId);
-                    const recentlyAssignedSec = await prisma.section.findFirst({
-                        where: { projectId: newMyTasksProj.id, name: 'Recently assigned' }
-                    });
-                    if (recentlyAssignedSec) {
-                        await prisma.taskProject.create({
-                            data: {
-                                taskId: updatedTask.id,
-                                projectId: newMyTasksProj.id,
-                                sectionId: recentlyAssignedSec.id,
-                                order: 0
-                            }
-                        });
-                    }
+                    const sectionData = await prisma.section.findUnique({ where: { id: updatedTask.sectionId }, include: { project: true } });
+                    const workspaceId = sectionData?.project?.workspaceId;
+                    await ensureMyTasksProject(assigneeId, workspaceId);
                 }
             } catch (err) {
                 console.error('Error syncing My Tasks on task update:', err);

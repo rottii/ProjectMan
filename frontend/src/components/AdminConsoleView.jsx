@@ -114,6 +114,8 @@ export default function AdminConsoleView({ workspaceId, token, currentUser }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [inviteLinkToken, setInviteLinkToken] = useState(null);
+  const [resetLinkToken, setResetLinkToken] = useState(null);
 
   useEffect(() => {
     fetchMembers();
@@ -134,6 +136,41 @@ export default function AdminConsoleView({ workspaceId, token, currentUser }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGenerateInvite = async () => {
+    try {
+      const res = await apiFetch(`/api/invites/workspaces/${workspaceId}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ maxUses: 50 })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setInviteLinkToken(data.token);
+    } catch (err) {
+      alert(`Error generating invite link: ${err.message}`);
+    }
+  };
+
+  const handleGenerateResetLink = async (targetUserId) => {
+    try {
+      const res = await apiFetch(`/api/auth/generate-reset-link`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId, workspaceId })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setResetLinkToken(data.token);
+    } catch (err) {
+      alert(`Error generating reset link: ${err.message}`);
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    alert('Copied to clipboard!');
   };
 
   const handleRoleChange = async (userId, newRole) => {
@@ -215,7 +252,18 @@ export default function AdminConsoleView({ workspaceId, token, currentUser }) {
           <p style={styles.subtitle}>Manage workspace members, guests, and their permissions.</p>
         </div>
         
-        {isOriginalAdmin ? (
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button 
+            onClick={handleGenerateInvite}
+            style={{
+              backgroundColor: 'var(--primary-color, #4F46E5)', color: 'white', border: 'none', borderRadius: '6px',
+              padding: '8px 16px', fontSize: '0.9rem', fontWeight: '500', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '8px'
+            }}
+          >
+            🔗 Generate Invite Link
+          </button>
+          {isOriginalAdmin ? (
           <button 
             onClick={handleDeleteWorkspace}
             style={{
@@ -229,6 +277,7 @@ export default function AdminConsoleView({ workspaceId, token, currentUser }) {
             🗑️ Delete Workspace
           </button>
         ) : null}
+        </div>
       </div>
 
       <div style={styles.card}>
@@ -252,7 +301,7 @@ export default function AdminConsoleView({ workspaceId, token, currentUser }) {
                 <tr key={member.userId}>
                   <td style={styles.td}>
                     <div style={styles.memberRow}>
-                      <UserAvatar name={member.user?.name} size={40} />
+                      <UserAvatar name={member.user?.name} userId={member.user?.id} profilePhoto={member.user?.profilePhoto} size={40} />
                       <div>
                         <div style={styles.name}>
                           {member.user?.name} {isMe && '(You)'} {isOlderAdmin && '(Creator)'}
@@ -274,7 +323,16 @@ export default function AdminConsoleView({ workspaceId, token, currentUser }) {
                       <option value="GUEST">Guest</option>
                     </select>
                   </td>
-                  <td style={{ ...styles.td, textAlign: 'right' }}>
+                  <td style={{ ...styles.td, textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                    {!isMe && (
+                      <button 
+                        style={{ ...styles.removeBtn, color: 'var(--text-secondary)', borderColor: 'var(--border-color)' }}
+                        onClick={() => handleGenerateResetLink(member.userId)}
+                        title="Generate Password Reset Link"
+                      >
+                        Reset Password
+                      </button>
+                    )}
                     <button 
                       style={isControlDisabled && !isMe ? { ...styles.removeBtn, cursor: 'not-allowed' } : styles.removeBtn}
                       disabled={isControlDisabled && !isMe}
@@ -292,6 +350,36 @@ export default function AdminConsoleView({ workspaceId, token, currentUser }) {
           </tbody>
         </table>
       </div>
+
+      {/* Modals for Links */}
+      {inviteLinkToken && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ backgroundColor: 'var(--bg-primary)', padding: '2rem', borderRadius: '12px', maxWidth: '500px', width: '100%' }}>
+            <h2 style={{ marginTop: 0 }}>Invite Link Generated</h2>
+            <p>Share this link with anyone you want to join the workspace. It will expire after 50 uses.</p>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+              <input type="text" readOnly value={`${window.location.origin}/invite/${inviteLinkToken}`} style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }} />
+              <button onClick={() => copyToClipboard(`${window.location.origin}/invite/${inviteLinkToken}`)} style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>Copy</button>
+            </div>
+            <button onClick={() => setInviteLinkToken(null)} style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {resetLinkToken && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ backgroundColor: 'var(--bg-primary)', padding: '2rem', borderRadius: '12px', maxWidth: '500px', width: '100%' }}>
+            <h2 style={{ marginTop: 0 }}>Password Reset Link Generated</h2>
+            <p>Securely share this one-time link with the user. It will expire in 24 hours.</p>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+              <input type="text" readOnly value={`${window.location.origin}/reset-password/${resetLinkToken}`} style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }} />
+              <button onClick={() => copyToClipboard(`${window.location.origin}/reset-password/${resetLinkToken}`)} style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>Copy</button>
+            </div>
+            <button onClick={() => setResetLinkToken(null)} style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>Close</button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

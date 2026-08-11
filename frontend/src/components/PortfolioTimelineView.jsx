@@ -317,7 +317,7 @@ export default function PortfolioTimelineView({ projectsList, token, setDetails,
                 <span style={{ fontWeight: 500 }}>{p.name}</span>
               </div>
               <div className="pt-cell pt-col-owner">
-                <UserAvatar name={p.owner?.name} size={24} style={{ marginRight: '8px' }} />
+                <UserAvatar name={p.owner?.name} userId={p.owner?.id} profilePhoto={p.owner?.profilePhoto} size={24} style={{ marginRight: '8px' }} />
                 <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                   {p.owner ? p.owner.name : 'Unknown'}
                 </span>
@@ -385,7 +385,7 @@ export default function PortfolioTimelineView({ projectsList, token, setDetails,
                     </div>
                   )}
                   <div className="pt-project-bar-content" style={{ color: '#111827' }}>
-                    <UserAvatar name={p.owner?.name} size={18} style={{ marginRight: '6px' }} />
+                    <UserAvatar name={p.owner?.name} userId={p.owner?.id} profilePhoto={p.owner?.profilePhoto} size={18} style={{ marginRight: '6px' }} />
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {p.owner ? p.owner.name : 'Unknown'}
                     </span>

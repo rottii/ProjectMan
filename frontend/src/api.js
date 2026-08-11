@@ -6,7 +6,7 @@
  * falling back to http://localhost:5001 for local development.
  */
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+export const API_BASE_URL = import.meta.env.VITE_API_URL !== undefined ? import.meta.env.VITE_API_URL : 'http://localhost:5001';
 
 /**
  * Perform a fetch request against the API.

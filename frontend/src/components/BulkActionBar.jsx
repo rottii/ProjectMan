@@ -75,7 +75,7 @@ export default function BulkActionBar({ selectedCount, sections, projectMembers,
                 const member = m.user || m;
                 return (
                   <button key={member.id} style={styles.dropdownItem} onClick={() => handleAction('assign', { assigneeId: member.id })}>
-                    <UserAvatar name={member.name} size={20} style={{ marginRight: '8px' }} />
+                    <UserAvatar name={member.name} userId={member.id} profilePhoto={member.profilePhoto} size={20} style={{ marginRight: '8px' }} />
                     <span>{member.name}</span>
                   </button>
                 );

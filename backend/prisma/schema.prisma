@@ -1,6 +1,9 @@
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // Connection pooling: Prisma uses a pool per PrismaClient instance.
+  // Combined with the singleton in src/lib/prisma.js, this keeps
+  // the total number of connections bounded.
 }
 
 generator client {
@@ -29,6 +32,7 @@ model User {
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
   darkMode    Boolean             @default(false)
+  profilePhoto String?
 
   projects    Project[]           // Sahib olduğu projeler
   memberships ProjectMembership[] // Rol içeren proje üyelikleri
@@ -55,6 +59,8 @@ model User {
   auditLogs     AuditLog[]
   dashboardLayout DashboardLayout?
   sessions      Session[]
+  inviteLinks   InviteLink[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Workspace {
@@ -66,6 +72,7 @@ model Workspace {
   teams       Team[]
   projects    Project[]
   portfolios  Portfolio[]
+  inviteLinks InviteLink[]
 }
 
 model WorkspaceMember {
@@ -168,6 +175,7 @@ model ProjectMembership {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, userId]) // Bir kullanıcı bir projeye sadece 1 kere üye olabilir
+  @@index([userId])              // "which projects is this user in?"
 }
 
 model Section {
@@ -180,6 +188,9 @@ model Section {
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tasks     Task[]
   secondaryTasks TaskProject[] @relation("SecondaryTasks")
+
+  @@index([projectId])           // listing sections by project
+  @@index([projectId, order])    // ordered sections within a project
 }
 
 model Task {
@@ -229,6 +240,15 @@ model Task {
   recurrenceRule       String?   // 'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY', 'CUSTOM'
   recurrenceCustom     Json?     // { frequency, interval, days }
   nextRecurrenceTaskId String?
+
+  // Performance indexes for frequently filtered/joined columns
+  @@index([sectionId])             // listing tasks by section
+  @@index([assigneeId])            // "my tasks" and workload views
+  @@index([creatorId])             // tasks created by user
+  @@index([parentId])              // subtask queries
+  @@index([dueDate])               // overdue/upcoming filters, reminders cron
+  @@index([isCompleted, dueDate])  // composite: overdue incomplete tasks
+  @@index([sectionId, order])      // ordered listing within a section
 }
 
 // --- YENİ MODEL: TAGS ---
@@ -290,6 +310,8 @@ model Comment {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   reactions CommentReaction[]
+
+  @@index([taskId, createdAt])    // comments list per task
 }
 
 // --- YENİ MODEL: GÖREV AKTİVİTELERİ (ACTIVITY FEED) ---
@@ -304,6 +326,8 @@ model TaskActivity {
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt])    // activity feed per task
 }
 
 // --- YENİ MODEL: GÖREV ORTAK ÇALIŞANLARI ---
@@ -416,6 +440,10 @@ model Notification {
   
   projectId String?
   project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Performance indexes
+  @@index([userId, createdAt(sort: Desc)])  // inbox listing (sorted by newest)
+  @@index([userId, isRead])                 // unread count / mark-all-read
 }
 
 // --- YENİ MODEL: GOALS (HEDEFLER) ---
@@ -533,6 +561,9 @@ model AuditLog {
 
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])    // audit trail per user
+  @@index([entity, entityId])     // lookup logs for a specific entity
 }
 
 // --- YENİ MODEL: SESSION (REFRESH TOKENS) ---
@@ -544,4 +575,41 @@ model Session {
 
   userId       String
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])                // active sessions per user
+  @@index([expiresAt])             // expired session cleanup
+}
+
+// --- YENİ MODEL: INVITE LINKS ---
+model InviteLink {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime?
+  maxUses     Int?
+  uses        Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creatorId   String
+  creator     User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([workspaceId])
+}
+
+// --- YENİ MODEL: PASSWORD RESET TOKENS ---
+model PasswordResetToken {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  isUsed      Boolean  @default(false)
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
 }

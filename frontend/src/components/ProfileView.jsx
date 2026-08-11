@@ -1,9 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import UserAvatar from './UserAvatar';
 import { apiFetch } from '../api';
 
 export default function ProfileView({ user, projects, activeWorkspace, setActiveView, handleSelectProject, token }) {
   const [goals, setGoals] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    try {
+      const res = await apiFetch('/api/auth/profile-photo', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const updatedUser = { ...user, profilePhoto: data.profilePhoto };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        window.dispatchEvent(new Event('storage')); // trigger update if we listen to storage, or just reload
+        window.location.reload(); // Simple way to ensure everything updates with the new photo
+      }
+    } catch (err) {
+      console.error('Failed to upload profile photo', err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   useEffect(() => {
     if (token) {
@@ -58,11 +91,18 @@ export default function ProfileView({ user, projects, activeWorkspace, setActive
 
       {/* HEADER */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '24px' }}>
-        <div style={{ position: 'relative', width: '120px', height: '120px' }}>
-          <UserAvatar name={user?.name} size={120} />
-          <div style={{ position: 'absolute', bottom: '0', right: '0', backgroundColor: 'var(--bg-primary)', borderRadius: '50%', padding: '4px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px' }}>
+        <div style={{ position: 'relative', width: '120px', height: '120px', cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1 }} onClick={() => fileInputRef.current?.click()}>
+          <UserAvatar name={user?.name} size={120} profilePhoto={user?.profilePhoto} userId={user?.id} />
+          <div style={{ position: 'absolute', bottom: '0', right: '0', backgroundColor: 'var(--bg-primary)', borderRadius: '50%', padding: '4px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', cursor: 'pointer' }}>
             <span style={{ fontSize: '0.8rem' }}>📷</span>
           </div>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handlePhotoUpload} 
+            accept="image/*" 
+            style={{ display: 'none' }} 
+          />
         </div>
         <div>
           <h1 style={{ margin: '0 0 8px 0', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -169,7 +209,7 @@ export default function ProfileView({ user, projects, activeWorkspace, setActive
               ) : (
                 collaborators.map(c => (
                   <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <UserAvatar name={c.name || c.email} size={36} />
+                    <UserAvatar name={c.name || c.email} userId={c.id} profilePhoto={c.profilePhoto} size={36} />
                     <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>{c.email}</span>
                   </div>
                 ))

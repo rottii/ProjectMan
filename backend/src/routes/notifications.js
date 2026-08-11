@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config/env');
 
@@ -14,7 +13,7 @@ router.get('/', authenticateToken, async (req, res) => {
       where: { userId: req.user.userId },
       orderBy: { createdAt: 'desc' },
       include: {
-        actor: { select: { id: true, name: true, email: true } },
+        actor: { select: { id: true, name: true, email: true, profilePhoto: true } },
         task: { select: { id: true, title: true } },
         project: { select: { id: true, name: true } }
       }

@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config/env');
 
 const { authenticateToken } = require('../middleware/auth');
+const { requireOwnership } = require('../middleware/authorize');
 
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 // Get all goals for the current user (scoped to owned goals)
 router.get('/', authenticateToken, async (req, res) => {
@@ -14,7 +14,7 @@ router.get('/', authenticateToken, async (req, res) => {
     const goals = await prisma.goal.findMany({
       where: { ownerId: req.user.userId },
       include: {
-        owner: { select: { id: true, name: true, email: true } },
+        owner: { select: { id: true, name: true, email: true, profilePhoto: true } },
         projects: {
           include: {
             project: { select: { id: true, name: true, status: true, isArchived: true } }
@@ -52,7 +52,7 @@ router.post('/', authenticateToken, async (req, res) => {
         ownerId: req.user.userId
       },
       include: {
-        owner: { select: { id: true, name: true, email: true } },
+        owner: { select: { id: true, name: true, email: true, profilePhoto: true } },
         projects: { include: { project: true } }
       }
     });
@@ -65,17 +65,10 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update a goal
-router.patch('/:id', authenticateToken, async (req, res) => {
+router.patch('/:id', authenticateToken, requireOwnership('goal'), async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, timePeriod, status, metricType, currentValue, targetValue, level } = req.body;
-
-    // Authorization: only the goal owner can update
-    const goal = await prisma.goal.findUnique({ where: { id }, select: { ownerId: true } });
-    if (!goal) return res.status(404).json({ error: 'Goal not found' });
-    if (goal.ownerId !== req.user.userId) {
-      return res.status(403).json({ error: 'Sadece hedef sahibi güncelleyebilir.' });
-    }
 
     const updatedGoal = await prisma.goal.update({
       where: { id },
@@ -90,7 +83,7 @@ router.patch('/:id', authenticateToken, async (req, res) => {
         level: level !== undefined ? level : undefined
       },
       include: {
-        owner: { select: { id: true, name: true, email: true } },
+        owner: { select: { id: true, name: true, email: true, profilePhoto: true } },
         projects: {
           include: {
             project: { select: { id: true, name: true, status: true, isArchived: true } }
@@ -107,18 +100,10 @@ router.patch('/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete a goal
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, requireOwnership('goal'), async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Sadece owner silebilir mi? Şimdilik evet yapalım
-    const goal = await prisma.goal.findUnique({ where: { id } });
-    if (!goal) return res.status(404).json({ error: 'Goal not found' });
-
-    if (goal.ownerId !== req.user.userId) {
-      return res.status(403).json({ error: 'Sadece hedef sahibi silebilir.' });
-    }
-
     await prisma.goal.delete({ where: { id } });
     res.json({ message: 'Goal deleted successfully' });
   } catch (error) {
@@ -128,19 +113,12 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 });
 
 // Link a project to a goal
-router.post('/:id/projects', authenticateToken, async (req, res) => {
+router.post('/:id/projects', authenticateToken, requireOwnership('goal'), async (req, res) => {
   try {
     const { id } = req.params;
     const { projectId } = req.body;
 
     if (!projectId) return res.status(400).json({ error: 'projectId is required' });
-
-    // Authorization: only the goal owner can link projects
-    const goal = await prisma.goal.findUnique({ where: { id }, select: { ownerId: true } });
-    if (!goal) return res.status(404).json({ error: 'Goal not found' });
-    if (goal.ownerId !== req.user.userId) {
-      return res.status(403).json({ error: 'Sadece hedef sahibi proje bağlayabilir.' });
-    }
 
     const goalProject = await prisma.goalProject.create({
       data: {
@@ -152,7 +130,7 @@ router.post('/:id/projects', authenticateToken, async (req, res) => {
     const updatedGoal = await prisma.goal.findUnique({
       where: { id },
       include: {
-        owner: { select: { id: true, name: true, email: true } },
+        owner: { select: { id: true, name: true, email: true, profilePhoto: true } },
         projects: {
           include: {
             project: { select: { id: true, name: true, status: true, isArchived: true } }
@@ -170,16 +148,9 @@ router.post('/:id/projects', authenticateToken, async (req, res) => {
 });
 
 // Unlink a project from a goal
-router.delete('/:id/projects/:projectId', authenticateToken, async (req, res) => {
+router.delete('/:id/projects/:projectId', authenticateToken, requireOwnership('goal'), async (req, res) => {
   try {
     const { id, projectId } = req.params;
-
-    // Authorization: only the goal owner can unlink projects
-    const goal = await prisma.goal.findUnique({ where: { id }, select: { ownerId: true } });
-    if (!goal) return res.status(404).json({ error: 'Goal not found' });
-    if (goal.ownerId !== req.user.userId) {
-      return res.status(403).json({ error: 'Sadece hedef sahibi proje bağlantısını kaldırabilir.' });
-    }
 
     const goalProject = await prisma.goalProject.findUnique({
       where: { goalId_projectId: { goalId: id, projectId } }
@@ -194,7 +165,7 @@ router.delete('/:id/projects/:projectId', authenticateToken, async (req, res) =>
     const updatedGoal = await prisma.goal.findUnique({
       where: { id },
       include: {
-        owner: { select: { id: true, name: true, email: true } },
+        owner: { select: { id: true, name: true, email: true, profilePhoto: true } },
         projects: {
           include: {
             project: { select: { id: true, name: true, status: true, isArchived: true } }

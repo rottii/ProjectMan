@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 // Public route to fetch a read-only project dashboard by token
 router.get('/projects/:token/dashboard', async (req, res) => {

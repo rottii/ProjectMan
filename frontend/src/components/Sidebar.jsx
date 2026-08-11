@@ -43,10 +43,18 @@ export default function Sidebar({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileRef = useRef(null);
 
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const [addMenuCoords, setAddMenuCoords] = useState({ top: 0, left: 0 });
+  const addMenuRef = useRef(null);
+  const addMenuBtnRef = useRef(null);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
         setShowProfileMenu(false);
+      }
+      if (addMenuRef.current && !addMenuRef.current.contains(e.target)) {
+        setShowAddMenu(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -122,6 +130,9 @@ export default function Sidebar({
   async function handleCreateProject(e) {
     e.preventDefault();
     setActiveView('create_project');
+    if (window.innerWidth <= 768) {
+      setIsSidebarCollapsed(true);
+    }
   }
 
   function renderProjectItem(project) {
@@ -138,15 +149,11 @@ export default function Sidebar({
     );
   }
 
-  if (isSidebarCollapsed) {
-    return null;
-  }
-
   const starredProjects = (projects || []).filter(p => p.starredBy?.some(s => s.userId === user?.id));
   const starredPortfolios = (portfolios || []).filter(p => p.starredBy?.some(s => s.userId === user?.id));
 
   return (
-    <aside className={`sidebar-wrapper ${isSidebarCollapsed ? 'collapsed' : ''}`} style={{ position: 'relative' }}>
+    <aside className={`sidebar-wrapper ${isSidebarCollapsed ? 'collapsed' : ''}`}>
       {/* NARROW LEFT PANE */}
       <div className="sidebar-narrow">
         <div className="sidebar-narrow-top">
@@ -172,7 +179,7 @@ export default function Sidebar({
         </div>
 
         <div className="sidebar-narrow-bottom" style={{ position: 'relative' }} ref={profileRef}>
-          <UserAvatar name={user?.name} size={32} onClick={() => setShowProfileMenu(!showProfileMenu)} style={{ cursor: 'pointer' }} />
+          <UserAvatar name={user?.name} userId={user?.id} profilePhoto={user?.profilePhoto} size={32} onClick={() => setShowProfileMenu(!showProfileMenu)} style={{ cursor: 'pointer' }} />
           
           {showProfileMenu && (
             <div className="profile-dropdown" style={{ 
@@ -228,7 +235,7 @@ export default function Sidebar({
                 {/* Profile info */}
                 <div style={{ padding: '16px 16px 12px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                    <UserAvatar name={user?.name} size={42} />
+                    <UserAvatar name={user?.name} userId={user?.id} profilePhoto={user?.profilePhoto} size={42} />
                     <div style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {user?.name || 'User'}
                     </div>
@@ -374,7 +381,88 @@ export default function Sidebar({
                     <span className="sidebar-section-label" style={{ textTransform: 'none' }}>Work</span>
                   </div>
                   {!isGuest && (
-                    <button className="sidebar-add-btn" onClick={(e) => { e.stopPropagation(); setActiveView('create_project'); }}>+</button>
+                    <div ref={addMenuRef}>
+                      <button 
+                        ref={addMenuBtnRef}
+                        className="sidebar-add-btn" 
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          if (!showAddMenu && addMenuBtnRef.current) {
+                            const rect = addMenuBtnRef.current.getBoundingClientRect();
+                            setAddMenuCoords({
+                              top: rect.bottom + 4,
+                              left: rect.left
+                            });
+                          }
+                          setShowAddMenu(!showAddMenu); 
+                        }}
+                      >+</button>
+                      {showAddMenu && (
+                        <div style={{
+                          position: 'fixed',
+                          top: `${addMenuCoords.top}px`,
+                          left: `${addMenuCoords.left}px`,
+                          backgroundColor: 'var(--bg-primary)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '6px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                          zIndex: 9999,
+                          minWidth: '160px',
+                          padding: '4px 0'
+                        }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowAddMenu(false);
+                              setActiveView('create_project');
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '8px 16px',
+                              background: 'transparent',
+                              border: 'none',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              color: 'var(--text-primary)',
+                              fontSize: '0.85rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                          >
+                            <span style={{ fontSize: '1.2rem', color: 'var(--text-tertiary)' }}>📋</span>
+                            New project
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowAddMenu(false);
+                              setActiveView('create_portfolio'); // Or whatever the activeView is for creating a portfolio
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '8px 16px',
+                              background: 'transparent',
+                              border: 'none',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              color: 'var(--text-primary)',
+                              fontSize: '0.85rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                          >
+                            <span style={{ fontSize: '1.2rem', color: 'var(--text-tertiary)' }}>📁</span>
+                            New portfolio
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
                 
@@ -413,7 +501,7 @@ export default function Sidebar({
               
               <nav className="sidebar-nav" style={{ marginTop: '8px' }}>
                 <button className="sidebar-nav-item active" style={{ padding: '6px 12px', borderRadius: '8px' }} onClick={() => { handleSelectProject(null); setActiveView('profile'); }}>
-                  <UserAvatar name={user?.name} size={24} style={{ marginRight: '12px' }} />
+                  <UserAvatar name={user?.name} userId={user?.id} profilePhoto={user?.profilePhoto} size={24} style={{ marginRight: '12px' }} />
                   <span style={{ fontWeight: '500' }}>Profile</span>
                 </button>
               </nav>

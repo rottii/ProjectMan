@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true });
-const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
 
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const { JWT_SECRET } = require('../config/env');
 
 const { authenticateToken } = require('../middleware/auth');
@@ -24,10 +23,10 @@ router.get('/', authenticateToken, async (req, res) => {
         const messages = await prisma.projectMessage.findMany({
             where: { projectId },
             include: {
-                user: { select: { id: true, name: true, email: true } },
+                user: { select: { id: true, name: true, email: true, profilePhoto: true } },
                 replies: {
                     include: {
-                        user: { select: { id: true, name: true, email: true } }
+                        user: { select: { id: true, name: true, email: true, profilePhoto: true } }
                     },
                     orderBy: { createdAt: 'asc' }
                 }
@@ -70,10 +69,10 @@ router.post('/', authenticateToken, async (req, res) => {
                 userId: req.user.userId
             },
             include: {
-                user: { select: { id: true, name: true, email: true } },
+                user: { select: { id: true, name: true, email: true, profilePhoto: true } },
                 replies: {
                     include: {
-                        user: { select: { id: true, name: true, email: true } }
+                        user: { select: { id: true, name: true, email: true, profilePhoto: true } }
                     }
                 }
             }
@@ -124,7 +123,7 @@ router.post('/:messageId/replies', authenticateToken, async (req, res) => {
                 userId: req.user.userId
             },
             include: {
-                user: { select: { id: true, name: true, email: true } }
+                user: { select: { id: true, name: true, email: true, profilePhoto: true } }
             }
         });
 

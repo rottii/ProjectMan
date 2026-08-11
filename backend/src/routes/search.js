@@ -1,9 +1,8 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const { JWT_SECRET } = require('../config/env');
 
 const { authenticateToken } = require('../middleware/auth');
@@ -51,7 +50,7 @@ router.get('/', authenticateToken, async (req, res) => {
       prisma.user.findMany({
         where: { OR: [{ name: searchQuery }, { email: searchQuery }] },
         take: 5,
-        select: { id: true, name: true, email: true }
+        select: { id: true, name: true, email: true, profilePhoto: true }
       }),
       // Portfolios: only owned by the user
       prisma.portfolio.findMany({

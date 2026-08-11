@@ -89,7 +89,7 @@ export default function CreateProject({ token, setProjects, setPortfolios, setAc
 
   const handleCreate = () => {
     const activeViewsArray = Object.keys(views).filter(k => views[k]).map(k => {
-      const id = crypto.randomUUID();
+      const id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
       return { id, name: k, type: k };
     });
     
@@ -217,40 +217,7 @@ export default function CreateProject({ token, setProjects, setPortfolios, setAc
 
             <button style={styles.continueBtn} onClick={() => setStep(2)}>Continue to set up views</button>
 
-            {templates.length > 0 && (
-              <>
-                <div style={{ margin: '32px 0 16px', borderTop: '1px solid var(--border-color)', paddingTop: '24px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 500, marginBottom: '12px' }}>Or start from a template</h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
-                    {templates.map(template => (
-                      <div 
-                        key={template.id} 
-                        onClick={() => handleUseTemplate(template)}
-                        style={{
-                          border: '1px solid var(--border-color)',
-                          borderRadius: '8px',
-                          padding: '16px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '8px',
-                          transition: 'box-shadow 0.2s',
-                          backgroundColor: 'var(--bg-primary)'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'}
-                        onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-                      >
-                        <div style={{ width: '32px', height: '32px', borderRadius: '6px', backgroundColor: template.color || '#4F46E5', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {template.icon || '📋'}
-                        </div>
-                        <div style={{ fontWeight: 500, fontSize: '14px' }}>{template.name}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Click to use this template</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
+
           </>
         ) : (
           <>
@@ -320,7 +287,8 @@ const styles = {
     maxWidth: '500px',
     margin: '0 auto',
     width: '100%',
-    paddingBottom: '40px'
+    padding: '0 24px 40px 24px',
+    boxSizing: 'border-box'
   },
   creationTitle: {
     fontSize: '32px',

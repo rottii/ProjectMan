@@ -204,7 +204,7 @@ export default function ShareProjectModal({ project, token, currentUser, onClose
 
             {/* Proje Sahibi */}
             <div style={styles.accessItemRow}>
-              <UserAvatar name={project.owner?.name || 'Admin'} size={32} style={{ marginRight: '1rem' }} />
+              <UserAvatar name={project.owner?.name || 'Admin'} userId={project.owner?.id} profilePhoto={project.owner?.profilePhoto} size={32} style={{ marginRight: '1rem' }} />
               <div style={styles.memberInfoBlock}>
                 <div style={styles.memberNameText}>{project.owner?.name} {currentUser && project.ownerId === currentUser.id ? '(You)' : ''}</div>
                 <div style={styles.memberEmailText}>{project.owner?.email}</div>
@@ -217,7 +217,7 @@ export default function ShareProjectModal({ project, token, currentUser, onClose
               if (!membership || !membership.user) return null; // Veri bozuksa render etme, çökme önle!
               return (
                 <div key={membership.user.id} style={styles.accessItemRow}>
-                  <UserAvatar name={membership.user.name} size={32} style={{ marginRight: '1rem' }} />
+                  <UserAvatar name={membership.user.name} userId={membership.user.id} profilePhoto={membership.user.profilePhoto} size={32} style={{ marginRight: '1rem' }} />
                   <div style={styles.memberInfoBlock}>
                     <div style={styles.memberNameText}>{membership.user.name} {currentUser && membership.user.id === currentUser.id ? '(You)' : ''}</div>
                     <div style={styles.memberEmailText}>{membership.user.email}</div>

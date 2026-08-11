@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config/env');
 
 const { authenticateToken } = require('../middleware/auth');
 
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 // Default widget layout
 const DEFAULT_LAYOUT = [

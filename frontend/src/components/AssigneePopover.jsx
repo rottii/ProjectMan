@@ -88,7 +88,7 @@ export default function AssigneePopover({ task, token, coords, project, onAssign
                 backgroundColor: (task?.assigneeId === user.id) ? '#F3F4F6' : 'transparent'
               }}
             >
-              <UserAvatar name={user.name} size={32} style={{ marginRight: '1rem' }} />
+              <UserAvatar name={user.name} userId={user.id} profilePhoto={user.profilePhoto} size={32} style={{ marginRight: '1rem' }} />
               <div style={styles.userInfo}>
                 <div style={styles.userName}>{user.name}</div>
                 <div style={styles.userEmail}>{user.email}</div>

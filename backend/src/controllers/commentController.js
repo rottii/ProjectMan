@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const {
     getProjectRoleFromTask,
     hasRole,
@@ -30,8 +29,8 @@ exports.createComment = async (req, res) => {
                 attachments: attachments ? JSON.stringify(attachments) : null
             },
             include: {
-                user: { select: { id: true, name: true, email: true } },
-                reactions: { include: { user: { select: { id: true, name: true, email: true } } } }
+                user: { select: { id: true, name: true, email: true, profilePhoto: true } },
+                reactions: { include: { user: { select: { id: true, name: true, email: true, profilePhoto: true } } } }
             }
         });
 
@@ -159,7 +158,7 @@ exports.toggleReaction = async (req, res) => {
         } else {
             const newReaction = await prisma.reaction.create({
                 data: { commentId, userId, emoji },
-                include: { user: { select: { id: true, name: true, email: true } } }
+                include: { user: { select: { id: true, name: true, email: true, profilePhoto: true } } }
             });
             result = { action: 'added', reaction: newReaction };
 

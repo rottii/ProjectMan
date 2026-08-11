@@ -189,7 +189,7 @@ export default function BrowseProjects({ projects, user, handleSelectProject, se
                     <>
                       {allUsers.slice(0, 3).map((u, i) => (
                         <div key={i} title={u.name} style={{ display: 'inline-flex', marginRight: '-6px' }}>
-                          <UserAvatar name={u.name} size={24} style={{ border: '2px solid var(--bg-primary)' }} />
+                          <UserAvatar name={u.name} userId={u.id} profilePhoto={u.profilePhoto} size={24} style={{ border: '2px solid var(--bg-primary)' }} />
                         </div>
                       ))}
                       {allUsers.length > 3 && (

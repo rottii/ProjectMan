@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 // Hierarchy: ADMIN > EDITOR > COMMENTER > VIEWER
 const ROLE_LEVEL = { VIEWER: 0, COMMENTER: 1, EDITOR: 2, ADMIN: 3 };
@@ -148,10 +147,10 @@ function hasRole(userRole, minimumRole) {
 const fullProjectInclude = {
     workspace: true,
     team: true,
-    owner: { select: { id: true, name: true, email: true } },
+    owner: { select: { id: true, name: true, email: true, profilePhoto: true } },
     members: {
         include: {
-            user: { select: { id: true, name: true, email: true } }
+            user: { select: { id: true, name: true, email: true, profilePhoto: true } }
         }
     },
     sections: {
@@ -160,24 +159,24 @@ const fullProjectInclude = {
             tasks: {
                 orderBy: { order: 'asc' },
                 include: {
-                    assignee: { select: { id: true, name: true, email: true } },
-                    creator: { select: { id: true, name: true, email: true } },
+                    assignee: { select: { id: true, name: true, email: true, profilePhoto: true } },
+                    creator: { select: { id: true, name: true, email: true, profilePhoto: true } },
                     subtasks: {
                         orderBy: { order: 'asc' },
                         include: {
-                            assignee: { select: { id: true, name: true, email: true } }
+                            assignee: { select: { id: true, name: true, email: true, profilePhoto: true } }
                         }
                     },
                     comments: {
                         orderBy: { createdAt: 'asc' },
                         include: {
-                            user: { select: { id: true, name: true, email: true } },
-                            reactions: { include: { user: { select: { id: true, name: true, email: true } } } }
+                            user: { select: { id: true, name: true, email: true, profilePhoto: true } },
+                            reactions: { include: { user: { select: { id: true, name: true, email: true, profilePhoto: true } } } }
                         }
                     },
                     collaborators: {
                         include: {
-                            user: { select: { id: true, name: true, email: true } }
+                            user: { select: { id: true, name: true, email: true, profilePhoto: true } }
                         }
                     },
                     blockedBy: {
@@ -194,13 +193,13 @@ const fullProjectInclude = {
                     attachments: {
                         orderBy: { createdAt: 'desc' },
                         include: {
-                            uploader: { select: { id: true, name: true, email: true } }
+                            uploader: { select: { id: true, name: true, email: true, profilePhoto: true } }
                         }
                     },
                     activities: {
                         orderBy: { createdAt: 'desc' },
                         include: {
-                            user: { select: { id: true, name: true, email: true } }
+                            user: { select: { id: true, name: true, email: true, profilePhoto: true } }
                         }
                     },
                     secondaryProjects: {
@@ -220,21 +219,21 @@ const fullProjectInclude = {
                                     project: { select: { id: true, name: true, color: true, icon: true, isTemplate: true, customFieldSettings: true, workspaceId: true, status: true, sections: { select: { id: true, name: true } } } }
                                 }
                             },
-                            assignee: { select: { id: true, name: true, email: true } },
-                            creator: { select: { id: true, name: true, email: true } },
+                            assignee: { select: { id: true, name: true, email: true, profilePhoto: true } },
+                            creator: { select: { id: true, name: true, email: true, profilePhoto: true } },
                             subtasks: {
                                 orderBy: { order: 'asc' },
-                                include: { assignee: { select: { id: true, name: true, email: true } } }
+                                include: { assignee: { select: { id: true, name: true, email: true, profilePhoto: true } } }
                             },
                             comments: {
                                 orderBy: { createdAt: 'asc' },
                                 include: { 
-                                    user: { select: { id: true, name: true, email: true } },
-                                    reactions: { include: { user: { select: { id: true, name: true, email: true } } } }
+                                    user: { select: { id: true, name: true, email: true, profilePhoto: true } },
+                                    reactions: { include: { user: { select: { id: true, name: true, email: true, profilePhoto: true } } } }
                                 }
                             },
                             collaborators: {
-                                include: { user: { select: { id: true, name: true, email: true } } }
+                                include: { user: { select: { id: true, name: true, email: true, profilePhoto: true } } }
                             },
                             blockedBy: {
                                 include: { blockingTask: { select: { id: true, title: true, isCompleted: true } } }
@@ -245,11 +244,11 @@ const fullProjectInclude = {
                             tags: true,
                             attachments: {
                                 orderBy: { createdAt: 'desc' },
-                                include: { uploader: { select: { id: true, name: true, email: true } } }
+                                include: { uploader: { select: { id: true, name: true, email: true, profilePhoto: true } } }
                             },
                             activities: {
                                 orderBy: { createdAt: 'desc' },
-                                include: { user: { select: { id: true, name: true, email: true } } }
+                                include: { user: { select: { id: true, name: true, email: true, profilePhoto: true } } }
                             },
                             secondaryProjects: {
                                 include: {
@@ -272,24 +271,24 @@ const fullProjectInclude = {
 };
 
 const fullTaskInclude = {
-    assignee: { select: { id: true, name: true, email: true } },
-    creator: { select: { id: true, name: true, email: true } },
+    assignee: { select: { id: true, name: true, email: true, profilePhoto: true } },
+    creator: { select: { id: true, name: true, email: true, profilePhoto: true } },
     subtasks: {
         orderBy: { order: 'asc' },
         include: {
-            assignee: { select: { id: true, name: true, email: true } }
+            assignee: { select: { id: true, name: true, email: true, profilePhoto: true } }
         }
     },
     comments: {
         orderBy: { createdAt: 'asc' },
         include: {
-            user: { select: { id: true, name: true, email: true } },
-            reactions: { include: { user: { select: { id: true, name: true, email: true } } } }
+            user: { select: { id: true, name: true, email: true, profilePhoto: true } },
+            reactions: { include: { user: { select: { id: true, name: true, email: true, profilePhoto: true } } } }
         }
     },
     collaborators: {
         include: {
-            user: { select: { id: true, name: true, email: true } }
+            user: { select: { id: true, name: true, email: true, profilePhoto: true } }
         }
     },
     blockedBy: {
@@ -306,13 +305,13 @@ const fullTaskInclude = {
     attachments: {
         orderBy: { createdAt: 'desc' },
         include: {
-            uploader: { select: { id: true, name: true, email: true } }
+            uploader: { select: { id: true, name: true, email: true, profilePhoto: true } }
         }
     },
     activities: {
         orderBy: { createdAt: 'desc' },
         include: {
-            user: { select: { id: true, name: true, email: true } }
+            user: { select: { id: true, name: true, email: true, profilePhoto: true } }
         }
     },
     secondaryProjects: {

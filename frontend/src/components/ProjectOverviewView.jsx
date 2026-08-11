@@ -510,7 +510,7 @@ export default function ProjectOverviewView({ selectedProject, projectRole, isRe
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {members.map((member, idx) => (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <UserAvatar name={member.name} size={32} />
+                <UserAvatar name={member.name} userId={member.id} profilePhoto={member.profilePhoto} size={32} />
                 <div>
                   <div style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>{member.name}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{member.role}</div>

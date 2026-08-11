@@ -257,7 +257,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
           if (currentDeletedSections.size > 0) {
             updatedProj.sections = updatedProj.sections.filter(sec => !currentDeletedSections.has(sec.id));
           }
-          
+
           const currentDeletedTasks = optimisticDeletedTaskIdsRef.current;
           if (currentDeletedTasks.size > 0) {
             updatedProj.sections = updatedProj.sections.map(sec => ({
@@ -448,7 +448,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
   };
 
   const handleAddView = (type) => {
-    const newView = { id: crypto.randomUUID(), type, name: type };
+    const newView = { id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15), type, name: type };
     const newViews = [...parsedViews, newView];
     setIsAddViewMenuOpen(false);
     handleUpdateViews(newViews);
@@ -469,7 +469,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
     const view = tabContextMenu.view;
     setTabContextMenu({ visible: false, x: 0, y: 0, view: null });
 
-    const newView = { ...view, id: crypto.randomUUID(), name: `${view.name} (Copy)` };
+    const newView = { ...view, id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15), name: `${view.name} (Copy)` };
     const newViews = [...parsedViews, newView];
     handleUpdateViews(newViews);
   };
@@ -2184,7 +2184,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
         <div style={styles.headerLeftBlock}>
           <div style={{ position: 'relative' }}>
             {selectedProject?.status === 'MY_TASKS' ? (
-              <UserAvatar name={user?.name} size={32} style={{ marginRight: '4px' }} />
+              <UserAvatar name={user?.name} userId={user?.id} profilePhoto={user?.profilePhoto} size={32} style={{ marginRight: '4px' }} />
             ) : (
               <div
                 style={{ ...styles.asanaProjectIcon, backgroundColor: selectedProject.color || '#4F46E5', cursor: (projectRole === 'ADMIN' || projectRole === 'EDITOR') ? 'pointer' : 'default' }}
@@ -2322,6 +2322,8 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
               <div style={styles.avatarListWrapper}>
                 <UserAvatar
                   name={selectedProject.owner?.name}
+                  userId={selectedProject.owner?.id}
+                  profilePhoto={selectedProject.owner?.profilePhoto}
                   size={28}
                   onClick={(e) => { e.stopPropagation(); setIsShareModalOpen(true); }}
                   style={{ cursor: 'pointer', border: '1px solid #FFF' }}
@@ -3133,7 +3135,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
               {!isReadOnly && !isVirtualGrouping && (
                 <div style={styles.addSectionColumn}>
                   <form onSubmit={handleCreateSection} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                    <input type="text" placeholder="+ Add section..." value={newSectionName} onChange={e => setNewSectionName(e.target.value)} style={styles.input} required />
+                    <input type="text" placeholder="+ Add section..." value={newSectionName} onChange={e => setNewSectionName(e.target.value)} style={styles.addSectionInput} required />
                     {newSectionName.trim() && <button type="submit" style={styles.button}>Add Section</button>}
                   </form>
                 </div>
@@ -3187,6 +3189,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
           selectedProject={selectedProject}
           showPicker={isAddWidgetMenuOpen}
           setShowPicker={setIsAddWidgetMenuOpen}
+          projectRole={projectRole}
         />
       ) : activeViewObj.type === 'Calendar' ? (
         <ProjectCalendarView selectedProject={selectedProject} applyTaskFilter={applyTaskFilter} applyTaskSort={applyTaskSort} onOpenTaskPane={setActiveTaskPaneId} handleTaskUpdate={handleTaskUpdate} token={token} isReadOnly={isReadOnly} />
@@ -4290,7 +4293,8 @@ const styles = {
   addFilterFooterRow: { marginTop: '1.25rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' },
   addFilterBtnLink: { fontSize: '0.8rem', color: 'var(--accent-primary)', fontWeight: '600', cursor: 'pointer' },
   columnsWrapper: { display: 'flex', gap: '1.5rem', overflowX: 'auto', alignItems: 'stretch', padding: '1.5rem', flex: 1, minHeight: 0, backgroundColor: 'var(--bg-secondary)' },
-  addSectionColumn: { border: '2px dashed var(--border-color)', width: '280px', minWidth: '280px', padding: '1rem', borderRadius: '8px', boxSizing: 'border-box', height: 'fit-content', backgroundColor: 'var(--bg-primary)' },
+  addSectionColumn: { width: '280px', minWidth: '280px', flexShrink: 0, display: 'flex', flexDirection: 'column' },
+  addSectionInput: { fontFamily: 'inherit', padding: '0.75rem 1rem', borderRadius: '8px', border: '2px dashed var(--border-color)', backgroundColor: 'transparent', fontSize: '1.1rem', fontWeight: 'bold', width: '100%', boxSizing: 'border-box', outline: 'none', color: 'var(--text-primary)' },
   input: { padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', fontSize: '0.9rem', width: '100%', boxSizing: 'border-box', outline: 'none', color: 'var(--text-primary)' },
   button: { padding: '0.5rem', backgroundColor: 'var(--accent-primary)', color: '#FFF', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600', width: '100%' },
   contextMenu: { position: 'fixed', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', zIndex: 100, padding: '0.4rem', minWidth: '150px' },

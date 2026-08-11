@@ -1,6 +1,5 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const router = express.Router({ mergeParams: true }); // projectId alabilmek için
 const { evaluateRules } = require('../utils/ruleEngine');
 const { authenticateToken } = require('../middleware/auth');

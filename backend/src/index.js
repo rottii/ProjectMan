@@ -3,7 +3,6 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const path = require('path');
-const { PrismaClient } = require('@prisma/client');
 const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/project');
 const rulesRoutes = require('./routes/rules');
@@ -16,7 +15,9 @@ const reportingRoutes = require('./routes/reporting');
 const workspacesRoutes = require('./routes/workspaces');
 const dashboardRoutes = require('./routes/dashboard');
 const publicRoutes = require('./routes/public');
+const invitesRoutes = require('./routes/invites');
 const { startCronScheduler } = require('./utils/cronScheduler');
+
 
 const { startReminderCron } = require('./utils/reminders');
 
@@ -50,7 +51,7 @@ const httpServer = http.createServer(app);
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',') 
-  : ['http://localhost:3000', 'http://localhost:5173'];
+  : ['http://localhost:3000', 'http://localhost:5173', 'https://localhost', 'http://localhost'];
 
 const io = new Server(httpServer, {
   cors: {
@@ -89,7 +90,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const prisma = new PrismaClient();
+const prisma = require('./lib/prisma');
 const PORT = process.env.PORT || 5001;
 
 const helmet = require('helmet');
@@ -103,11 +104,15 @@ app.use(helmet({
 
 const corsOptions = {
   origin: function (origin, callback) {
+    // Allow if no origin (e.g. same origin or postman), or if it's in the allowed list
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+      return callback(null, true);
     }
+    // Allow local network IP addresses dynamically
+    if (origin.startsWith('http://192.168.') || origin.startsWith('http://172.') || origin.startsWith('http://10.')) {
+      return callback(null, true);
+    }
+    callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
   credentials: true
@@ -127,8 +132,7 @@ const apiLimiter = rateLimit({
 
 app.use('/api', apiLimiter);
 
-// Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+// Static file serving for uploads has been removed for security
 
 // Rotalar
 app.use('/api/public', publicRoutes);
@@ -144,6 +148,7 @@ app.use('/api/reporting', reportingRoutes);
 app.use('/api/search', require('./routes/search'));
 app.use('/api/workspaces', workspacesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/invites', invitesRoutes);
 app.use('/api/github', require('./routes/github'));
 app.use('/api/ai', require('./routes/ai'));
 

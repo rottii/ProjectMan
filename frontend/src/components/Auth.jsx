@@ -20,7 +20,10 @@ export default function Auth({ setToken, setUser }) {
         body: JSON.stringify(isLogin ? { email, password, rememberMe } : { name, email, password, rememberMe }),
       })
       const data = await response.json()
-      if (!response.ok) throw new Error(data.error)
+      if (!response.ok) {
+        const errorMsg = typeof data.error === 'object' ? data.error.message : data.error;
+        throw new Error(errorMsg || 'An unknown error occurred');
+      }
 
       if (isLogin) {
         localStorage.setItem('token', data.token)
@@ -43,7 +46,10 @@ export default function Auth({ setToken, setUser }) {
         body: JSON.stringify({ token: credentialResponse.credential, rememberMe }),
       })
       const data = await response.json()
-      if (!response.ok) throw new Error(data.error)
+      if (!response.ok) {
+        const errorMsg = typeof data.error === 'object' ? data.error.message : data.error;
+        throw new Error(errorMsg || 'An unknown error occurred');
+      }
 
       localStorage.setItem('token', data.token)
       if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken)

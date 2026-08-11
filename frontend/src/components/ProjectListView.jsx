@@ -638,7 +638,7 @@ export default function ProjectListView({
               <div key="assignee" style={{ ...styles.gridBodyCell, width: colWidths.assignee, flexShrink: 0, cursor: isReadOnly ? 'default' : 'pointer' }} onClick={(e) => !isReadOnly && handleOpenPopoverInline(e, 'assignee', task, sectionId)}>
                 {task.assignee ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', overflow: 'hidden', height: '24px' }}>
-                    <UserAvatar name={task.assignee.name} size={24} />
+                    <UserAvatar name={task.assignee.name} userId={task.assignee.id} profilePhoto={task.assignee.profilePhoto} size={24} />
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.assignee.name}</span>
                   </div>
                 ) : (
@@ -762,7 +762,7 @@ export default function ProjectListView({
                           const member = members.find(m => m.id === uid);
                           return (
                             <div key={i} title={member?.name || 'Unknown'}>
-                              <UserAvatar name={member?.name} size={20} />
+                              <UserAvatar name={member?.name} userId={member?.id} profilePhoto={member?.profilePhoto} size={20} />
                             </div>
                           );
                         })}
@@ -850,7 +850,7 @@ export default function ProjectListView({
                               <div style={{ width: '14px', height: '14px', border: '1px solid var(--border-color)', borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? 'var(--accent-primary)' : 'transparent' }}>
                                 {isSelected && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg>}
                               </div>
-                              <UserAvatar name={m.name} size={20} />
+                              <UserAvatar name={m.name} userId={m.id} profilePhoto={m.profilePhoto} size={20} />
                               <span style={{ color: 'var(--text-primary)', fontSize: '0.85rem' }}>{m.name}</span>
                             </button>
                           );

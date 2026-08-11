@@ -151,7 +151,7 @@ export default function Dashboard({ user, projects, setProjects, setSelectedProj
   if (activeTab.startsWith('Overdue')) displayedMyTasks = myOverdue
   if (activeTab === 'Completed') displayedMyTasks = myCompleted
 
-  const assignedToOthers = allTasks.filter(t => t.assigneeId && t.assigneeId !== user.id)
+  const assignedToOthers = allTasks.filter(t => t.assigneeId && t.assigneeId !== user.id && t.creatorId === user.id)
 
   const peopleMap = {}
   allTasks.forEach(t => {
@@ -402,7 +402,7 @@ export default function Dashboard({ user, projects, setProjects, setSelectedProj
     <>
       <div className="widget-header">
         <div className="widget-header-left">
-          <UserAvatar name={user?.name} size={48} />
+          <UserAvatar name={user?.name} userId={user?.id} profilePhoto={user?.profilePhoto} size={48} />
           <h2 className="widget-title">My tasks <span style={{fontSize:'1rem', color:'var(--text-tertiary)'}}>🔒</span></h2>
         </div>
         {renderWidgetMenuBtn(widget)}
@@ -502,7 +502,7 @@ export default function Dashboard({ user, projects, setProjects, setSelectedProj
                 <span style={{fontSize:'0.8rem', color: t.isCompleted ? 'var(--text-tertiary)' : status.color}}>
                   {t.isCompleted ? 'Completed' : status.text}
                 </span>
-                <UserAvatar name={t.assignee?.name} size={24} />
+                <UserAvatar name={t.assignee?.name} userId={t.assignee?.id} profilePhoto={t.assignee?.profilePhoto} size={24} />
               </div>
             </div>
           )
@@ -530,7 +530,7 @@ export default function Dashboard({ user, projects, setProjects, setSelectedProj
           return (
             <div key={p.id} className="widget-people-row">
               <div style={{display:'flex', alignItems:'center', gap:'0.75rem'}}>
-                <UserAvatar name={p.user?.name} size={24} />
+                <UserAvatar name={p.user?.name} userId={p.user?.id} profilePhoto={p.user?.profilePhoto} size={24} />
                 <div className="widget-people-bar">
                   <div className="widget-people-bar-inner">
                     {p.overdue > 0 && <div style={{width: `${(p.overdue/total)*100}%`, backgroundColor:'var(--accent-danger)'}} />}
@@ -846,8 +846,6 @@ export default function Dashboard({ user, projects, setProjects, setSelectedProj
               </div>
             </div>
 
-            {/* Remove Button */}
-            <button className="widget-remove-btn" onClick={() => removeWidget(widget.id)} title="Remove widget">✕</button>
 
             {/* Resize Handle */}
             <div

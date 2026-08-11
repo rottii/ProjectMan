@@ -246,3 +246,32 @@
 .profile-logout:hover {
   background-color: rgba(248, 113, 113, 0.1);
 }
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+  .topnav-container {
+    padding: 0 8px;
+  }
+  
+  .topnav-left, .topnav-right {
+    width: auto;
+  }
+  
+  .topnav-create-btn {
+    padding: 6px 12px;
+  }
+
+  .topnav-search-bar {
+    max-width: 100%;
+    margin: 0 8px;
+  }
+
+  .topnav-search-input {
+    font-size: 0.85rem;
+  }
+  
+  /* Create dropdown on mobile should adjust position */
+  .omni-create-dropdown {
+    left: 0;
+  }
+}

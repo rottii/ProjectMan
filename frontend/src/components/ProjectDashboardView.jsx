@@ -240,7 +240,9 @@ const XAxisCustomDropdown = ({ value, onChange, disabled, axisOptions, customFie
 };
 
 
-export default function ProjectDashboardView({ selectedProject, showPicker, setShowPicker, isReadOnly }) {
+export default function ProjectDashboardView({ selectedProject, showPicker, setShowPicker, isReadOnly, projectRole }) {
+  const isAdmin = projectRole === 'ADMIN';
+  const canEdit = !isReadOnly && isAdmin;
   // --- Chart layout state ---
   const storageKey = `proj-dash-layout-${selectedProject?.id}`;
   const [chartLayout, setChartLayout] = useState(() => {
@@ -1202,12 +1204,12 @@ export default function ProjectDashboardView({ selectedProject, showPicker, setS
       <button className="proj-dash-card-menu-btn" title="View larger" onMouseDown={(e) => { e.stopPropagation(); setViewChartModal(chart); }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
       </button>
-      {!isReadOnly && chart.type !== 'text-widget' && (
+      {!isReadOnly && chart.type !== 'text-widget' && canEdit && (
         <button className="proj-dash-card-menu-btn" title="Edit chart" onMouseDown={(e) => { e.stopPropagation(); openEditChartModal(chart); }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
         </button>
       )}
-      {!isReadOnly && (
+      {!isReadOnly && canEdit && (
         <div style={{ position: 'relative' }} ref={openMenu === chart.i ? menuRef : null}>
           <button className="proj-dash-card-menu-btn" onMouseDown={(e) => { e.stopPropagation(); setOpenMenu(openMenu === chart.i ? null : chart.i); }}>
             •••
@@ -1271,8 +1273,8 @@ export default function ProjectDashboardView({ selectedProject, showPicker, setS
           cols={20}
           rowHeight={20}
           margin={[20, 20]}
-          isDraggable={!isReadOnly}
-          isResizable={!isReadOnly}
+          isDraggable={canEdit}
+          isResizable={canEdit}
           onLayoutChange={(layout) => {
             if (isReadOnly) return;
             setChartLayout(prev => layout.map(l => {
@@ -1512,7 +1514,7 @@ export default function ProjectDashboardView({ selectedProject, showPicker, setS
             <div className="add-chart-modal-header" style={{ padding: '16px 24px' }}>
               <h2>View chart</h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {!isReadOnly && viewChartModal.type !== 'text-widget' && (
+                {canEdit && viewChartModal.type !== 'text-widget' && (
                   <button className="proj-dash-picker-close" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Edit chart" onClick={() => openEditChartModal(viewChartModal)}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
                   </button>

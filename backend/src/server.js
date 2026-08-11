@@ -4,7 +4,7 @@ const { startReminderCron } = require('./utils/reminders');
 
 const PORT = process.env.PORT || 5001;
 
-httpServer.listen(PORT, async () => {
+httpServer.listen(PORT, '0.0.0.0', async () => {
   console.log(`Server ${PORT} portunda başarıyla başlatıldı (HTTP & WebSocket).`);
   await bootstrapData();
   startCronScheduler();

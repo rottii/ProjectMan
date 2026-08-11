@@ -1,9 +1,8 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const jwt = require('jsonwebtoken');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 const { JWT_SECRET } = require('../config/env');
 
 // 1. ARA KATMAN: Giriş Kontrolü
@@ -13,98 +12,107 @@ const { authenticateToken } = require('../middleware/auth');
 // Get high-level metrics for all tasks across user's projects
 router.get('/global', authenticateToken, async (req, res) => {
   try {
-    const tasks = await prisma.task.findMany({
-      where: {
-        section: {
-          project: {
-            OR: [
-              { ownerId: req.user.userId },
-              { members: { some: { userId: req.user.userId } } }
-            ]
-          }
-        }
-      },
-      include: {
-        assignee: true,
-        section: {
-          include: {
-            project: {
-              select: {
-                id: true,
-                name: true,
-                customFieldSettings: true
-              }
-            }
-          }
+    const userId = req.user.userId;
+
+    // Shared filter: only tasks in projects the user owns or is a member of
+    const accessFilter = {
+      section: {
+        project: {
+          OR: [
+            { ownerId: userId },
+            { members: { some: { userId } } }
+          ]
         }
       }
-    });
-
-    const metrics = {
-      totalTasks: tasks.length,
-      completedTasks: 0,
-      incompleteTasks: 0,
-      overdueTasks: 0,
-      tasksByProject: {},
-      tasksByAssignee: {}
     };
 
-    const now = new Date().getTime();
+    // Run all aggregations in parallel — each pushes work to PostgreSQL
+    const [
+      totalTasks,
+      completedTasks,
+      overdueTasks,
+      tasksByProjectRaw,
+      tasksByAssigneeRaw
+    ] = await Promise.all([
+      // 1. Total tasks
+      prisma.task.count({ where: accessFilter }),
 
-    tasks.forEach(task => {
-      // Basic metrics
-      if (task.isCompleted) {
-        metrics.completedTasks++;
-      } else {
-        metrics.incompleteTasks++;
-        // Check if overdue
-        if (task.dueDate && new Date(task.dueDate).getTime() < now) {
-          metrics.overdueTasks++;
+      // 2. Completed tasks
+      prisma.task.count({ where: { ...accessFilter, isCompleted: true } }),
+
+      // 3. Overdue incomplete tasks
+      prisma.task.count({
+        where: {
+          ...accessFilter,
+          isCompleted: false,
+          dueDate: { lt: new Date() }
         }
-      }
+      }),
 
-      // Project metrics
-      const proj = task.section?.project;
-      if (proj) {
-        if (!metrics.tasksByProject[proj.name]) {
-          metrics.tasksByProject[proj.name] = { total: 0, completed: 0 };
-        }
-        metrics.tasksByProject[proj.name].total++;
-        if (task.isCompleted) {
-          metrics.tasksByProject[proj.name].completed++;
-        }
-      }
+      // 4. Tasks grouped by project (top 10)
+      prisma.$queryRaw`
+        SELECT
+          p."name"                                             AS "projectName",
+          COUNT(*)::int                                        AS "total",
+          COUNT(*) FILTER (WHERE t."isCompleted" = true)::int  AS "completed"
+        FROM "Task" t
+        JOIN "Section" s ON s."id" = t."sectionId"
+        JOIN "Project" p ON p."id" = s."projectId"
+        WHERE (
+          p."ownerId" = ${userId}
+          OR EXISTS (
+            SELECT 1 FROM "ProjectMembership" pm
+            WHERE pm."projectId" = p."id" AND pm."userId" = ${userId}
+          )
+        )
+        GROUP BY p."name"
+        ORDER BY "total" DESC
+        LIMIT 10
+      `,
 
-      // Assignee metrics
-      const assigneeName = task.assignee?.name || 'Unassigned';
-      if (!metrics.tasksByAssignee[assigneeName]) {
-        metrics.tasksByAssignee[assigneeName] = { total: 0, completed: 0 };
-      }
-      metrics.tasksByAssignee[assigneeName].total++;
-      if (task.isCompleted) {
-        metrics.tasksByAssignee[assigneeName].completed++;
-      }
-    });
+      // 5. Tasks grouped by assignee (top 10)
+      prisma.$queryRaw`
+        SELECT
+          COALESCE(u."name", 'Unassigned')                     AS "assigneeName",
+          COUNT(*)::int                                        AS "total",
+          COUNT(*) FILTER (WHERE t."isCompleted" = true)::int  AS "completed"
+        FROM "Task" t
+        JOIN "Section" s ON s."id" = t."sectionId"
+        JOIN "Project" p ON p."id" = s."projectId"
+        LEFT JOIN "User" u ON u."id" = t."assigneeId"
+        WHERE (
+          p."ownerId" = ${userId}
+          OR EXISTS (
+            SELECT 1 FROM "ProjectMembership" pm
+            WHERE pm."projectId" = p."id" AND pm."userId" = ${userId}
+          )
+        )
+        GROUP BY u."name"
+        ORDER BY "total" DESC
+        LIMIT 10
+      `
+    ]);
 
-    // Formatting objects into arrays for charting convenience on frontend
-    const projectStats = Object.keys(metrics.tasksByProject).map(name => ({
-      name,
-      total: metrics.tasksByProject[name].total,
-      completed: metrics.tasksByProject[name].completed,
-      incomplete: metrics.tasksByProject[name].total - metrics.tasksByProject[name].completed
-    })).sort((a, b) => b.total - a.total).slice(0, 10); // top 10 projects
+    const incompleteTasks = totalTasks - completedTasks;
 
-    const assigneeStats = Object.keys(metrics.tasksByAssignee).map(name => ({
-      name,
-      total: metrics.tasksByAssignee[name].total,
-      completed: metrics.tasksByAssignee[name].completed
-    })).sort((a, b) => b.total - a.total).slice(0, 10);
+    const projectStats = tasksByProjectRaw.map(r => ({
+      name: r.projectName,
+      total: r.total,
+      completed: r.completed,
+      incomplete: r.total - r.completed
+    }));
+
+    const assigneeStats = tasksByAssigneeRaw.map(r => ({
+      name: r.assigneeName,
+      total: r.total,
+      completed: r.completed
+    }));
 
     res.json({
-      totalTasks: metrics.totalTasks,
-      completedTasks: metrics.completedTasks,
-      incompleteTasks: metrics.incompleteTasks,
-      overdueTasks: metrics.overdueTasks,
+      totalTasks,
+      completedTasks,
+      incompleteTasks,
+      overdueTasks,
       projectStats,
       assigneeStats
     });

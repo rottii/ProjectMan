@@ -4,7 +4,17 @@ import { apiFetch } from '../api';
 const monthsList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 export default function DatePickerPopover({ task, token, coords, onDatesUpdated, customFieldId, filterMode, initialStart, initialEnd, onFilterApply, styleOverrides }) {
-  const [calendarView, setCalendarView] = useState({ year: 2026, month: 6 }) // July 2026
+  const getInitialCalendarView = () => {
+    let targetDateStr = filterMode ? initialEnd || initialStart : (customFieldId ? (task ? getParsedTaskCustomFields(task.customFields)[customFieldId] : null) : (task?.dueDate || task?.startDate));
+    if (targetDateStr) {
+      const d = new Date(targetDateStr);
+      if (!isNaN(d.getTime())) return { year: d.getFullYear(), month: d.getMonth() };
+    }
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  };
+
+  const [calendarView, setCalendarView] = useState(getInitialCalendarView())
 
   const parsedFields = customFieldId && task ? getParsedTaskCustomFields(task.customFields) : {};
   const customFieldValue = customFieldId && task ? parsedFields[customFieldId] : null;

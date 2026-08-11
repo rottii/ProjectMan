@@ -112,7 +112,7 @@ export default function Goals({ token, user, setActiveView }) {
             <span className="goal-progress-text">{Math.round(cappedProgress)}%</span>
           </div>
           <div title={goal.owner?.name}>
-            <UserAvatar name={goal.owner?.name} size={24} />
+            <UserAvatar name={goal.owner?.name} userId={goal.owner?.id} profilePhoto={goal.owner?.profilePhoto} size={24} />
           </div>
         </div>
       </div>

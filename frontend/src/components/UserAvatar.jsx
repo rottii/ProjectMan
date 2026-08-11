@@ -1,7 +1,10 @@
 import React from 'react';
 
-const UserAvatar = ({ name, size = 26, style = {}, onClick }) => {
+import { assetUrl } from '../api';
+
+const UserAvatar = ({ name, size = 26, style = {}, onClick, profilePhoto, userId }) => {
   const initial = name ? name.charAt(0).toUpperCase() : '?';
+  const token = localStorage.getItem('token');
   
   return (
     <div 
@@ -10,7 +13,7 @@ const UserAvatar = ({ name, size = 26, style = {}, onClick }) => {
         width: `${size}px`,
         height: `${size}px`,
         borderRadius: '50%',
-        backgroundColor: '#E0E7FF',
+        backgroundColor: profilePhoto ? 'transparent' : '#E0E7FF',
         color: '#4F46E5',
         display: 'flex',
         alignItems: 'center',
@@ -19,10 +22,19 @@ const UserAvatar = ({ name, size = 26, style = {}, onClick }) => {
         fontWeight: '600',
         flexShrink: 0,
         userSelect: 'none',
+        overflow: 'hidden',
         ...style
       }}
     >
-      {initial}
+      {profilePhoto ? (
+        <img 
+          src={assetUrl(`/api/auth/users/${userId}/photo?token=${token}`)} 
+          alt={name} 
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+        />
+      ) : (
+        initial
+      )}
     </div>
   );
 };

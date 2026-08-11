@@ -52,7 +52,8 @@ export default function ProjectFilesView({ selectedProject, token, onTaskUpdate 
     e.stopPropagation();
     setOpenMenuId(null);
     const link = document.createElement('a');
-    link.href = assetUrl(`/uploads/${att.filename}`);
+    const token = localStorage.getItem('token');
+    link.href = assetUrl(`/api/projects/attachments/${att.id}/download?token=${token}`);
     link.download = att.originalName;
     link.target = '_blank';
     document.body.appendChild(link);
@@ -102,7 +103,10 @@ export default function ProjectFilesView({ selectedProject, token, onTaskUpdate 
           {allAttachments.map((att) => (
             <div
               key={att.id}
-              onClick={() => window.open(assetUrl(`/uploads/${att.filename}`), '_blank')}
+              onClick={() => {
+                const token = localStorage.getItem('token');
+                window.open(assetUrl(`/api/projects/attachments/${att.id}/download?token=${token}`), '_blank');
+              }}
               style={{
                 backgroundColor: 'var(--bg-primary)',
                 border: '1px solid var(--border-color)',
@@ -249,7 +253,7 @@ export default function ProjectFilesView({ selectedProject, token, onTaskUpdate 
               }}>
                 {att.mimeType?.startsWith('image/') ? (
                   <img
-                    src={assetUrl(`/uploads/${att.filename}`)}
+                    src={assetUrl(`/api/projects/attachments/${att.id}/download?token=${localStorage.getItem('token')}`)}
                     alt={att.originalName}
                     style={{
                       maxWidth: '100%',

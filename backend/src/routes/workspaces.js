@@ -1,12 +1,12 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 const { JWT_SECRET } = require('../config/env');
 
 const { authenticateToken } = require('../middleware/auth');
+const { requireWorkspaceMember } = require('../middleware/authorize');
 
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 // TEMP FIX ROUTE
 router.get('/fix-permissions', async (req, res) => {
@@ -125,23 +125,10 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Create a team within a workspace
-router.post('/:workspaceId/teams', authenticateToken, async (req, res) => {
+router.post('/:workspaceId/teams', authenticateToken, requireWorkspaceMember('ADMIN'), async (req, res) => {
   try {
     const { workspaceId } = req.params;
     const { name, description } = req.body;
-
-    // Verify workspace access — must be ADMIN to create teams
-    const member = await prisma.workspaceMember.findFirst({
-      where: { workspaceId, userId: req.user.userId }
-    });
-
-    if (!member) {
-      return res.status(403).json({ error: 'Not a member of this workspace' });
-    }
-
-    if (member.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Sadece çalışma alanı yöneticisi takım oluşturabilir.' });
-    }
 
     const team = await prisma.team.create({
       data: {
@@ -165,23 +152,14 @@ router.post('/:workspaceId/teams', authenticateToken, async (req, res) => {
 });
 
 // Get workspace members
-router.get('/:workspaceId/members', authenticateToken, async (req, res) => {
+router.get('/:workspaceId/members', authenticateToken, requireWorkspaceMember('MEMBER'), async (req, res) => {
   try {
     const { workspaceId } = req.params;
-    
-    // Check if requester is an ADMIN
-    const requester = await prisma.workspaceMember.findFirst({
-      where: { workspaceId, userId: req.user.userId }
-    });
-    
-    if (!requester || requester.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Only admins can view workspace members.' });
-    }
 
     const members = await prisma.workspaceMember.findMany({
       where: { workspaceId },
       include: {
-        user: { select: { id: true, name: true, email: true } }
+        user: { select: { id: true, name: true, email: true, profilePhoto: true } }
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -194,7 +172,7 @@ router.get('/:workspaceId/members', authenticateToken, async (req, res) => {
 });
 
 // Update member role
-router.patch('/:workspaceId/members/:userId', authenticateToken, async (req, res) => {
+router.patch('/:workspaceId/members/:userId', authenticateToken, requireWorkspaceMember('ADMIN'), async (req, res) => {
   try {
     const { workspaceId, userId } = req.params;
     const { role } = req.body;
@@ -202,10 +180,6 @@ router.patch('/:workspaceId/members/:userId', authenticateToken, async (req, res
     const requester = await prisma.workspaceMember.findFirst({
       where: { workspaceId, userId: req.user.userId }
     });
-    
-    if (!requester || requester.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Only admins can modify member roles.' });
-    }
 
     const targetMember = await prisma.workspaceMember.findFirst({
       where: { workspaceId, userId }
@@ -226,7 +200,7 @@ router.patch('/:workspaceId/members/:userId', authenticateToken, async (req, res
     const updatedMember = await prisma.workspaceMember.update({
       where: { workspaceId_userId: { workspaceId, userId } },
       data: { role },
-      include: { user: { select: { id: true, name: true, email: true } } }
+      include: { user: { select: { id: true, name: true, email: true, profilePhoto: true } } }
     });
     
     res.json(updatedMember);
@@ -237,7 +211,7 @@ router.patch('/:workspaceId/members/:userId', authenticateToken, async (req, res
 });
 
 // Remove a member (kick)
-router.delete('/:workspaceId/members/:userId', authenticateToken, async (req, res) => {
+router.delete('/:workspaceId/members/:userId', authenticateToken, requireWorkspaceMember('MEMBER'), async (req, res) => {
   try {
     const { workspaceId, userId } = req.params;
     
@@ -304,7 +278,7 @@ router.delete('/:workspaceId/members/:userId', authenticateToken, async (req, re
 });
 
 // Delete a workspace
-router.delete('/:workspaceId', authenticateToken, async (req, res) => {
+router.delete('/:workspaceId', authenticateToken, requireWorkspaceMember('ADMIN'), async (req, res) => {
   try {
     const { workspaceId } = req.params;
     
@@ -312,10 +286,6 @@ router.delete('/:workspaceId', authenticateToken, async (req, res) => {
     const requester = await prisma.workspaceMember.findFirst({
       where: { workspaceId, userId: req.user.userId }
     });
-    
-    if (!requester || requester.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Only admins can delete a workspace.' });
-    }
 
     // Check if there is an older admin
     const olderAdmin = await prisma.workspaceMember.findFirst({

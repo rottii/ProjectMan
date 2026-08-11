@@ -109,3 +109,32 @@ body.dark .task-bar,
 body.dark .pt-project-bar {
   filter: saturate(4);
 }
+
+/* Mobile Overlay Backdrop */
+.mobile-sidebar-backdrop {
+  position: fixed;
+  top: 52px; /* TopNav height */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 90;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .hide-on-desktop {
+    display: none !important;
+  }
+}
