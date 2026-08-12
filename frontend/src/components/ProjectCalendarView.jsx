@@ -331,7 +331,7 @@ export default function ProjectCalendarView({
             }, tIdx) => {
               const isStart = task.sDate.getTime() >= week.days[0].date.getTime();
               const isEnd = task.eDate.getTime() <= week.days[6].date.getTime();
-              return <div key={tIdx} className="task-bar" data-task-id={task.id} draggable={!isReadOnly} onDragStart={e => {
+              return <div key={tIdx} className="task-bar saturate-bg" data-task-id={task.id} draggable={!isReadOnly} onDragStart={e => {
                 if (!isReadOnly) handleDragStart(e, task, week.days, startCol, endCol);
               }} onDragEnd={handleDragEnd} onClick={e => {
                 e.stopPropagation();
@@ -339,7 +339,8 @@ export default function ProjectCalendarView({
               }} style={{
                 ...styles.taskBar,
                 pointerEvents: isDragging ? 'none' : 'auto',
-                backgroundColor: task.isCompleted ? '#E5E7EB' : task.sectionColor,
+                '--task-bg': task.isCompleted ? '#E5E7EB' : task.sectionColor,
+                backgroundColor: 'var(--task-bg)',
                 color: task.isCompleted ? '#4B5563' : '#111827',
                 textDecoration: task.isCompleted ? 'line-through' : 'none',
                 left: `calc(${startCol * (100 / 7)}% + 6px)`,

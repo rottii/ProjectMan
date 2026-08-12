@@ -403,6 +403,7 @@ const styles = {
     maxWidth: '95%',
     borderRadius: '12px',
     boxShadow: '0 20px 25px rgba(0,0,0,0.1)',
+    border: '1px solid var(--border-color)',
     padding: '1.25rem',
     boxSizing: 'border-box',
     fontFamily: 'system-ui',

@@ -120,6 +120,7 @@ const styles = {
     width: '400px',
     maxWidth: '90vw',
     boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    border: '1px solid var(--border-color)',
     display: 'flex',
     flexDirection: 'column'
   },

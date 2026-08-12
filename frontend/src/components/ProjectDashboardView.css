@@ -884,10 +884,6 @@
   /* hide default arrows */
 }
 
-.proj-dash-chart-card:hover .react-resizable-handle {
-  /* stay invisible until the handle itself is hovered */
-}
-
 /* stay invisible even on hover */
 
 /* Base positioning for RGL handles */

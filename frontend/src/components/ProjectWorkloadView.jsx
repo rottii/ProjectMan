@@ -66,6 +66,8 @@ export default function ProjectWorkloadView({
         if (!assigneeMap[assigneeName]) {
           assigneeMap[assigneeName] = {
             name: assigneeName,
+            id: task.assignee?.id,
+            profilePhoto: task.assignee?.profilePhoto,
             avatar: assigneeName !== 'Unassigned' ? assigneeName[0].toUpperCase() : '?',
             tasks: [],
             dailyCounts: Array(totalDays).fill(0)

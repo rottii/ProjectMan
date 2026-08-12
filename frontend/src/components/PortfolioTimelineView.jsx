@@ -384,14 +384,16 @@ export default function PortfolioTimelineView({
                 <div className="pt-today-indicator"></div>
               </div>}
 
+
             {/* Project Bars */}
             {timelineProjects.map(p => {
             const isDragging = dragState && dragState.projectId === p.id;
             return <div className="pt-timeline-row" key={p.id}>
-                  <div className={`pt-project-bar ${isDragging ? 'dragging' : ''}`} style={{
+                  <div className={`pt-project-bar saturate-bg ${isDragging ? 'dragging' : ''}`} style={{
                 left: p.left,
                 width: p.width,
-                backgroundColor: p.barColor
+                '--task-bg': p.barColor,
+                backgroundColor: 'var(--task-bg)'
               }} onMouseDown={e => handleMouseDown(e, p.id, 'MOVE', p)}>
                   <div className="pt-drag-handle-left" onMouseDown={e => handleMouseDown(e, p.id, 'LEFT', p)} />
                   {dragState && dragState.projectId === p.id && <div className="pt-drag-tooltip">

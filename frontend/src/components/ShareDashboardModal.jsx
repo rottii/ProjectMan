@@ -119,6 +119,7 @@ const styles = {
     width: '500px',
     maxWidth: '90%',
     boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+    border: '1px solid var(--border-color)',
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden'

@@ -33,6 +33,20 @@ model User {
   updatedAt   DateTime            @updatedAt
   darkMode    Boolean             @default(false)
   profilePhoto String?
+  jobTitle    String?
+  department  String?
+  aboutMe     String?
+
+  // Display Settings
+  sidebarColor    String?  @default("Black")
+  language        String?  @default("en")
+  firstDayOfWeek  String?  @default("Automatic")
+  notificationDuration String? @default("10 seconds (default)")
+  openAppAs       String?  @default("Asana.com homepage")
+  showRowNumbers  Boolean  @default(false)
+  compactMode     Boolean  @default(false)
+  colorBlindMode  Boolean  @default(false)
+  showCelebrations Boolean @default(true)
 
   projects    Project[]           // Sahib olduğu projeler
   memberships ProjectMembership[] // Rol içeren proje üyelikleri

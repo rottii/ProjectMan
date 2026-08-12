@@ -2,8 +2,12 @@ import { useTranslation } from "react-i18next";
 import React, { useState, useEffect, useRef } from 'react';
 import UserAvatar from './UserAvatar';
 import { apiFetch } from '../api';
+
 export default function ProfileView({
   user,
+  setUser,
+  setShowSettings,
+  setSettingsFocus,
   projects,
   activeWorkspace,
   setActiveView,
@@ -170,16 +174,31 @@ export default function ProfileView({
           marginBottom: '16px'
         }}>
             <span style={{
-            cursor: 'pointer'
-          }}>{t("add_job_title", "+ Add job title")}</span>
+            cursor: user?.jobTitle ? 'default' : 'pointer',
+            color: user?.jobTitle ? 'var(--text-primary)' : 'var(--text-secondary)'
+          }} onClick={() => {
+            if (user?.jobTitle) return;
+            setSettingsFocus('jobTitle')
+            setShowSettings(true)
+          }}>{user?.jobTitle || t("add_job_title", "+ Add job title")}</span>
             <span style={{
-            cursor: 'pointer'
-          }}>{t("add_team_or_dept", "+ Add team or dept.")}</span>
+            cursor: user?.department ? 'default' : 'pointer',
+            color: user?.department ? 'var(--text-primary)' : 'var(--text-secondary)'
+          }} onClick={() => {
+            if (user?.department) return;
+            setSettingsFocus('department')
+            setShowSettings(true)
+          }}>{user?.department || t("add_team_or_dept", "+ Add team or dept.")}</span>
             <span style={{
-            cursor: 'pointer'
-          }}>{t("add_about_me", "+ Add about me")}</span>
+            cursor: user?.aboutMe ? 'default' : 'pointer',
+            color: user?.aboutMe ? 'var(--text-primary)' : 'var(--text-secondary)'
+          }} onClick={() => {
+            if (user?.aboutMe) return;
+            setSettingsFocus('aboutMe')
+            setShowSettings(true)
+          }}>{user?.aboutMe || t("add_about_me", "+ Add about me")}</span>
           </div>
-          <button style={{
+          <button onClick={() => setShowSettings(true)} style={{
           backgroundColor: '#4F46E5',
           color: 'white',
           border: 'none',

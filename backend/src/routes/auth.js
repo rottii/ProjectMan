@@ -11,6 +11,26 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+const getUserPayload = (u) => ({
+  id: u.id, 
+  name: u.name, 
+  email: u.email, 
+  darkMode: u.darkMode, 
+  profilePhoto: u.profilePhoto,
+  jobTitle: u.jobTitle,
+  department: u.department,
+  aboutMe: u.aboutMe,
+  sidebarColor: u.sidebarColor,
+  language: u.language,
+  firstDayOfWeek: u.firstDayOfWeek,
+  notificationDuration: u.notificationDuration,
+  openAppAs: u.openAppAs,
+  showRowNumbers: u.showRowNumbers,
+  compactMode: u.compactMode,
+  colorBlindMode: u.colorBlindMode,
+  showCelebrations: u.showCelebrations
+});
+
 // Configure multer for profile photos
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -158,7 +178,7 @@ router.post('/google', async (req, res) => {
       message: 'Google login successful!',
       token: tokens.accessToken,
       refreshToken: tokens.refreshToken,
-      user: { id: user.id, name: user.name, email: user.email, darkMode: user.darkMode, profilePhoto: user.profilePhoto }
+      user: getUserPayload(user)
     });
 
   } catch (error) {
@@ -252,7 +272,7 @@ router.post('/register', async (req, res) => {
       userId: newUser.id,
       token: tokens.accessToken,
       refreshToken: tokens.refreshToken,
-      user: { id: newUser.id, name: newUser.name, email: newUser.email, darkMode: newUser.darkMode, profilePhoto: newUser.profilePhoto }
+      user: getUserPayload(newUser)
     });
   } catch (error) {
     res.status(500).json({ error: 'Kayıt esnasında bir hata oluştu.', details: error.message });
@@ -287,7 +307,7 @@ router.post('/login', async (req, res) => {
       message: 'Giriş başarılı!',
       token: tokens.accessToken,
       refreshToken: tokens.refreshToken,
-      user: { id: user.id, name: user.name, email: user.email, darkMode: user.darkMode, profilePhoto: user.profilePhoto }
+      user: getUserPayload(user)
     });
   } catch (error) {
     res.status(500).json({ error: 'Giriş esnasında bir hata oluştu.', details: error.message });
@@ -360,12 +380,49 @@ router.post('/logout', async (req, res) => {
 // 5. PREFERENCES - PATCH /api/auth/me/preferences
 router.patch('/me/preferences', authenticateToken, async (req, res) => {
   try {
-    const { darkMode } = req.body;
+    const { 
+      darkMode, 
+      name, 
+      jobTitle, 
+      department, 
+      aboutMe,
+      sidebarColor,
+      language,
+      firstDayOfWeek,
+      notificationDuration,
+      openAppAs,
+      showRowNumbers,
+      compactMode,
+      colorBlindMode,
+      showCelebrations
+    } = req.body;
+    
+    // Build update object only with provided fields
+    const data = {};
+    if (darkMode !== undefined) data.darkMode = darkMode;
+    if (name !== undefined) data.name = name;
+    if (jobTitle !== undefined) data.jobTitle = jobTitle;
+    if (department !== undefined) data.department = department;
+    if (aboutMe !== undefined) data.aboutMe = aboutMe;
+    
+    if (sidebarColor !== undefined) data.sidebarColor = sidebarColor;
+    if (language !== undefined) data.language = language;
+    if (firstDayOfWeek !== undefined) data.firstDayOfWeek = firstDayOfWeek;
+    if (notificationDuration !== undefined) data.notificationDuration = notificationDuration;
+    if (openAppAs !== undefined) data.openAppAs = openAppAs;
+    if (showRowNumbers !== undefined) data.showRowNumbers = showRowNumbers;
+    if (compactMode !== undefined) data.compactMode = compactMode;
+    if (colorBlindMode !== undefined) data.colorBlindMode = colorBlindMode;
+    if (showCelebrations !== undefined) data.showCelebrations = showCelebrations;
+
     const updatedUser = await prisma.user.update({
       where: { id: req.user.userId },
-      data: { darkMode }
+      data
     });
-    res.json({ message: 'Preferences updated', user: { id: updatedUser.id, name: updatedUser.name, email: updatedUser.email, darkMode: updatedUser.darkMode, profilePhoto: updatedUser.profilePhoto } });
+    res.json({ 
+      message: 'Preferences updated', 
+      user: getUserPayload(updatedUser)
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to update preferences', details: error.message });
   }

@@ -353,6 +353,7 @@ const styles = {
     maxWidth: '90%',
     borderRadius: '12px',
     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    border: '1px solid var(--border-color)',
     padding: '1.5rem',
     boxSizing: 'border-box',
     fontFamily: 'system-ui'
@@ -427,20 +428,23 @@ const styles = {
   mainInput: {
     width: '100%',
     padding: '0.55rem',
-    border: '1px solid #D1D5DB',
+    border: '1px solid var(--border-color)',
     borderRadius: '6px',
     fontSize: '0.9rem',
     boxSizing: 'border-box',
+    backgroundColor: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
     outline: 'none'
   },
   mainSelect: {
     width: '100%',
     padding: '0.55rem',
-    border: '1px solid #D1D5DB',
+    border: '1px solid var(--border-color)',
     borderRadius: '6px',
     fontSize: '0.9rem',
     boxSizing: 'border-box',
     backgroundColor: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
     outline: 'none',
     cursor: 'pointer'
   },
@@ -480,11 +484,12 @@ const styles = {
   optionInputField: {
     flex: 1,
     border: 'none',
-    borderBottom: '1px solid #E5E7EB',
+    borderBottom: '1px solid var(--border-color)',
     padding: '0.3rem 0',
     fontSize: '0.85rem',
     outline: 'none',
-    color: 'var(--text-primary)'
+    color: 'var(--text-primary)',
+    backgroundColor: 'transparent'
   },
   removeOptionCross: {
     cursor: 'pointer',

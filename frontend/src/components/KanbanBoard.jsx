@@ -1266,8 +1266,16 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
 
     if (action === 'edit') {
       let originalSectionId = null;
+      const recursivelyFindSectionId = (tasks, secId) => {
+        for (const t of tasks || []) {
+          if (t.id === taskId) return secId;
+          if (t.subtasks && t.subtasks.length > 0 && recursivelyFindSectionId(t.subtasks, secId)) return secId;
+        }
+        return null;
+      };
+      
       for (const sec of updatedSections) {
-        if ((sec.tasks || []).some(t => t.id === taskId)) {
+        if (recursivelyFindSectionId(sec.tasks, sec.id)) {
           originalSectionId = sec.id;
           break;
         }
@@ -1279,13 +1287,31 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
         if (sp) targetSectionId = sp.sectionId;
       }
 
-      // If the targetSectionId doesn't exist in the current project, it means the task was removed from this project.
       const targetSectionExists = updatedSections.some(sec => sec.id === targetSectionId);
+
+      const recursivelyFilterTasks = (tasks) => {
+        return (tasks || []).filter(t => t.id !== taskId).map(t => {
+          if (t.subtasks && t.subtasks.length > 0) {
+            return { ...t, subtasks: recursivelyFilterTasks(t.subtasks) };
+          }
+          return t;
+        });
+      };
+
+      const recursivelyUpdateTasks = (tasks) => {
+        return (tasks || []).map(t => {
+          if (t.id === taskId) return updatedTask;
+          if (t.subtasks && t.subtasks.length > 0) {
+            return { ...t, subtasks: recursivelyUpdateTasks(t.subtasks) };
+          }
+          return t;
+        });
+      };
 
       if (originalSectionId && (originalSectionId !== targetSectionId || !targetSectionExists)) {
         updatedSections = updatedSections.map(sec => {
           if (sec.id === originalSectionId) {
-            return { ...sec, tasks: (sec.tasks || []).filter(t => t.id !== taskId) };
+            return { ...sec, tasks: recursivelyFilterTasks(sec.tasks) };
           }
           if (sec.id === targetSectionId) {
             return { ...sec, tasks: [...(sec.tasks || []), updatedTask] };
@@ -1294,7 +1320,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
         });
       } else {
         updatedSections = updatedSections.map(sec => {
-          return { ...sec, tasks: (sec.tasks || []).map(t => t.id === taskId ? updatedTask : t) };
+          return { ...sec, tasks: recursivelyUpdateTasks(sec.tasks) };
         });
       }
     }
@@ -1320,6 +1346,18 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
       // Optimistic UI
       const previousState = task.isCompleted;
       handleTaskUpdate(task.id, { ...task, isCompleted: !previousState });
+
+      // Trigger Celebration if enabled
+      if (!previousState && user?.showCelebrations) {
+        if (!window.confetti) {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+          script.onload = () => window.confetti();
+          document.head.appendChild(script);
+        } else {
+          window.confetti();
+        }
+      }
 
       const response = await apiFetch(`/api/projects/tasks/${task.id}`, {
         method: 'PATCH',
@@ -1399,32 +1437,73 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
 
     let taskToDelete = null;
     let secId = null;
+    let parentTaskId = null;
     let taskIndex = -1;
-    for (const sec of parsedSections) {
-      const idx = sec.tasks?.findIndex(t => t.id === taskIdToDelete);
-      if (idx !== -1 && idx !== undefined) {
-        taskToDelete = sec.tasks[idx];
-        secId = sec.id;
-        taskIndex = idx;
-        break;
+
+    const recursivelyFindTask = (tasks, currentSecId, parentId = null) => {
+      for (let i = 0; i < (tasks || []).length; i++) {
+        const t = tasks[i];
+        if (t.id === taskIdToDelete) {
+          taskToDelete = t;
+          secId = currentSecId;
+          parentTaskId = parentId;
+          taskIndex = i;
+          return true;
+        }
+        if (t.subtasks && t.subtasks.length > 0) {
+          if (recursivelyFindTask(t.subtasks, currentSecId, t.id)) return true;
+        }
       }
+      return false;
+    };
+
+    for (const sec of parsedSections) {
+      if (recursivelyFindTask(sec.tasks, sec.id)) break;
     }
 
     if (!taskToDelete) return;
 
-    const updatedSections = parsedSections.map(sec => ({ ...sec, tasks: (sec.tasks || []).filter(t => t.id !== taskIdToDelete) }))
+    const recursivelyFilterTasks = (tasks) => {
+      return (tasks || []).filter(t => t.id !== taskIdToDelete).map(t => {
+        if (t.subtasks && t.subtasks.length > 0) {
+          return { ...t, subtasks: recursivelyFilterTasks(t.subtasks) };
+        }
+        return t;
+      });
+    };
+
+    const updatedSections = parsedSections.map(sec => ({
+      ...sec,
+      tasks: recursivelyFilterTasks(sec.tasks)
+    }));
     syncProjectStates({ ...selectedProject, sections: updatedSections })
     setOptimisticDeletedTaskIds(prev => new Set(prev).add(taskIdToDelete));
 
     showUndo({
       message: "Task deleted",
       onUndo: () => {
-        // Revert optimistic UI
+        const recursivelyInsertTask = (tasks, parentId) => {
+          if (parentId === null) {
+            const newTasks = [...(tasks || [])];
+            newTasks.splice(taskIndex, 0, taskToDelete);
+            return newTasks;
+          }
+          return (tasks || []).map(t => {
+            if (t.id === parentId) {
+              const newSubtasks = [...(t.subtasks || [])];
+              newSubtasks.splice(taskIndex, 0, taskToDelete);
+              return { ...t, subtasks: newSubtasks };
+            }
+            if (t.subtasks && t.subtasks.length > 0) {
+              return { ...t, subtasks: recursivelyInsertTask(t.subtasks, parentId) };
+            }
+            return t;
+          });
+        };
+
         const revertedSections = updatedSections.map(sec => {
           if (sec.id === secId) {
-            const newTasks = [...(sec.tasks || [])];
-            newTasks.splice(taskIndex, 0, taskToDelete);
-            return { ...sec, tasks: newTasks };
+            return { ...sec, tasks: recursivelyInsertTask(sec.tasks, parentTaskId) };
           }
           return sec;
         });
@@ -3180,6 +3259,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
       ) : activeViewObj.type === 'List' ? (
         /* ================= LIST GÖRÜNÜMÜ ================= */
         <ProjectListView
+          user={user}
           selectedProject={selectedProject}
           groupedSections={virtualGroupedSections}
           isVirtualGrouping={isVirtualGrouping}
@@ -3410,9 +3490,19 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
       >
           <TaskDetailPane
             task={(() => {
+              const findTask = (tasks) => {
+                for (const t of tasks || []) {
+                  if (t.id === activeTaskPaneId) return t;
+                  if (t.subtasks && t.subtasks.length > 0) {
+                    const st = findTask(t.subtasks);
+                    if (st) return st;
+                  }
+                }
+                return null;
+              };
               for (const sec of selectedProject.sections || []) {
-                const t = sec.tasks?.find(t => t.id === activeTaskPaneId);
-                if (t) return t;
+                const found = findTask(sec.tasks);
+                if (found) return found;
               }
               return null;
             })()}
@@ -3423,6 +3513,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
             onClose={() => setActiveTaskPaneId(null)}
             onTaskUpdate={handleTaskUpdate}
             customFieldSettings={selectedProject.customFieldSettings}
+            onTaskClick={(taskId) => setActiveTaskPaneId(taskId)}
             onDeleteTask={(taskId) => {
               handleDeleteTask(taskId);
               setActiveTaskPaneId(null);
@@ -3708,20 +3799,20 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                             e.target.blur();
                           }
                         }}
-                        style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #D1D5DB', fontSize: '0.9rem', color: 'var(--text-primary)', outline: 'none' }}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.9rem', color: 'var(--text-primary)', backgroundColor: 'var(--bg-primary)', outline: 'none' }}
                       />
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid #E5E7EB', borderRadius: '8px', backgroundColor: '#FFF' }} onClick={() => { }}>
+                    <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-primary)' }} onClick={() => { }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>◫</span>
                         <span style={styles.customizeItemLabel}>Layout options</span>
                       </div>
                       <span style={{ color: 'var(--text-secondary)' }}>›</span>
                     </div>
-                    <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid #E5E7EB', borderRadius: '8px', backgroundColor: '#FFF' }} onClick={() => { }}>
+                    <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-primary)' }} onClick={() => { }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>👁️</span>
                         <span style={styles.customizeItemLabel}>Show/hide fields</span>
@@ -3731,28 +3822,28 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                         <span style={{ color: 'var(--text-secondary)' }}>›</span>
                       </div>
                     </div>
-                    <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid #E5E7EB', borderRadius: '8px', backgroundColor: '#FFF' }} onClick={() => setOptionsView(activeFilters.filter(f => typeof f === 'object').length > 0 ? 'filters_list' : 'add_filter')}>
+                    <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-primary)' }} onClick={() => setOptionsView(activeFilters.filter(f => typeof f === 'object').length > 0 ? 'filters_list' : 'add_filter')}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>≡</span>
                         <span style={styles.customizeItemLabel}>Filters</span>
                       </div>
                       <span style={{ color: 'var(--text-secondary)' }}>›</span>
                     </div>
-                    <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid #E5E7EB', borderRadius: '8px', backgroundColor: '#FFF' }} onClick={() => setOptionsView(activeSorts.length > 0 ? 'sorts_list' : 'add_sort')}>
+                    <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-primary)' }} onClick={() => setOptionsView(activeSorts.length > 0 ? 'sorts_list' : 'add_sort')}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>⇅</span>
                         <span style={styles.customizeItemLabel}>Sorts</span>
                       </div>
                       <span style={{ color: 'var(--text-secondary)' }}>›</span>
                     </div>
-                    <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid #E5E7EB', borderRadius: '8px', backgroundColor: '#FFF' }} onClick={() => setOptionsView('groups_list')}>
+                    <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-primary)' }} onClick={() => setOptionsView('groups_list')}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>⊞</span>
                         <span style={styles.customizeItemLabel}>Groups</span>
                       </div>
                       <span style={{ color: 'var(--text-secondary)' }}>›</span>
                     </div>
-                    <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid #E5E7EB', borderRadius: '8px', backgroundColor: '#FFF' }} onClick={() => { }}>
+                    <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-primary)' }} onClick={() => { }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>⮑</span>
                         <span style={styles.customizeItemLabel}>Subtasks</span>
@@ -3790,7 +3881,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                   </div>
 
                   <div style={{ marginTop: 'auto', borderTop: '1px solid #E5E7EB', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button style={{ padding: '6px 12px', border: '1px solid #D1D5DB', borderRadius: '6px', backgroundColor: '#FFF', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                    <button style={{ padding: '6px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', backgroundColor: 'var(--bg-primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
                       Save view <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
                     </button>
                   </div>
@@ -3866,7 +3957,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                   </div>
 
                   <div style={{ marginTop: 'auto', borderTop: '1px solid #E5E7EB', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button style={{ padding: '6px 12px', border: '1px solid #D1D5DB', borderRadius: '6px', backgroundColor: '#FFF', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                    <button style={{ padding: '6px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', backgroundColor: 'var(--bg-primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
                       Save view <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
                     </button>
                   </div>
@@ -3940,7 +4031,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                   </div>
 
                   <div style={{ marginTop: 'auto', borderTop: '1px solid #E5E7EB', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button style={{ padding: '6px 12px', border: '1px solid #D1D5DB', borderRadius: '6px', backgroundColor: '#FFF', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                    <button style={{ padding: '6px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', backgroundColor: 'var(--bg-primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
                       Save view <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
                     </button>
                   </div>
@@ -3993,7 +4084,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                   </div>
 
                   <div style={{ marginTop: 'auto', borderTop: '1px solid #E5E7EB', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button style={{ padding: '6px 12px', border: '1px solid #D1D5DB', borderRadius: '6px', backgroundColor: '#FFF', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                    <button style={{ padding: '6px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', backgroundColor: 'var(--bg-primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
                       Save view <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
                     </button>
                   </div>
@@ -4208,7 +4299,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                   )}
 
                   <div style={{ marginTop: 'auto', borderTop: '1px solid #E5E7EB', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button style={{ padding: '6px 12px', border: '1px solid #D1D5DB', borderRadius: '6px', backgroundColor: '#FFF', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                    <button style={{ padding: '6px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', backgroundColor: 'var(--bg-primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
                       Save view <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
                     </button>
                   </div>

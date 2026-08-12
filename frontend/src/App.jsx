@@ -20,10 +20,12 @@ import AdminConsoleView from './components/AdminConsoleView'
 import InvitePage from './components/InvitePage'
 import ResetPasswordPage from './components/ResetPasswordPage'
 import SettingsModal from './components/SettingsModal'
+import CommandPalette from './components/CommandPalette'
 import { UndoProvider } from './context/UndoContext'
 
 export default function App() {
   const [showSettings, setShowSettings] = useState(false)
+  const [settingsFocus, setSettingsFocus] = useState(null)
   const [token, setToken] = useState(localStorage.getItem('token'))
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')))
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -63,28 +65,44 @@ export default function App() {
         const validViews = ['home', 'my-tasks', 'inbox', 'reporting', 'portfolios', 'goals', 'projects', 'profile', 'create_project', 'admin_console'];
         if (validViews.includes(view)) return view;
       }
-      return 'home';
+      
+      const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+      return storedUser?.openAppAs === 'My tasks' ? 'my-tasks' : 'home';
     }
     if (path.startsWith('/portfolio/')) {
       localStorage.setItem('selectedPortfolioId', path.split('/')[2]);
       return 'portfolio_detail';
     }
-    if (path.length > 1) {
+    if (path.length > 1 && path !== '/') {
       const view = path.substring(1);
       // Validate view to prevent random paths from crashing the app
       const validViews = ['home', 'my-tasks', 'inbox', 'reporting', 'portfolios', 'goals', 'projects', 'profile', 'create_project', 'admin_console'];
       if (validViews.includes(view)) return view;
     }
-    return localStorage.getItem('activeView') || 'home';
-  }) 
+    
+    const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+    const defaultView = storedUser?.openAppAs === 'My tasks' ? 'my-tasks' : 'home';
+    return localStorage.getItem('activeView') || defaultView;
+  })
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => window.innerWidth <= 768)
   const previousViewRef = useRef((() => {
     const stored = localStorage.getItem('activeView') || 'home'
     return stored === 'create_project' ? 'home' : stored
   })())
 
+  // Apply User Display Preferences to Body
+  useEffect(() => {
+    if (user) {
+      document.body.classList.toggle('theme-sidebar-white', user.sidebarColor === 'White');
+      document.body.classList.toggle('theme-compact-mode', !!user.compactMode);
+      document.body.classList.toggle('theme-color-blind', !!user.colorBlindMode);
+    } else {
+      document.body.classList.remove('theme-sidebar-white', 'theme-compact-mode', 'theme-color-blind');
+    }
+  }, [user]);
+
   // --- HTML5 History API Routing ---
-  
+
   // URL to State Sync (Back/Forward Buttons)
   useEffect(() => {
     const handlePopState = () => {
@@ -107,11 +125,11 @@ export default function App() {
         const parts = path.split('/');
         setActiveWorkspaceId(parts[2]);
         if (parts[3]) {
-           const view = parts[3];
-           const validViews = ['home', 'my-tasks', 'inbox', 'reporting', 'portfolios', 'goals', 'projects', 'profile', 'create_project', 'admin_console'];
-           setActiveView(validViews.includes(view) ? view : 'home');
+          const view = parts[3];
+          const validViews = ['home', 'my-tasks', 'inbox', 'reporting', 'portfolios', 'goals', 'projects', 'profile', 'create_project', 'admin_console'];
+          setActiveView(validViews.includes(view) ? view : 'home');
         } else {
-           setActiveView('home');
+          setActiveView('home');
         }
       } else {
         const view = path.length > 1 ? path.substring(1) : 'home';
@@ -126,9 +144,9 @@ export default function App() {
   // State to URL Sync
   useEffect(() => {
     const currentPath = window.location.pathname;
-    if (currentPath.startsWith('/invite/') || 
-        currentPath.startsWith('/reset-password/') || 
-        currentPath.startsWith('/form/')) {
+    if (currentPath.startsWith('/invite/') ||
+      currentPath.startsWith('/reset-password/') ||
+      currentPath.startsWith('/form/')) {
       return; // Do not overwrite these special URLs
     }
 
@@ -149,7 +167,7 @@ export default function App() {
       window.history.pushState({}, '', newPath);
     }
   }, [activeView, selectedProject, selectedPortfolio, activeWorkspaceId]);
-  
+
   // ---------------------------------
 
   useEffect(() => {
@@ -226,7 +244,7 @@ export default function App() {
             }
 
             setProjects(data)
-            
+
             const savedProjectId = localStorage.getItem('selectedProjectId')
             if (savedProjectId) {
               const found = data.find(p => p.id === savedProjectId)
@@ -294,7 +312,7 @@ export default function App() {
     if (user && user.id) {
       const socket = io(API_BASE_URL);
       socket.emit('join_user', user.id);
-      
+
       socket.on('project_created', (newProj) => {
         setProjects(prev => {
           if (prev.find(p => p.id === newProj.id)) return prev;
@@ -310,7 +328,7 @@ export default function App() {
           return [...prev, sharedProj];
         });
       });
-      
+
       return () => {
         socket.disconnect();
       }
@@ -380,166 +398,188 @@ export default function App() {
 
   return (
     <UndoProvider>
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-      <TopNav 
-        isSidebarCollapsed={isSidebarCollapsed} 
-        setIsSidebarCollapsed={setIsSidebarCollapsed} 
+      {showSettings && (
+        <SettingsModal 
+          onClose={() => {
+            setShowSettings(false)
+            setSettingsFocus(null)
+          }} 
+          user={user} 
+          setUser={setUser} 
+          isDarkMode={isDarkMode} 
+          setIsDarkMode={setIsDarkMode} 
+          token={token}
+          initialFocus={settingsFocus}
+        />
+      )}
+      <CommandPalette 
         projects={filteredProjects}
-        setProjects={setProjects}
-        selectedProject={selectedProject}
+        portfolios={filteredPortfolios}
         setActiveView={setActiveView}
         handleSelectProject={handleSelectProject}
-        token={token}
-        user={user}
+        setSelectedPortfolio={setSelectedPortfolio}
+        setShowSettings={setShowSettings}
         handleLogout={handleLogout}
-        isDarkMode={isDarkMode}
-        setIsDarkMode={setIsDarkMode}
-        workspaces={workspaces}
-        activeWorkspaceId={activeWorkspaceId}
-        setActiveWorkspaceId={handleWorkspaceChange}
       />
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
-        {!isSidebarCollapsed && (
-          <div 
-            className="mobile-sidebar-backdrop hide-on-desktop" 
-            onClick={() => setIsSidebarCollapsed(true)} 
-          />
-        )}
-        <Sidebar 
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+        <TopNav
           isSidebarCollapsed={isSidebarCollapsed}
           setIsSidebarCollapsed={setIsSidebarCollapsed}
-          projects={filteredProjects} 
+          projects={filteredProjects}
           setProjects={setProjects}
           selectedProject={selectedProject}
-          handleSelectProject={handleSelectProject}
-          activeView={activeView}
           setActiveView={setActiveView}
-          user={user}
+          handleSelectProject={handleSelectProject}
           token={token}
+          user={user}
           handleLogout={handleLogout}
           isDarkMode={isDarkMode}
           setIsDarkMode={setIsDarkMode}
           workspaces={workspaces}
-          activeWorkspace={activeWorkspace}
           activeWorkspaceId={activeWorkspaceId}
           setActiveWorkspaceId={handleWorkspaceChange}
-          portfolios={filteredPortfolios}
-          selectedPortfolio={selectedPortfolio}
-          setSelectedPortfolio={setSelectedPortfolio}
-          setShowSettings={setShowSettings}
         />
-        <div style={{ flex: 1, overflow: 'auto', backgroundColor: 'var(--bg-secondary)', position: 'relative' }}>
-          {activeView === 'home' ? (
-            <Dashboard 
-              user={user}
-              projects={filteredProjects}
-              setProjects={setProjects}
-              setSelectedProject={handleSelectProject}
-              portfolios={filteredPortfolios}
-              workspaces={workspaces}
-              activeWorkspace={activeWorkspace}
-              handleSelectProject={handleSelectProject}
-              handleLogout={handleLogout}
-              activeView={activeView}
-              setActiveView={setActiveView}
-              setSelectedPortfolio={setSelectedPortfolio}
-              setWorkspaces={setWorkspaces}
-              token={token}
-            />
-          ) : activeView === 'project' && selectedProject ? (
-            <KanbanBoard 
-              selectedProject={selectedProject} 
-              setSelectedProject={handleSelectProject} 
-              projects={filteredProjects} 
-              setProjects={setProjects} 
-              token={token} 
-              user={user} 
-              handleLogout={handleLogout} 
-            />
-          ) : activeView === 'my-tasks' ? (
-            <MyTasks token={token} user={user} projects={filteredProjects} setProjects={setProjects} />
-          ) : activeView === 'projects' ? (
-            <BrowseProjects 
-              projects={filteredProjects}
-              setProjects={setProjects}
-              setActiveView={setActiveView}
-              handleSelectProject={handleSelectProject}
-              token={token}
-              user={user}
-              activeWorkspaceId={activeWorkspaceId}
-            />
-          ) : activeView === 'portfolios' ? (
-            <Portfolios 
-              portfolios={filteredPortfolios}
-              setPortfolios={setPortfolios}
-              token={token}
-              setActiveView={setActiveView}
-              setSelectedPortfolio={setSelectedPortfolio}
-              portfolioCreationParent={portfolioCreationParent}
-              setPortfolioCreationParent={setPortfolioCreationParent}
-              activeWorkspaceId={activeWorkspaceId}
-            />
-          ) : activeView === 'portfolio_detail' && selectedPortfolio ? (
-            <PortfolioDetail
-              portfolio={selectedPortfolio}
-              setPortfolio={setSelectedPortfolio}
-              portfolios={filteredPortfolios}
-              setPortfolios={setPortfolios}
-              projects={filteredProjects}
-              setProjects={setProjects}
-              token={token}
-              user={user}
-              setActiveView={setActiveView}
-              setPortfolioCreationParent={setPortfolioCreationParent}
-              handleSelectProject={handleSelectProject}
-            />
-          ) : activeView === 'inbox' ? (
-            <Inbox token={token} user={user} />
-          ) : activeView === 'profile' ? (
-            <ProfileView user={user} projects={filteredProjects} activeWorkspace={activeWorkspace} setActiveView={setActiveView} handleSelectProject={handleSelectProject} token={token} />
-          ) : activeView === 'goals' ? (
-            <Goals token={token} user={user} setActiveView={setActiveView} />
-          ) : activeView === 'reporting' ? (
-            <Reporting token={token} />
-          ) : activeView === 'create_project' ? (
-            <CreateProject
-              token={token}
-              setProjects={setProjects}
-              setPortfolios={setPortfolios}
-              setActiveView={setActiveView}
-              previousView={previousViewRef.current}
-              setSelectedProject={setSelectedProject}
-              portfolioCreationParent={portfolioCreationParent}
-              setPortfolioCreationParent={setPortfolioCreationParent}
-              activeWorkspace={activeWorkspace}
-            />
-          ) : activeView === 'admin_console' ? (
-            <AdminConsoleView
-              workspaceId={activeWorkspaceId}
-              token={token}
-              currentUser={user}
-            />
-          ) : (
-            <Dashboard 
-              user={user}
-              projects={filteredProjects}
-              setProjects={setProjects}
-              setSelectedProject={handleSelectProject}
-              portfolios={filteredPortfolios}
-              workspaces={workspaces}
-              activeWorkspace={activeWorkspace}
-              handleSelectProject={handleSelectProject}
-              handleLogout={handleLogout}
-              activeView={activeView}
-              setActiveView={setActiveView}
-              setSelectedPortfolio={setSelectedPortfolio}
-              setWorkspaces={setWorkspaces}
-              token={token}
+        <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+          {!isSidebarCollapsed && (
+            <div
+              className="mobile-sidebar-backdrop hide-on-desktop"
+              onClick={() => setIsSidebarCollapsed(true)}
             />
           )}
+          <Sidebar
+            isSidebarCollapsed={isSidebarCollapsed}
+            setIsSidebarCollapsed={setIsSidebarCollapsed}
+            projects={filteredProjects}
+            setProjects={setProjects}
+            selectedProject={selectedProject}
+            handleSelectProject={handleSelectProject}
+            activeView={activeView}
+            setActiveView={setActiveView}
+            user={user}
+            token={token}
+            handleLogout={handleLogout}
+            isDarkMode={isDarkMode}
+            setIsDarkMode={setIsDarkMode}
+            workspaces={workspaces}
+            activeWorkspace={activeWorkspace}
+            activeWorkspaceId={activeWorkspaceId}
+            setActiveWorkspaceId={handleWorkspaceChange}
+            portfolios={filteredPortfolios}
+            selectedPortfolio={selectedPortfolio}
+            setSelectedPortfolio={setSelectedPortfolio}
+            setShowSettings={setShowSettings}
+          />
+          <div style={{ flex: 1, overflow: 'auto', backgroundColor: 'var(--bg-secondary)', position: 'relative' }}>
+            {activeView === 'home' ? (
+              <Dashboard
+                user={user}
+                projects={filteredProjects}
+                setProjects={setProjects}
+                setSelectedProject={handleSelectProject}
+                portfolios={filteredPortfolios}
+                workspaces={workspaces}
+                activeWorkspace={activeWorkspace}
+                handleSelectProject={handleSelectProject}
+                handleLogout={handleLogout}
+                activeView={activeView}
+                setActiveView={setActiveView}
+                setSelectedPortfolio={setSelectedPortfolio}
+                setWorkspaces={setWorkspaces}
+                token={token}
+              />
+            ) : activeView === 'project' && selectedProject ? (
+              <KanbanBoard
+                selectedProject={selectedProject}
+                setSelectedProject={handleSelectProject}
+                projects={filteredProjects}
+                setProjects={setProjects}
+                token={token}
+                user={user}
+                handleLogout={handleLogout}
+              />
+            ) : activeView === 'my-tasks' ? (
+              <MyTasks token={token} user={user} projects={filteredProjects} setProjects={setProjects} />
+            ) : activeView === 'projects' ? (
+              <BrowseProjects
+                projects={filteredProjects}
+                setProjects={setProjects}
+                setActiveView={setActiveView}
+                handleSelectProject={handleSelectProject}
+                token={token}
+                user={user}
+                activeWorkspaceId={activeWorkspaceId}
+              />
+            ) : activeView === 'portfolios' ? (
+              <Portfolios
+                portfolios={filteredPortfolios}
+                setPortfolios={setPortfolios}
+                token={token}
+                setActiveView={setActiveView}
+                setSelectedPortfolio={setSelectedPortfolio}
+                portfolioCreationParent={portfolioCreationParent}
+                setPortfolioCreationParent={setPortfolioCreationParent}
+                activeWorkspaceId={activeWorkspaceId}
+              />
+            ) : activeView === 'portfolio_detail' && selectedPortfolio ? (
+              <PortfolioDetail
+                portfolio={selectedPortfolio}
+                setPortfolio={setSelectedPortfolio}
+                portfolios={filteredPortfolios}
+                setPortfolios={setPortfolios}
+                projects={filteredProjects}
+                setProjects={setProjects}
+                token={token}
+                user={user}
+                setActiveView={setActiveView}
+                setPortfolioCreationParent={setPortfolioCreationParent}
+                handleSelectProject={handleSelectProject}
+              />
+            ) : activeView === 'inbox' ? (
+              <Inbox token={token} user={user} />
+            ) : activeView === 'profile' ? (
+              <ProfileView user={user} setUser={setUser} setShowSettings={setShowSettings} setSettingsFocus={setSettingsFocus} projects={filteredProjects} activeWorkspace={activeWorkspace} setActiveView={setActiveView} handleSelectProject={handleSelectProject} token={token} />
+            ) : activeView === 'goals' ? (
+              <Goals token={token} user={user} setActiveView={setActiveView} />
+            ) : activeView === 'reporting' ? (
+              <Reporting token={token} />
+            ) : activeView === 'create_project' ? (
+              <CreateProject
+                token={token}
+                setProjects={setProjects}
+                setPortfolios={setPortfolios}
+                setActiveView={setActiveView}
+                previousView={previousViewRef.current}
+                setSelectedProject={setSelectedProject}
+                portfolioCreationParent={portfolioCreationParent}
+                setPortfolioCreationParent={setPortfolioCreationParent}
+                activeWorkspace={activeWorkspace}
+              />
+            ) : activeView === 'admin_console' ? (
+              <AdminConsoleView
+                workspaceId={activeWorkspaceId}
+                token={token}
+                currentUser={user}
+              />
+            ) : (
+              <Dashboard
+                user={user}
+                projects={filteredProjects}
+                setProjects={setProjects}
+                setSelectedProject={handleSelectProject}
+                portfolios={filteredPortfolios}
+                workspaces={workspaces}
+                activeWorkspace={activeWorkspace}
+                handleSelectProject={handleSelectProject}
+                handleLogout={handleLogout}
+                activeView={activeView}
+                setActiveView={setActiveView}
+                setSelectedPortfolio={setSelectedPortfolio}
+                setWorkspaces={setWorkspaces}
+                token={token}
+              />
+            )}
+          </div>
         </div>
-      </div>
       </div>
     </UndoProvider>
   )

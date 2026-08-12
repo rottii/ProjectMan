@@ -19,6 +19,13 @@ export const UndoProvider = ({ children }) => {
       clearTimeout(timeoutRef.current);
     }
 
+    const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+    const durationPref = storedUser?.notificationDuration;
+    let actualTimeoutMs = timeoutMs;
+    if (durationPref === '10 seconds (default)') actualTimeoutMs = 10000;
+    else if (durationPref === '20 seconds') actualTimeoutMs = 20000;
+    else if (durationPref === 'Until dismissed') actualTimeoutMs = 86400000; // 24 hours
+
     const newUndoAction = { message, onUndo, onCommit };
     setUndoAction(newUndoAction);
     undoActionRef.current = newUndoAction;
@@ -29,7 +36,7 @@ export const UndoProvider = ({ children }) => {
       }
       setUndoAction(null);
       undoActionRef.current = null;
-    }, timeoutMs);
+    }, actualTimeoutMs);
   };
 
   const handleUndo = () => {

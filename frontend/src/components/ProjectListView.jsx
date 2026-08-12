@@ -17,6 +17,7 @@ export default function ProjectListView({
   draggingTaskId,
   setDraggingTaskId,
   draggingSectionId,
+  user,
   // YENİ
   setDraggingSectionId,
   // YENİ
@@ -61,6 +62,17 @@ export default function ProjectListView({
   const [menuPosition, setMenuPosition] = useState('bottom');
   const [editingFieldOptions, setEditingFieldOptions] = useState(false);
   const [dragTargetTaskId, setDragTargetTaskId] = useState(null);
+  const [expandedTasks, setExpandedTasks] = useState(new Set());
+
+  const toggleTaskExpand = (taskId) => {
+    setExpandedTasks(prev => {
+      const next = new Set(prev);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  };
+
   const handleOpenCellMenu = (e, menuId) => {
     document.body.click();
     e.stopPropagation();
@@ -488,8 +500,8 @@ export default function ProjectListView({
       label: newLabel
     } : o));
   };
-  const renderTaskRow = (task, sectionId, subgroup = null) => {
-    return <div key={task.id} onClickCapture={e => {
+  const renderTaskRow = (task, sectionId, subgroup = null, taskIndex = 0, depth = 0) => {
+    const row = <div key={task.id} onClickCapture={e => {
       let handled = false;
       if (onTaskSelect) {
         handled = onTaskSelect(e, task.id);
@@ -554,7 +566,8 @@ export default function ProjectListView({
         setDragTargetTaskId(null);
       }} onMouseDown={e => e.stopPropagation()} style={{
         ...styles.drag6DotHandleCellTask,
-        cursor: isReadOnly ? 'pointer' : 'grab'
+        cursor: isReadOnly || depth > 0 ? 'pointer' : 'grab',
+        visibility: depth > 0 ? 'hidden' : 'visible'
       }}>
           ⋮⋮
         </div>
@@ -567,7 +580,7 @@ export default function ProjectListView({
         display: 'flex',
         alignItems: 'center',
         gap: '0.5rem',
-        paddingLeft: '1rem',
+        paddingLeft: `calc(1rem + ${depth * 1.5}rem)`,
         cursor: 'pointer',
         overflow: openApprovalMenuTaskId === task.id ? 'visible' : 'hidden',
         position: openApprovalMenuTaskId === task.id ? 'relative' : 'static',
@@ -575,6 +588,41 @@ export default function ProjectListView({
       }} onClick={e => {
         if (onOpenTaskPane) onOpenTaskPane(task.id);
       }}>
+          {user?.showRowNumbers && depth === 0 && (
+            <div style={{
+              color: 'var(--text-tertiary)',
+              fontSize: '11px',
+              width: '20px',
+              textAlign: 'right',
+              marginRight: '4px',
+              userSelect: 'none'
+            }}>
+              {taskIndex + 1}
+            </div>
+          )}
+          {task.subtasks && task.subtasks.length > 0 ? (
+            <div 
+              onClick={(e) => { e.stopPropagation(); toggleTaskExpand(task.id); }}
+              style={{
+                cursor: 'pointer',
+                marginRight: '4px',
+                color: 'var(--text-secondary)',
+                fontSize: '0.8rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '16px',
+                height: '16px',
+                borderRadius: '4px'
+              }}
+            >
+              <span style={{ fontSize: '0.75rem' }}>
+                {expandedTasks.has(task.id) ? '▼' : '▶'}
+              </span>
+            </div>
+          ) : (
+            <div style={{ width: '16px', marginRight: '4px', display: 'flex' }}></div>
+          )}
           {task.type === 'APPROVAL' ? <div style={{
           position: 'relative',
           zIndex: openApprovalMenuTaskId === task.id ? 9999 : 'auto'
@@ -694,6 +742,38 @@ export default function ProjectListView({
               flexShrink: 0
             }}><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path></svg> {tag.name}
                 </span>)}
+              
+              {task.subtasks && task.subtasks.length > 0 && (
+                <div 
+                  className="subtask-count-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onOpenTaskPane) {
+                      onOpenTaskPane(task.id);
+                      setTimeout(() => {
+                        const el = document.getElementById('subtasks-section');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }, 100);
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer',
+                    fontSize: '0.75rem',
+                    marginLeft: '4px'
+                  }}
+                  title={`${task.subtasks.length} subtasks`}
+                >
+                  <span style={{ fontWeight: '500' }}>{task.subtasks.length}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 4v16M5 10h11M5 18h11"></path>
+                    <circle cx="19" cy="10" r="3"></circle>
+                    <circle cx="19" cy="18" r="3"></circle>
+                  </svg>
+                </div>
+              )}
             </span>}
         </div>
 
@@ -1196,6 +1276,16 @@ export default function ProjectListView({
         }
       })}
       </div>;
+      
+    if (expandedTasks.has(task.id) && task.subtasks && task.subtasks.length > 0) {
+      return (
+        <React.Fragment key={task.id}>
+          {row}
+          {task.subtasks.map((st, idx) => renderTaskRow(st, sectionId, subgroup, idx, depth + 1))}
+        </React.Fragment>
+      );
+    }
+    return row;
   };
   return <div style={styles.listSpreadsheetWrapper} onMouseDown={onMarqueeMouseDown}>
       {resizingCol && <div style={{
@@ -1384,7 +1474,8 @@ export default function ProjectListView({
         {/* Bölümler ve Görevler Gövdesi */}
         <div style={styles.listSpreadsheetBody}>
           {(groupedSections || selectedProject.sections)?.map((section, idx) => {
-          const filteredTasks = groupedSections ? section.tasks : applyTaskSort ? applyTaskSort(applyTaskFilter(section.tasks)) : applyTaskFilter(section.tasks);
+          const topLevelTasks = (section.tasks || []).filter(t => !t.parentId);
+          const filteredTasks = groupedSections ? topLevelTasks : applyTaskSort ? applyTaskSort(applyTaskFilter(topLevelTasks)) : applyTaskFilter(topLevelTasks);
           const isCollapsed = collapsedSections[section.id];
           const isEditing = editingSectionId === section.id;
           return <div key={section.id} style={{
@@ -1537,8 +1628,8 @@ export default function ProjectListView({
                     fontWeight: '600'
                   }}>{subgroup.tasks.length}</span>
                           </div>
-                          {subgroup.tasks.map(t => renderTaskRow(t, section.id, subgroup))}
-                        </div>) : filteredTasks.map(t => renderTaskRow(t, section.id))}
+                          {subgroup.tasks.filter(t => !t.parentId).map((t, idx) => renderTaskRow(t, section.id, subgroup, idx))}
+                        </div>) : filteredTasks.map((t, idx) => renderTaskRow(t, section.id, null, idx))}
                     {/* Satır İçi Hızlı Görev Ekleme */}
                     {!isReadOnly && !isVirtualGrouping && <div style={{
                 ...styles.quickAddTaskRowList,

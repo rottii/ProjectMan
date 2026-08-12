@@ -666,7 +666,7 @@ export default function ProjectTimelineView({
                           textOverflow: 'ellipsis',
                           textDecoration: t.isCompleted ? 'line-through' : 'none'
                         }}>{t.title}</span>
-                            </div> : <div className="task-bar" onMouseDown={e => {
+                            </div> : <div className="task-bar saturate-bg" onMouseDown={e => {
                         e.stopPropagation();
                         if (!isReadOnly) setDragState({
                           taskId: t.id,
@@ -676,7 +676,8 @@ export default function ProjectTimelineView({
                         });
                       }} style={{
                         ...styles.taskBar,
-                        backgroundColor: t.isCompleted ? '#F3F4F6' : t.color,
+                        '--task-bg': t.isCompleted ? '#F3F4F6' : t.color,
+                        backgroundColor: 'var(--task-bg)',
                         color: t.isCompleted ? '#4B5563' : '#111827',
                         textDecoration: t.isCompleted ? 'line-through' : 'none',
                         border: '1px solid rgba(0,0,0,0.1)',

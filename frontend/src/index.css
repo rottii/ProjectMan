@@ -104,12 +104,22 @@ body {
   border-left: 3px solid var(--accent-primary);
 }
 
-/* Dark mode timeline task bar filter */
-body.dark .task-bar,
-body.dark .pt-project-bar {
-  filter: saturate(4);
+/* Dark mode timeline task bar filter - using saturate-bg to avoid filtering child images */
+body.dark .saturate-bg {
+  background-color: transparent !important;
+  position: relative;
+  z-index: 1;
 }
 
+body.dark .saturate-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--task-bg);
+  filter: saturate(4);
+  border-radius: inherit;
+  z-index: -1;
+}
 /* Mobile Overlay Backdrop */
 .mobile-sidebar-backdrop {
   position: fixed;
@@ -137,4 +147,38 @@ body.dark .pt-project-bar {
   .hide-on-desktop {
     display: none !important;
   }
+}
+
+/* Theme Mods */
+body.theme-sidebar-white {
+  --nav-bg: #FFFFFF !important;
+  --nav-bg-hover: #F3F4F6 !important;
+  --nav-border: #E5E7EB !important;
+  --nav-text: #111827 !important;
+  --nav-text-secondary: #6B7280 !important;
+}
+
+body.theme-color-blind {
+  --accent-success: #005A9C !important;
+  --accent-warning: #E3B505 !important;
+  --accent-danger: #D81B60 !important;
+}
+
+body.theme-compact-mode .list-view-task-row > div {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+  height: 32px !important;
+  line-height: 28px !important;
+}
+
+.subtask-count-btn {
+  color: var(--text-tertiary);
+  border-radius: 4px;
+  padding: 2px 4px;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.subtask-count-btn:hover {
+  background-color: var(--bg-hover, rgba(0,0,0,0.05));
+  color: var(--text-primary);
 }

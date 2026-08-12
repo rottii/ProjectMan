@@ -15,6 +15,7 @@ export default function TaskDetailPane({
   projectRole,
   customFieldSettings,
   onOpenPopover,
+  onTaskClick,
   currentUser
 }) {
   const paneRef = useRef(null);
@@ -140,6 +141,74 @@ export default function TaskDetailPane({
     document.addEventListener('mousedown', handlePaneClickOutside);
     return () => document.removeEventListener('mousedown', handlePaneClickOutside);
   }, [onClose]);
+
+  // Contextual Keyboard Shortcuts
+  useEffect(() => {
+    let tabPressed = false;
+
+    const handleKeyDown = (e) => {
+      const activeEl = document.activeElement;
+      const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable);
+
+      if (e.key === 'Escape' && !isInputFocused) {
+        if (openFieldMenuId || openSectionMenuId || isMoreMenuOpen || document.querySelector('.popover')) return;
+        onClose();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        tabPressed = true;
+        // e.preventDefault() is handled globally in TopNav.jsx for Tab
+      }
+
+      const shouldTrigger = tabPressed || (!isInputFocused && !e.metaKey && !e.ctrlKey);
+
+      if (shouldTrigger) {
+        const key = e.key.toLowerCase();
+        if (key === 'a') {
+          e.preventDefault();
+          window.__tabComboTriggered = true;
+          if (isReadOnly || !onOpenPopover) return;
+          const btn = document.getElementById('assignee-btn');
+          const rect = btn ? btn.getBoundingClientRect() : { top: window.innerHeight / 2, left: window.innerWidth / 2, width: 0, height: 0, right: window.innerWidth / 2 };
+          onOpenPopover('assignee', task, {
+            top: rect.top, left: rect.left, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height
+          });
+        } else if (key === 'd') {
+          e.preventDefault();
+          window.__tabComboTriggered = true;
+          if (isReadOnly || !onOpenPopover) return;
+          const btn = document.getElementById('date-btn');
+          const rect = btn ? btn.getBoundingClientRect() : { top: window.innerHeight / 2, left: window.innerWidth / 2, width: 0, height: 0, right: window.innerWidth / 2 };
+          onOpenPopover('date', task, {
+            top: rect.top, left: rect.left, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height
+          });
+        } else if (key === 't') {
+          e.preventDefault();
+          window.__tabComboTriggered = true;
+          setShowTagInput(true);
+        } else if (key === 'c') {
+          e.preventDefault();
+          window.__tabComboTriggered = true;
+          const editor = document.querySelector('.task-comment-composer .ProseMirror');
+          if (editor) editor.focus();
+        }
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (e.key === 'Tab') {
+        tabPressed = false;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [task, isReadOnly, onOpenPopover, openFieldMenuId, openSectionMenuId, isMoreMenuOpen, onClose]);
   if (!task) return null;
   const allUsers = React.useMemo(() => {
     let list = selectedProject?.members?.map(m => m.user) || [];
@@ -1169,7 +1238,7 @@ export default function TaskDetailPane({
           <div style={styles.fieldsGrid}>
             <div style={styles.fieldRow}>
               <div style={styles.fieldLabel}>{t("assignee", "Assignee")}</div>
-              <div style={{
+              <div id="assignee-btn" style={{
               ...styles.fieldValue,
               cursor: isReadOnly ? 'default' : 'pointer',
               display: 'flex',
@@ -1187,7 +1256,7 @@ export default function TaskDetailPane({
 
             <div style={styles.fieldRow}>
               <div style={styles.fieldLabel}>{t("due_date", "Due date")}</div>
-              <div style={{
+              <div id="date-btn" style={{
               ...styles.fieldValue,
               cursor: isReadOnly ? 'default' : 'pointer',
               display: 'flex',
@@ -2111,20 +2180,24 @@ export default function TaskDetailPane({
           </div>
 
           {/* SUBTASKS SECTION */}
-          <div style={styles.subtasksSection}>
+          <div id="subtasks-section" style={styles.subtasksSection}>
             <div style={styles.sectionTitle}>{t("subtasks", "Subtasks")}</div>
             <div style={styles.subtaskList}>
-              {task.subtasks?.map(st => <div key={st.id} style={styles.subtaskItem}>
-                  <input type="checkbox" checked={st.isCompleted} onChange={() => handleToggleSubtaskComplete(st.id, st.isCompleted)} disabled={isReadOnly} style={{
-                cursor: 'pointer'
-              }} />
-                  <span style={{
-                textDecoration: st.isCompleted ? 'line-through' : 'none',
-                color: st.isCompleted ? 'var(--text-tertiary)' : 'var(--text-primary)',
-                flex: 1,
-                fontSize: '0.9rem'
-              }}>{st.title}</span>
-                </div>)}
+              {task.subtasks?.map(st => (
+                <div key={st.id} style={{ ...styles.subtaskItem, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => onTaskClick && onTaskClick(st.id)}>
+                  <input type="checkbox" checked={st.isCompleted} onChange={(e) => { e.stopPropagation(); handleToggleSubtaskComplete(st.id, st.isCompleted); }} disabled={isReadOnly} style={{ cursor: 'pointer' }} />
+                  <span style={{ textDecoration: st.isCompleted ? 'line-through' : 'none', color: st.isCompleted ? 'var(--text-tertiary)' : 'var(--text-primary)', flex: 1, fontSize: '0.9rem' }}>{st.title}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ cursor: 'pointer', padding: '2px' }} onClick={(e) => { e.stopPropagation(); onOpenPopover && onOpenPopover('assignee', st, { clientX: e.clientX, clientY: e.clientY }); }}>
+                       {st.assignee ? <UserAvatar user={st.assignee} size={24} /> : <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: '1px dashed var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>👤</span></div>}
+                    </div>
+                    <div style={{ cursor: 'pointer', padding: '2px', fontSize: '12px', color: st.dueDate ? 'var(--text-primary)' : 'var(--text-secondary)', display: 'flex', alignItems: 'center' }} onClick={(e) => { e.stopPropagation(); onOpenPopover && onOpenPopover('dueDate', st, { clientX: e.clientX, clientY: e.clientY }); }}>
+                       {st.dueDate ? new Date(st.dueDate).toLocaleDateString() : <span style={{ fontSize: '14px' }}>📅</span>}
+                    </div>
+                    {!isReadOnly && <div style={{ cursor: 'pointer', padding: '4px', color: 'var(--text-secondary)', borderRadius: '4px' }} onClick={(e) => { e.stopPropagation(); if (window.confirm('Delete subtask?')) { onDeleteTask && onDeleteTask(st.id); } }} className="subtask-delete-btn">🗑️</div>}
+                  </div>
+                </div>
+              ))}
             </div>
             {!isReadOnly && <form onSubmit={handleAddSubtask} style={styles.subtaskForm}>
                 <input type="text" value={newSubtaskTitle} onChange={e => setNewSubtaskTitle(e.target.value)} placeholder={t("add_a_subtask", "Add a subtask...")} style={styles.subtaskInput} />

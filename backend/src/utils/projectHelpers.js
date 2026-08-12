@@ -164,7 +164,8 @@ const fullProjectInclude = {
                     subtasks: {
                         orderBy: { order: 'asc' },
                         include: {
-                            assignee: { select: { id: true, name: true, email: true, profilePhoto: true } }
+                            assignee: { select: { id: true, name: true, email: true, profilePhoto: true } },
+                            subtasks: { select: { id: true } }
                         }
                     },
                     comments: {
@@ -223,7 +224,10 @@ const fullProjectInclude = {
                             creator: { select: { id: true, name: true, email: true, profilePhoto: true } },
                             subtasks: {
                                 orderBy: { order: 'asc' },
-                                include: { assignee: { select: { id: true, name: true, email: true, profilePhoto: true } } }
+                                include: { 
+                                    assignee: { select: { id: true, name: true, email: true, profilePhoto: true } },
+                                    subtasks: { select: { id: true } }
+                                }
                             },
                             comments: {
                                 orderBy: { createdAt: 'asc' },

@@ -53,6 +53,69 @@ export default function TopNav({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Global Keyboard Shortcuts
+  useEffect(() => {
+    let tabPressed = false;
+    let shiftPressed = false;
+
+    const handleKeyDown = (e) => {
+      const activeEl = document.activeElement;
+      const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable);
+
+      if (e.key === 'Shift') {
+        shiftPressed = true;
+      }
+
+      if (e.key === 'Tab') {
+        tabPressed = true;
+        window.__tabComboTriggered = false;
+        e.preventDefault(); // Stop default tabbing so selection doesn't jump during combinations
+        return; // Wait for keyup or a combo key
+      }
+
+      // '/' to focus search
+      if (e.key === '/' && !isInputFocused) {
+        e.preventDefault();
+        const searchInput = searchRef.current?.querySelector('input');
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }
+
+      // 'q' or 'Tab + q' for Quick Add Task
+      if (e.key.toLowerCase() === 'q') {
+        if (tabPressed || (!isInputFocused && !e.metaKey && !e.ctrlKey)) {
+          e.preventDefault();
+          window.__tabComboTriggered = true;
+          setShowQuickAddTask(true);
+        }
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (e.key === 'Shift') {
+        shiftPressed = false;
+      }
+      if (e.key === 'Tab') {
+        tabPressed = false;
+        if (!window.__tabComboTriggered) {
+          // Normal Tab behavior since no combination was pressed
+          import('../utils/focusManager').then(({ advanceFocus }) => {
+            advanceFocus(shiftPressed ? -1 : 1);
+          });
+        }
+        window.__tabComboTriggered = false;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
   // Debounced search
   useEffect(() => {
     if (searchQuery.trim().length < 2) {
@@ -163,6 +226,7 @@ export default function TopNav({
           }} onFocus={() => {
             if (searchQuery.trim().length >= 2) setShowSearchDropdown(true);
           }} />
+            <span className="cmd-k-badge">⌘K</span>
             {isSearching && <span style={{
             color: 'var(--text-tertiary)',
             fontSize: '0.8rem',
