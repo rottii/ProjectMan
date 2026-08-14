@@ -426,7 +426,146 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
               </div>
             )}
 
-            {['Notifications', 'Email Forwarding', 'Account', 'Apps', 'Hacks'].includes(activeTab) && (
+            {activeTab === 'Notifications' && (
+              <div>
+                <div className="settings-section-title" style={{marginTop: 0}}>Email Verification</div>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '10px', 
+                  padding: '12px 16px', 
+                  backgroundColor: user?.emailVerified ? 'rgba(16, 185, 129, 0.08)' : 'rgba(245, 158, 11, 0.08)',
+                  borderRadius: '8px',
+                  marginBottom: '20px',
+                  border: `1px solid ${user?.emailVerified ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)'}`
+                }}>
+                  <span style={{ fontSize: '20px' }}>{user?.emailVerified ? '✓' : '⚠'}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>
+                      {user?.emailVerified ? 'Email verified' : 'Email not verified'}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      {user?.emailVerified 
+                        ? `Your email (${user?.email}) is verified. You will receive email notifications.`
+                        : `Verify your email (${user?.email}) to receive email notifications.`
+                      }
+                    </div>
+                  </div>
+                  {!user?.emailVerified && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          const res = await apiFetch('/api/auth/resend-verification', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+                          });
+                          const data = await res.json();
+                          setSaveMessage(res.ok ? 'Verification email sent!' : (data.error || 'Failed'));
+                          setTimeout(() => setSaveMessage(''), 4000);
+                        } catch (err) {
+                          setSaveMessage('Failed to send');
+                        }
+                      }}
+                      style={{
+                        backgroundColor: 'var(--accent-primary)',
+                        color: 'white',
+                        border: 'none',
+                        padding: '6px 14px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        fontWeight: '500',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      Resend email
+                    </button>
+                  )}
+                </div>
+                {saveMessage && (
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                    {saveMessage}
+                  </div>
+                )}
+
+                <div className="settings-section-title">Email Notifications</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                  Choose which events trigger an email notification. These only work when your email is verified.
+                </div>
+
+                <div className="settings-checkbox-row">
+                  <input 
+                    type="checkbox" 
+                    id="emailNotifAssigned" 
+                    name="emailNotifAssigned"
+                    checked={user?.emailNotifAssigned ?? true} 
+                    onChange={handleDisplayPrefChange} 
+                  />
+                  <label htmlFor="emailNotifAssigned">
+                    <div style={{ fontWeight: '500' }}>Task assigned to me</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Get notified when someone assigns a task to you</div>
+                  </label>
+                </div>
+
+                <div className="settings-checkbox-row">
+                  <input 
+                    type="checkbox" 
+                    id="emailNotifComment" 
+                    name="emailNotifComment"
+                    checked={user?.emailNotifComment ?? true} 
+                    onChange={handleDisplayPrefChange} 
+                  />
+                  <label htmlFor="emailNotifComment">
+                    <div style={{ fontWeight: '500' }}>Comments on my tasks</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Get notified when someone comments on a task you own or created</div>
+                  </label>
+                </div>
+
+                <div className="settings-checkbox-row">
+                  <input 
+                    type="checkbox" 
+                    id="emailNotifMention" 
+                    name="emailNotifMention"
+                    checked={user?.emailNotifMention ?? true} 
+                    onChange={handleDisplayPrefChange} 
+                  />
+                  <label htmlFor="emailNotifMention">
+                    <div style={{ fontWeight: '500' }}>@Mentions</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Get notified when someone mentions you in a comment or description</div>
+                  </label>
+                </div>
+
+                <div className="settings-checkbox-row">
+                  <input 
+                    type="checkbox" 
+                    id="emailNotifReminder" 
+                    name="emailNotifReminder"
+                    checked={user?.emailNotifReminder ?? true} 
+                    onChange={handleDisplayPrefChange} 
+                  />
+                  <label htmlFor="emailNotifReminder">
+                    <div style={{ fontWeight: '500' }}>Due date reminders</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Get reminded when your tasks are due soon or overdue</div>
+                  </label>
+                </div>
+
+                <div className="settings-checkbox-row">
+                  <input 
+                    type="checkbox" 
+                    id="emailNotifUpdates" 
+                    name="emailNotifUpdates"
+                    checked={user?.emailNotifUpdates ?? false} 
+                    onChange={handleDisplayPrefChange} 
+                  />
+                  <label htmlFor="emailNotifUpdates">
+                    <div style={{ fontWeight: '500' }}>Weekly summary digest</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Receive a weekly summary of activity across your projects</div>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {['Email Forwarding', 'Account', 'Apps', 'Hacks'].includes(activeTab) && (
               <div style={{ color: 'var(--text-secondary)', marginTop: '20px' }}>
                 This tab is a placeholder and hasn't been implemented yet.
               </div>

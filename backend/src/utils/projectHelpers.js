@@ -338,17 +338,19 @@ async function getWorkspaceRole(userId, workspaceId) {
     if (!userId || !workspaceId) return null;
     const member = await prisma.workspaceMember.findUnique({
         where: { workspaceId_userId: { workspaceId, userId } },
-        select: { role: true }
+        select: { role: true, isActive: true }
     });
-    return member ? member.role : null;
+    if (!member || !member.isActive) return null;
+    return member.role;
 }
 
 async function isWorkspaceMember(userId, workspaceId) {
     if (!userId || !workspaceId) return false;
-    const count = await prisma.workspaceMember.count({
-        where: { workspaceId, userId }
+    const member = await prisma.workspaceMember.findUnique({
+        where: { workspaceId_userId: { workspaceId, userId } },
+        select: { isActive: true }
     });
-    return count > 0;
+    return member ? member.isActive : false;
 }
 
 function hasWorkspaceRole(userRole, minimumRole) {

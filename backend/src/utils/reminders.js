@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const prisma = require('../lib/prisma');
+const { sendReminderEmail } = require('./emailService');
 
 
 const startReminderCron = (io) => {
@@ -83,6 +84,16 @@ const startReminderCron = (io) => {
                     // Emit to user
                     if (io) {
                         io.to(task.assigneeId).emit('new_notification');
+                    }
+
+                    // Send email notification
+                    try {
+                        const assignee = await prisma.user.findUnique({ where: { id: task.assigneeId }, select: { email: true, name: true, emailVerified: true, emailNotifReminder: true } });
+                        if (assignee?.emailVerified && assignee?.emailNotifReminder) {
+                            sendReminderEmail(assignee.email, assignee.name, task.title, task.id, notificationType);
+                        }
+                    } catch (emailErr) {
+                        console.error('Reminder email error:', emailErr);
                     }
                 }
             }

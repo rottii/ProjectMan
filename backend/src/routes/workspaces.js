@@ -171,11 +171,11 @@ router.get('/:workspaceId/members', authenticateToken, requireWorkspaceMember('M
   }
 });
 
-// Update member role
+// Update member role or status
 router.patch('/:workspaceId/members/:userId', authenticateToken, requireWorkspaceMember('ADMIN'), async (req, res) => {
   try {
     const { workspaceId, userId } = req.params;
-    const { role } = req.body;
+    const { role, isActive } = req.body;
     
     const requester = await prisma.workspaceMember.findFirst({
       where: { workspaceId, userId: req.user.userId }
@@ -197,9 +197,13 @@ router.patch('/:workspaceId/members/:userId', authenticateToken, requireWorkspac
       return res.status(403).json({ error: 'You cannot modify the role of an admin who joined before you.' });
     }
 
+    const updateData = {};
+    if (role !== undefined) updateData.role = role;
+    if (isActive !== undefined) updateData.isActive = isActive;
+
     const updatedMember = await prisma.workspaceMember.update({
       where: { workspaceId_userId: { workspaceId, userId } },
-      data: { role },
+      data: updateData,
       include: { user: { select: { id: true, name: true, email: true, profilePhoto: true } } }
     });
     
@@ -309,6 +313,82 @@ router.delete('/:workspaceId', authenticateToken, requireWorkspaceMember('ADMIN'
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Server error deleting workspace' });
+  }
+});
+
+// Rename workspace
+router.patch('/:workspaceId', authenticateToken, requireWorkspaceMember('ADMIN'), async (req, res) => {
+  try {
+    const { workspaceId } = req.params;
+    const { name } = req.body;
+    const workspace = await prisma.workspace.update({
+      where: { id: workspaceId },
+      data: { name }
+    });
+    res.json(workspace);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error updating workspace' });
+  }
+});
+
+// Get workspace audit logs
+router.get('/:workspaceId/audit-logs', authenticateToken, requireWorkspaceMember('ADMIN'), async (req, res) => {
+  try {
+    const { workspaceId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 15;
+    const skip = (page - 1) * limit;
+
+    const members = await prisma.workspaceMember.findMany({ where: { workspaceId }, select: { userId: true } });
+    const userIds = members.map(m => m.userId);
+    
+    const [logs, total] = await Promise.all([
+      prisma.auditLog.findMany({
+        where: { userId: { in: userIds } },
+        include: { user: { select: { name: true, email: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.auditLog.count({
+        where: { userId: { in: userIds } }
+      })
+    ]);
+
+    res.json({ logs, total, page, totalPages: Math.ceil(total / limit) });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error fetching audit logs' });
+  }
+});
+
+// Get workspace analytics
+router.get('/:workspaceId/analytics', authenticateToken, requireWorkspaceMember('ADMIN'), async (req, res) => {
+  try {
+    const { workspaceId } = req.params;
+    const membersCount = await prisma.workspaceMember.count({ where: { workspaceId } });
+    const projectsCount = await prisma.project.count({ where: { workspaceId } });
+    
+    // Total tasks in projects within this workspace
+    const tasksCount = await prisma.task.count({
+      where: { section: { project: { workspaceId } } }
+    });
+    
+    const completedTasksCount = await prisma.task.count({
+      where: { section: { project: { workspaceId } }, isCompleted: true }
+    });
+
+    res.json({
+      membersCount,
+      projectsCount,
+      tasksCount,
+      completedTasksCount,
+      completionRate: tasksCount > 0 ? Math.round((completedTasksCount / tasksCount) * 100) : 0
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error fetching analytics' });
   }
 });
 

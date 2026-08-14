@@ -47,8 +47,17 @@ export default function Auth({
         setToken(data.token);
         setUser(data.user);
       } else {
-        setAuthMessage('Kayıt başarılı! Giriş yapabilirsiniz.');
-        setIsLogin(true);
+        // Auto-login after registration
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          setToken(data.token);
+          setUser(data.user);
+        } else {
+          setAuthMessage('Kayıt başarılı! Giriş yapabilirsiniz.');
+          setIsLogin(true);
+        }
       }
     } catch (err) {
       setAuthMessage(err.message);

@@ -1,4 +1,5 @@
 const prisma = require('../lib/prisma');
+const { sendCommentEmail } = require('../utils/emailService');
 const {
     getProjectRoleFromTask,
     hasRole,
@@ -65,6 +66,17 @@ exports.createComment = async (req, res) => {
                     }
                 });
                 io.to(task.assigneeId).emit('new_notification');
+
+                // Send email notification
+                try {
+                    const assignee = await prisma.user.findUnique({ where: { id: task.assigneeId }, select: { email: true, name: true, emailVerified: true, emailNotifComment: true } });
+                    const commenter = await prisma.user.findUnique({ where: { id: req.user.userId }, select: { name: true } });
+                    if (assignee?.emailVerified && assignee?.emailNotifComment) {
+                        sendCommentEmail(assignee.email, assignee.name, task.title, task.id, commenter?.name || 'Someone', content);
+                    }
+                } catch (emailErr) {
+                    console.error('Comment email error:', emailErr);
+                }
             }
             
             // Notify creator if not assignee, not commenter, and not mentioned
@@ -80,6 +92,17 @@ exports.createComment = async (req, res) => {
                     }
                 });
                 io.to(task.creatorId).emit('new_notification');
+
+                // Send email notification
+                try {
+                    const creator = await prisma.user.findUnique({ where: { id: task.creatorId }, select: { email: true, name: true, emailVerified: true, emailNotifComment: true } });
+                    const commenter = await prisma.user.findUnique({ where: { id: req.user.userId }, select: { name: true } });
+                    if (creator?.emailVerified && creator?.emailNotifComment) {
+                        sendCommentEmail(creator.email, creator.name, task.title, task.id, commenter?.name || 'Someone', content);
+                    }
+                } catch (emailErr) {
+                    console.error('Comment email error:', emailErr);
+                }
             }
         }
 

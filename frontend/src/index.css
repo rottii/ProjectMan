@@ -47,6 +47,7 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   transition: background-color 0.2s ease, color 0.2s ease;
+  overflow-y: scroll;
 }
 
 /* Custom scrollbar for webkit to look good in dark mode */
@@ -181,4 +182,24 @@ body.theme-compact-mode .list-view-task-row > div {
 .subtask-count-btn:hover {
   background-color: var(--bg-hover, rgba(0,0,0,0.05));
   color: var(--text-primary);
+}
+
+.dropdown-item {
+  transition: background-color 0.1s ease;
+}
+.dropdown-item:hover {
+  background-color: var(--bg-hover, rgba(0, 0, 0, 0.06)) !important;
+}
+body.dark .dropdown-item:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dropdown-item-delete {
+  transition: background-color 0.1s ease;
+}
+.dropdown-item-delete:hover {
+  background-color: #fee2e2 !important;
+}
+body.dark .dropdown-item-delete:hover {
+  background-color: rgba(239, 68, 68, 0.15) !important;
 }

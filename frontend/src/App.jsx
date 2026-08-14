@@ -19,6 +19,8 @@ import PublicForm from './components/PublicForm'
 import AdminConsoleView from './components/AdminConsoleView'
 import InvitePage from './components/InvitePage'
 import ResetPasswordPage from './components/ResetPasswordPage'
+import VerifyEmailPage from './components/VerifyEmailPage'
+import EmailVerificationBanner from './components/EmailVerificationBanner'
 import SettingsModal from './components/SettingsModal'
 import CommandPalette from './components/CommandPalette'
 import { UndoProvider } from './context/UndoContext'
@@ -45,6 +47,8 @@ export default function App() {
   const storedWorkspaceId = localStorage.getItem('activeWorkspaceId');
   const initialWorkspaceId = (storedWorkspaceId === 'null' || storedWorkspaceId === 'undefined') ? null : storedWorkspaceId;
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(initialWorkspaceId)
+  const [isInitialDataLoading, setIsInitialDataLoading] = useState(false)
+  const [isSocketConnected, setIsSocketConnected] = useState(true)
 
   const handleWorkspaceChange = (newId) => {
     setActiveWorkspaceId(newId);
@@ -146,6 +150,7 @@ export default function App() {
     const currentPath = window.location.pathname;
     if (currentPath.startsWith('/invite/') ||
       currentPath.startsWith('/reset-password/') ||
+      currentPath.startsWith('/verify-email/') ||
       currentPath.startsWith('/form/')) {
       return; // Do not overwrite these special URLs
     }
@@ -224,8 +229,9 @@ export default function App() {
   // Projeleri çek ve yenileme sonrası aktif projeyi geri yükle
   useEffect(() => {
     if (token) {
-      // Projeleri çek (Bypass cache with timestamp)
-      apiFetch(`/api/projects?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${token}` } })
+      setIsInitialDataLoading(true);
+
+      const fetchProjects = apiFetch(`/api/projects?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -269,8 +275,7 @@ export default function App() {
         })
         .catch(err => console.error("Projeler yüklenemedi", err))
 
-      // Portföyleri çek
-      apiFetch('/api/portfolios', { headers: { 'Authorization': `Bearer ${token}` } })
+      const fetchPortfolios = apiFetch('/api/portfolios', { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -288,8 +293,7 @@ export default function App() {
         })
         .catch(err => console.error("Portföyler yüklenemedi", err))
 
-      // Workspaces (Teams) çek
-      apiFetch('/api/workspaces', { headers: { 'Authorization': `Bearer ${token}` } })
+      const fetchWorkspaces = apiFetch('/api/workspaces', { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -305,13 +309,27 @@ export default function App() {
           }
         })
         .catch(err => console.error("Workspaces yüklenemedi", err))
+
+      Promise.all([fetchProjects, fetchPortfolios, fetchWorkspaces]).finally(() => {
+        setIsInitialDataLoading(false);
+      });
     }
   }, [token])
 
   useEffect(() => {
     if (user && user.id) {
-      const socket = io(API_BASE_URL);
+      const socket = io(API_BASE_URL, {
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        timeout: 20000,
+      });
       socket.emit('join_user', user.id);
+
+      socket.on('connect', () => setIsSocketConnected(true));
+      socket.on('disconnect', () => setIsSocketConnected(false));
+      socket.on('connect_error', () => setIsSocketConnected(false));
 
       socket.on('project_created', (newProj) => {
         setProjects(prev => {
@@ -385,6 +403,25 @@ export default function App() {
     return <ResetPasswordPage token={window.location.pathname.split('/')[2]} />;
   }
 
+  const isVerifyEmailPage = window.location.pathname.startsWith('/verify-email/');
+  if (isVerifyEmailPage) {
+    return <VerifyEmailPage token={window.location.pathname.split('/')[2]} onVerified={() => {
+      // Refresh user data to update emailVerified status
+      if (token) {
+        apiFetch('/api/auth/me/preferences', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({})
+        }).then(r => r.json()).then(data => {
+          if (data.user) {
+            setUser(data.user);
+            localStorage.setItem('user', JSON.stringify(data.user));
+          }
+        }).catch(() => {});
+      }
+    }} />;
+  }
+
   if (!token) {
     return <Auth setToken={setToken} setUser={setUser} />
   }
@@ -439,7 +476,23 @@ export default function App() {
           activeWorkspaceId={activeWorkspaceId}
           setActiveWorkspaceId={handleWorkspaceChange}
         />
+        {!isSocketConnected && (
+          <div style={{ backgroundColor: 'var(--accent-warning)', color: '#000', padding: '8px', textAlign: 'center', fontSize: '14px', zIndex: 1000 }}>
+            You are offline. Trying to reconnect...
+          </div>
+        )}
+        {user && user.emailVerified === false && (
+          <EmailVerificationBanner token={token} user={user} setUser={setUser} />
+        )}
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+          {isInitialDataLoading && (
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'var(--bg-primary)', zIndex: 50, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <svg width="40" height="40" viewBox="0 0 50 50" style={{ animation: 'spin 1s linear infinite' }}>
+                <circle cx="25" cy="25" r="20" fill="none" stroke="var(--accent-primary)" strokeWidth="4" strokeDasharray="31.4 31.4" strokeLinecap="round" />
+              </svg>
+              <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
+            </div>
+          )}
           {!isSidebarCollapsed && (
             <div
               className="mobile-sidebar-backdrop hide-on-desktop"
@@ -469,7 +522,7 @@ export default function App() {
             setSelectedPortfolio={setSelectedPortfolio}
             setShowSettings={setShowSettings}
           />
-          <div style={{ flex: 1, overflow: 'auto', backgroundColor: 'var(--bg-secondary)', position: 'relative' }}>
+          <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', backgroundColor: 'var(--bg-secondary)', position: 'relative', scrollbarGutter: 'stable' }}>
             {activeView === 'home' ? (
               <Dashboard
                 user={user}

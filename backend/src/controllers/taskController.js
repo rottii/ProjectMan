@@ -1,5 +1,6 @@
 const prisma = require('../lib/prisma');
 const { evaluateRules } = require('../utils/ruleEngine');
+const { sendTaskAssignedEmail } = require('../utils/emailService');
 const {
     getProjectRole,
     getProjectRoleFromTask,
@@ -92,6 +93,18 @@ exports.createTask = async (req, res) => {
                 });
                 const io = req.app.get('io');
                 if (io) io.to(assigneeId).emit('new_notification');
+
+                // Send email notification
+                try {
+                    const assignee = await prisma.user.findUnique({ where: { id: assigneeId }, select: { email: true, name: true, emailVerified: true, emailNotifAssigned: true } });
+                    const assigner = await prisma.user.findUnique({ where: { id: req.user.userId }, select: { name: true } });
+                    if (assignee?.emailVerified && assignee?.emailNotifAssigned) {
+                        const project = section?.projectId ? await prisma.project.findUnique({ where: { id: section.projectId }, select: { name: true } }) : null;
+                        sendTaskAssignedEmail(assignee.email, assignee.name, title, newTask.id, assigner?.name || 'Someone', project?.name);
+                    }
+                } catch (emailErr) {
+                    console.error('Email notification error:', emailErr);
+                }
             } catch (notifErr) {
                 console.error('Notification error:', notifErr);
             }
@@ -555,6 +568,18 @@ exports.updateTask = async (req, res) => {
                     }
                 });
                 if (io) io.to(assigneeId).emit('new_notification');
+
+                // Send email notification
+                try {
+                    const assignee = await prisma.user.findUnique({ where: { id: assigneeId }, select: { email: true, name: true, emailVerified: true, emailNotifAssigned: true } });
+                    const assigner = await prisma.user.findUnique({ where: { id: req.user.userId }, select: { name: true } });
+                    if (assignee?.emailVerified && assignee?.emailNotifAssigned) {
+                        const project = projectId ? await prisma.project.findUnique({ where: { id: projectId }, select: { name: true } }) : null;
+                        sendTaskAssignedEmail(assignee.email, assignee.name, updatedTask.title, updatedTask.id, assigner?.name || 'Someone', project?.name);
+                    }
+                } catch (emailErr) {
+                    console.error('Email notification error:', emailErr);
+                }
             } catch (notifErr) {
                 console.error('Notification error:', notifErr);
             }

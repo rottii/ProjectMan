@@ -29,6 +29,8 @@ export default function ProjectListView({
   applyTaskFilter,
   applyTaskSort,
   handleSortOptionClick,
+  handleGroupOptionClick,
+  handleFilterOptionClick,
   activeSorts,
   handleTaskUpdate,
   handleGeneralDrop,
@@ -58,6 +60,8 @@ export default function ProjectListView({
   const [openSectionMenuId, setOpenSectionMenuId] = useState(null);
   const [showAddFieldMenu, setShowAddFieldMenu] = useState(false);
   const [openCellMenuId, setOpenCellMenuId] = useState(null);
+  const [openColumnMenuName, setOpenColumnMenuName] = useState(null);
+  const [moveColumnMenuOpenFor, setMoveColumnMenuOpenFor] = useState(null);
   const [openApprovalMenuTaskId, setOpenApprovalMenuTaskId] = useState(null);
   const [menuPosition, setMenuPosition] = useState('bottom');
   const [editingFieldOptions, setEditingFieldOptions] = useState(false);
@@ -89,7 +93,12 @@ export default function ProjectListView({
   };
   const [fieldTitle, setFieldTitle] = useState('Effort level');
   const [fieldOptionsList, setFieldOptionsList] = useState([]);
-  const [customFields, setCustomFields] = useState([]);
+  const [customFields, setCustomFields] = useState(() => {
+    if (selectedProject && selectedProject.customFieldSettings && Array.isArray(selectedProject.customFieldSettings)) {
+      return selectedProject.customFieldSettings;
+    }
+    return [];
+  });
   useEffect(() => {
     if (selectedProject) {
       if (selectedProject.customFieldSettings && Array.isArray(selectedProject.customFieldSettings)) {
@@ -120,7 +129,6 @@ export default function ProjectListView({
   const [isAddFieldModalOpen, setIsAddFieldModalOpen] = useState(false);
   const [draggingOptionId, setDraggingOptionId] = useState(null);
   const [hoveredColumnName, setHoveredColumnName] = useState(null);
-  const [openColumnMenuName, setOpenColumnMenuName] = useState(null);
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editTaskTitleValue, setEditTaskTitleValue] = useState('');
   const [editCursorPos, setEditCursorPos] = useState(null);
@@ -136,6 +144,7 @@ export default function ProjectListView({
     setShowAddFieldMenu(false);
     setOpenCellMenuId(null);
     setOpenColumnMenuName(null);
+    setMoveColumnMenuOpenFor(null);
     setOpenApprovalMenuTaskId(null);
   };
   const [colWidths, setColWidths] = useState({
@@ -179,24 +188,46 @@ export default function ProjectListView({
       startWidth: colWidths[colId] || 140
     };
   };
-  const [columnOrder, setColumnOrder] = useState(['assignee', 'dueDate']);
+  const [columnOrder, setColumnOrder] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`columnOrder_${selectedProject?.id}`);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return ['assignee', 'dueDate'];
+  });
   const [draggingColId, setDraggingColId] = useState(null);
   const [hiddenFields, setHiddenFields] = useState([]);
+  
   useEffect(() => {
     setColumnOrder(prev => {
+      let baseOrder = prev;
+      try {
+        const saved = localStorage.getItem(`columnOrder_${selectedProject?.id}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) baseOrder = parsed;
+        }
+      } catch (e) {}
+      
       const isMyTasks = selectedProject?.status === 'MY_TASKS';
       const base = isMyTasks ? ['projects', 'assignee', 'dueDate'] : ['assignee', 'dueDate'];
       const filteredBase = base.filter(f => !hiddenFields.includes(f));
       const cfs = customFields.map(cf => cf.id);
       const allExpected = [...filteredBase, ...cfs];
-      const newOrder = prev.filter(id => allExpected.includes(id));
-      const missing = allExpected.filter(id => !prev.includes(id));
+      const newOrder = baseOrder.filter(id => allExpected.includes(id));
+      const missing = allExpected.filter(id => !newOrder.includes(id));
       if (missing.length > 0 || newOrder.length !== allExpected.length) {
         return [...newOrder, ...missing];
       }
-      return prev;
+      return newOrder.length > 0 ? newOrder : prev;
     });
-  }, [customFields, selectedProject?.status, hiddenFields]);
+  }, [customFields, selectedProject?.id, selectedProject?.status, hiddenFields]);
+
+  useEffect(() => {
+    if (selectedProject?.id && columnOrder.length > 0) {
+      localStorage.setItem(`columnOrder_${selectedProject.id}`, JSON.stringify(columnOrder));
+    }
+  }, [columnOrder, selectedProject?.id]);
   const [dropTargetCol, setDropTargetCol] = useState({
     id: null,
     position: null
@@ -417,53 +448,109 @@ export default function ProjectListView({
     setEditingFieldOptions(false);
     setOpenColumnMenuName(null);
   };
-  const renderColumnDropdownMenu = colName => {
+  const renderColumnDropdownMenu = (colName, colId) => {
     const titles = {
       name: 'Name',
       assignee: 'Assignee',
       dueDate: 'Due date',
       projects: 'Projects'
     };
+    
+    const colIndex = columnOrder.indexOf(colId);
+    const canMoveLeft = colIndex > 0;
+    const canMoveRight = colIndex > -1 && colIndex < columnOrder.length - 1;
+    
     return <div style={styles.columnDropdownMenu} onClick={e => e.stopPropagation()}>
-        {colName !== 'name' && colName !== 'assignee' && colName !== 'dueDate' && colName !== 'projects' && <button onClick={() => {
+        {colName !== 'name' && colName !== 'assignee' && colName !== 'dueDate' && colName !== 'projects' && <button className="dropdown-item" onClick={() => {
         setEditingFieldOptions(true);
         setFieldTitle(titles[colName] || colName);
-        const cf = customFields.find(f => f.title === (titles[colName] || colName));
+        const cf = customFields.find(f => f.id === colId);
         setFieldOptionsList(cf?.options || []);
         closeAllMenus();
-      }} style={styles.dropdownItem}>{t("edit_field", "\u270F\uFE0F Edit field")}</button>}
-        <button style={styles.dropdownItem}>{t("field_access_and_permissions", "\u2696\uFE0F Field access and permissions")}<span style={{
-          float: 'right'
-        }}>{'>'}</span></button>
-        <div style={styles.menuDivider}></div>
-        <button style={styles.dropdownItem}>{t("filter", "\u2261 Filter")}</button>
-        <button style={styles.dropdownItem}>{t("group", "\u229E Group")}<span style={{
-          float: 'right'
-        }}>{'>'}</span></button>
-        <button onClick={() => {
+      }} style={styles.dropdownItem}>{t("edit_field", "✏️ Edit field")}</button>}
+        <button className="dropdown-item" onClick={() => {
+        handleFilterOptionClick && handleFilterOptionClick(titles[colName] || colName);
+        closeAllMenus();
+      }} style={styles.dropdownItem}>{t("filter", "≡ Filter")}</button>
+        <button className="dropdown-item" onClick={() => {
+        handleGroupOptionClick && handleGroupOptionClick(titles[colName] || colName);
+        closeAllMenus();
+      }} style={styles.dropdownItem}>{t("group", "⊞ Group")}</button>
+        <button className="dropdown-item" onClick={() => {
         handleSortOptionClick && handleSortOptionClick(titles[colName] || colName);
         closeAllMenus();
-      }} style={styles.dropdownItem}>{t("sort", "Sort")}</button>
+      }} style={styles.dropdownItem}>{t("sort", "⇅ Sort")}</button>
+        
         <div style={styles.menuDivider}></div>
-        <button onClick={() => {
+        <button className="dropdown-item" onClick={() => {
         setShowAddFieldMenu(true);
         setOpenColumnMenuName(null);
       }} style={styles.dropdownItem}>{t("add_column", "+ Add column")}</button>
-        <button style={styles.dropdownItem}>{t("move_column", "\u2194 Move column")}<span style={{
-          float: 'right'
-        }}>{'>'}</span></button>
-        <button style={styles.dropdownItem}>{t("hide_column", "\uD83D\uDC41\uFE0F Hide column")}</button>
-        <div style={styles.menuDivider}></div>
-        <button style={styles.dropdownItem}>{t("ai_auto_fill", "\u2728 AI auto-fill")}</button>
-        <div style={styles.menuDivider}></div>
-        {colName !== 'name' && colName !== 'assignee' && colName !== 'dueDate' && colName !== 'projects' && <button onClick={e => {
-        e.stopPropagation();
-        handleDeleteField(titles[colName] || colName);
-      }} style={{
-        ...styles.dropdownItemDelete,
-        padding: '0.5rem 0.75rem',
-        marginTop: 0
-      }}>{t("delete_field", "\uD83D\uDDD1\uFE0F Delete field")}</button>}
+        
+        <div 
+          className="dropdown-item" 
+          style={{ 
+            ...styles.dropdownItem, 
+            position: 'relative',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+          onMouseEnter={() => setMoveColumnMenuOpenFor(colName)}
+          onMouseLeave={() => setMoveColumnMenuOpenFor(null)}
+        >
+          <span>{t("move_column", "↔ Move column")}</span>
+          <span>{'>'}</span>
+          
+          {moveColumnMenuOpenFor === colName && (
+            <div style={{
+              position: 'absolute',
+              top: '0',
+              left: '100%',
+              backgroundColor: 'var(--bg-primary)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '6px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              zIndex: 9999,
+              padding: '0.5rem',
+              minWidth: '180px',
+              display: 'flex',
+              flexDirection: 'column',
+              marginLeft: '0'
+            }}>
+              <button className="dropdown-item" disabled={!canMoveLeft} onClick={(e) => {
+                e.stopPropagation();
+                if (canMoveLeft) {
+                  const newOrder = [...columnOrder];
+                  [newOrder[colIndex - 1], newOrder[colIndex]] = [newOrder[colIndex], newOrder[colIndex - 1]];
+                  setColumnOrder(newOrder);
+                }
+              }} style={{ ...styles.dropdownItem, opacity: canMoveLeft ? 1 : 0.5, cursor: canMoveLeft ? 'pointer' : 'default' }}>
+                Move left
+              </button>
+              <button className="dropdown-item" disabled={!canMoveRight} onClick={(e) => {
+                e.stopPropagation();
+                if (canMoveRight) {
+                  const newOrder = [...columnOrder];
+                  [newOrder[colIndex + 1], newOrder[colIndex]] = [newOrder[colIndex], newOrder[colIndex + 1]];
+                  setColumnOrder(newOrder);
+                }
+              }} style={{ ...styles.dropdownItem, opacity: canMoveRight ? 1 : 0.5, cursor: canMoveRight ? 'pointer' : 'default' }}>
+                Move right
+              </button>
+            </div>
+          )}
+        </div>
+
+        {colName !== 'name' && colName !== 'assignee' && colName !== 'dueDate' && colName !== 'projects' && (
+          <>
+            <div style={styles.menuDivider}></div>
+            <button className="dropdown-item-delete" onClick={e => {
+              e.stopPropagation();
+              handleDeleteField(titles[colName] || colName);
+            }} style={styles.dropdownItemDelete}>{t("delete_field", "🗑️ Delete field")}</button>
+          </>
+        )}
       </div>;
   };
   const handleDragStartOption = (e, id) => {
@@ -1309,6 +1396,9 @@ export default function ProjectListView({
               handleSaveProjectSettings({ customFieldSettings: newCustomFields });
               setEditingFieldOptions(false);
             }}
+            onDeleteField={() => {
+              handleDeleteField(fieldTitle);
+            }}
           />
         );
       })()}
@@ -1336,7 +1426,7 @@ export default function ProjectListView({
           cursor: 'pointer'
         }} onMouseEnter={() => setHoveredColumnName('name')} onMouseLeave={() => setHoveredColumnName(null)} onClick={e => {
           handleSortOptionClick && handleSortOptionClick('Alphabetical');
-        }}>
+        }} onMouseDown={e => e.stopPropagation()}>
             <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -1359,7 +1449,7 @@ export default function ProjectListView({
             closeAllMenus();
             if (!isOpen) setOpenColumnMenuName('name');
           }} style={styles.columnHeaderMenuBtn}>▼</button>}
-            {openColumnMenuName === 'name' && renderColumnDropdownMenu('name')}
+            {openColumnMenuName === 'name' && renderColumnDropdownMenu('name', 'name')}
             <div style={styles.resizeHandle} onMouseDown={e => handleResizeStart(e, 'name')} onClick={e => e.stopPropagation()} />
           </div>
           {columnOrder.map(colId => {
@@ -1374,7 +1464,7 @@ export default function ProjectListView({
               return null;
             }
           }
-          return <div key={colId} draggable onDragStart={e => handleColDragStart(e, colId)} onDragOver={e => handleColDragOver(e, colId)} onDrop={e => handleColDrop(e, colId)} onDragEnd={handleColDragEnd} onClick={() => handleSortOptionClick && handleSortOptionClick(title)} style={{
+          return <div key={colId} draggable onDragStart={e => handleColDragStart(e, colId)} onDragOver={e => handleColDragOver(e, colId)} onDrop={e => handleColDrop(e, colId)} onDragEnd={handleColDragEnd} onClick={() => handleSortOptionClick && handleSortOptionClick(title)} onMouseDown={e => e.stopPropagation()} style={{
             ...styles.gridHeaderCell,
             width: colWidths[colId] || 140,
             flexShrink: 0,
@@ -1404,7 +1494,7 @@ export default function ProjectListView({
               closeAllMenus();
               if (!isOpen) setOpenColumnMenuName(menuName);
             }} style={styles.columnHeaderMenuBtn}>▼</button>}
-                {openColumnMenuName === menuName && renderColumnDropdownMenu(menuName)}
+                {openColumnMenuName === menuName && renderColumnDropdownMenu(menuName, colId)}
                 <div style={styles.resizeHandle} onMouseDown={e => handleResizeStart(e, colId)} onClick={e => e.stopPropagation()} />
               </div>;
         })}
@@ -1824,6 +1914,7 @@ const styles = {
     minWidth: '150px'
   },
   dropdownItem: {
+    boxSizing: 'border-box',
     width: '100%',
     padding: '0.5rem 0.75rem',
     backgroundColor: 'transparent',
@@ -1833,10 +1924,12 @@ const styles = {
     cursor: 'pointer',
     fontSize: '0.85rem',
     fontWeight: '500',
+    fontFamily: 'inherit',
     textAlign: 'left',
     marginBottom: '2px'
   },
   dropdownItemDelete: {
+    boxSizing: 'border-box',
     width: '100%',
     padding: '0.5rem 0.75rem',
     backgroundColor: 'transparent',
@@ -1846,6 +1939,7 @@ const styles = {
     cursor: 'pointer',
     fontSize: '0.85rem',
     fontWeight: '500',
+    fontFamily: 'inherit',
     textAlign: 'left'
   },
   resizeHandle: {
@@ -1936,10 +2030,10 @@ const styles = {
     backgroundColor: 'var(--bg-primary)',
     border: '1px solid var(--border-color)',
     borderRadius: '6px',
-    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
     zIndex: 60,
-    padding: '0.25rem 0',
-    minWidth: '240px',
+    padding: '0.5rem',
+    minWidth: '180px',
     display: 'flex',
     flexDirection: 'column',
     fontWeight: 'normal',

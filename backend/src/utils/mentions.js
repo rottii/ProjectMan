@@ -1,4 +1,5 @@
 const prisma = require('../lib/prisma');
+const { sendMentionEmail } = require('./emailService');
 
 function extractMentions(htmlText) {
     if (!htmlText) return [];
@@ -18,6 +19,28 @@ async function processMentions({ newHtml, oldHtml, actorId, taskId, projectId, m
     // Find IDs that are in newHtml but not in oldHtml
     const addedIds = newIds.filter(id => !oldIds.includes(id) && id !== actorId);
     
+    // Look up actor name once for emails
+    let actorName = 'Someone';
+    if (addedIds.length > 0) {
+        try {
+            const actor = await prisma.user.findUnique({ where: { id: actorId }, select: { name: true } });
+            if (actor) actorName = actor.name;
+        } catch (err) {
+            // non-critical
+        }
+    }
+
+    // Look up task title for emails
+    let taskTitle = '';
+    if (taskId && addedIds.length > 0) {
+        try {
+            const task = await prisma.task.findUnique({ where: { id: taskId }, select: { title: true } });
+            if (task) taskTitle = task.title;
+        } catch (err) {
+            // non-critical
+        }
+    }
+
     for (const userId of addedIds) {
         try {
             await prisma.notification.create({
@@ -30,6 +53,16 @@ async function processMentions({ newHtml, oldHtml, actorId, taskId, projectId, m
                     projectId: projectId || null
                 }
             });
+
+            // Send email notification for mention
+            try {
+                const mentionedUser = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true, emailVerified: true, emailNotifMention: true } });
+                if (mentionedUser?.emailVerified && mentionedUser?.emailNotifMention) {
+                    sendMentionEmail(mentionedUser.email, mentionedUser.name, taskTitle, taskId, actorName, taskId ? `a comment on "${taskTitle}"` : 'a message');
+                }
+            } catch (emailErr) {
+                console.error('Mention email error for user', userId, emailErr);
+            }
         } catch (err) {
             console.error('Error creating mention notification for user', userId, err);
         }

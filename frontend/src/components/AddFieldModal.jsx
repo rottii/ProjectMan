@@ -46,7 +46,8 @@ export default function AddFieldModal({
   onClose,
   onCreateField,
   onUpdateField,
-  editField
+  editField,
+  onDeleteField
 }) {
   const {
     t
@@ -59,6 +60,7 @@ export default function AddFieldModal({
   const [draggingOptionId, setDraggingOptionId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
   const [dragEnabledId, setDragEnabledId] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
   const [options, setOptions] = useState(editField && editField.options && editField.options.length > 0 ? editField.options.map(opt => ({
     id: opt.id,
     value: opt.label,
@@ -167,7 +169,44 @@ export default function AddFieldModal({
           alignItems: 'center',
           gap: '1rem'
         }}>
-            <button type="button" style={styles.manageAccessBtn}>{t("manage_access", "\uD83D\uDC65 Manage access")}</button>
+            <button type="button" style={styles.manageAccessBtn}>{t("manage_access", "👥 Manage access")}</button>
+            {editField && (
+              <div style={{ position: 'relative' }}>
+                <button type="button" onClick={() => setShowMenu(!showMenu)} style={{ ...styles.closeXBtn, fontSize: '1.2rem', padding: '0 0.25rem', transform: 'translateY(-2px)' }}>⋯</button>
+                {showMenu && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    backgroundColor: 'var(--bg-primary)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '6px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    zIndex: 60,
+                    padding: '0.25rem',
+                    minWidth: '150px',
+                    marginTop: '0.5rem'
+                  }}>
+                    <button type="button" onClick={() => {
+                      if (onDeleteField) onDeleteField();
+                    }} style={{
+                      width: '100%',
+                      padding: '0.5rem 0.75rem',
+                      backgroundColor: 'transparent',
+                      color: 'var(--accent-danger, #ef4444)',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: '500',
+                      textAlign: 'left'
+                    }}>
+                      {t("delete_field", "🗑️ Delete field")}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             <button type="button" onClick={onClose} style={styles.closeXBtn}>×</button>
           </div>
         </div>

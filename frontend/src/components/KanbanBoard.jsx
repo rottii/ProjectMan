@@ -734,7 +734,39 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
       }
       return [...prev, { field, direction: 'asc' }];
     });
-    setIsSortDropdownOpen(false);
+    setIsSortDropdownOpen(true);
+  };
+
+  const handleGroupOptionClick = (field) => {
+    setActiveGroups([{ field, order: 'Ascending' }]);
+    setIsGroupDropdownOpen(true);
+  };
+
+  const handleFilterOptionClick = (field) => {
+    const customField = selectedProject.customFields?.find(f => f.title === field);
+    let type = 'select';
+    let operator = 'is';
+    if (customField) {
+      const ftype = customField.type?.toLowerCase();
+      if (ftype === 'multi-select' || ftype === 'multi_select') { type = 'multi-select'; operator = 'contains any'; }
+      else if (ftype === 'number') { type = 'number'; operator = 'is equal to'; }
+      else if (ftype === 'text') { type = 'text'; operator = 'contains'; }
+      else if (ftype === 'date') { type = 'date'; operator = 'is'; }
+      else if (ftype === 'github_pr') { type = 'github_pr'; operator = 'is'; }
+    } else {
+      if (['Start date', 'Due date', 'Created on', 'Last modified on', 'Completed on'].includes(field)) {
+        type = 'date';
+      }
+    }
+    
+    setActiveFilters(prev => {
+      const exists = prev.find(f => typeof f === 'object' && f.field === field);
+      if (!exists) {
+        return [...prev, { field, operator, type, value: '' }];
+      }
+      return prev;
+    });
+    setIsFilterDropdownOpen(true);
   };
 
   const applyTaskSort = (tasks) => {
@@ -3280,6 +3312,8 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
           applyTaskFilter={applyTaskFilter}
           applyTaskSort={applyTaskSort}
           handleSortOptionClick={handleSortOptionClick}
+          handleGroupOptionClick={handleGroupOptionClick}
+          handleFilterOptionClick={handleFilterOptionClick}
           activeSorts={activeSorts}
           handleTaskUpdate={handleTaskUpdate}
           handleGeneralDrop={handleGeneralDrop}

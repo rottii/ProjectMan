@@ -37,6 +37,16 @@ model User {
   department  String?
   aboutMe     String?
 
+  // Email Verification
+  emailVerified   Boolean  @default(false)
+
+  // Email Notification Preferences
+  emailNotifAssigned  Boolean @default(true)
+  emailNotifComment   Boolean @default(true)
+  emailNotifMention   Boolean @default(true)
+  emailNotifReminder  Boolean @default(true)
+  emailNotifUpdates   Boolean @default(false)
+
   // Display Settings
   sidebarColor    String?  @default("Black")
   language        String?  @default("en")
@@ -77,6 +87,7 @@ model User {
   sessions      Session[]
   inviteLinks   InviteLink[]
   passwordResetTokens PasswordResetToken[]
+  emailVerifications  EmailVerification[]
 }
 
 model Workspace {
@@ -95,6 +106,7 @@ model WorkspaceMember {
   id          String   @id @default(uuid())
   role        WorkspaceRole @default(MEMBER)
   createdAt   DateTime @default(now())
+  isActive    Boolean  @default(true)
 
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
@@ -659,4 +671,19 @@ model PasswordResetToken {
 
   @@index([token])
   @@index([userId])
-}
+}
+
+// --- YENİ MODEL: EMAIL VERIFICATION ---
+model EmailVerification {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}
+
