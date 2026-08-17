@@ -72,7 +72,7 @@ const styles = {
     padding: '0.75rem',
     borderRadius: '6px',
     border: 'none',
-    backgroundColor: '#4F46E5',
+    backgroundColor: 'var(--accent-primary)',
     // indigo-600
     color: 'white',
     fontSize: '1rem',
@@ -180,12 +180,12 @@ export default function InvitePage({
         <div style={styles.card}>
            <div style={styles.logo}>
              <span style={{
-            color: '#4F46E5'
-          }}>●</span>{t("asana_clone", "Asana Clone")}</div>
+            color: 'var(--accent-primary)'
+          }}>●</span>{t("asana_clone", "ProjectMan")}</div>
            <h2 style={styles.title}>{t("invalid_invite", "Invalid Invite")}</h2>
            <p style={styles.subtitle}>{error}</p>
            <a href="/" style={{
-          color: '#4F46E5',
+          color: 'var(--accent-primary)',
           textDecoration: 'none',
           fontSize: '0.9rem',
           fontWeight: '500'
@@ -197,8 +197,8 @@ export default function InvitePage({
       <div style={styles.card}>
         <div style={styles.logo}>
           <span style={{
-          color: '#4F46E5'
-        }}>●</span>{t("asana_clone", "Asana Clone")}</div>
+          color: 'var(--accent-primary)'
+        }}>●</span>{t("asana_clone", "ProjectMan")}</div>
         
         <h2 style={styles.title}>{t("you_ve_been_invited", "You've been invited!")}</h2>
         <p style={styles.subtitle}>

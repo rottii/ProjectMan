@@ -288,8 +288,8 @@ export default function DatePickerPopover({
             width: '22px',
             height: '22px',
             borderRadius: '4px',
-            border: `1px solid ${isSelected ? '#4F46E5' : '#D1D5DB'}`,
-            backgroundColor: isSelected ? '#4F46E5' : 'transparent',
+            border: `1px solid ${isSelected ? 'var(--accent-primary)' : '#D1D5DB'}`,
+            backgroundColor: isSelected ? 'var(--accent-primary)' : 'transparent',
             boxSizing: 'border-box',
             flexShrink: 0,
             display: 'flex',
@@ -436,7 +436,7 @@ export default function DatePickerPopover({
         }}>+</span>{t("start_date", "Start date")}</div>}
           {!customFieldId && isRangeMode && <div style={{
         ...styles.popoverInputBox,
-        border: `1px solid ${activeInput === 'start' ? '#4F46E5' : '#D1D5DB'}`
+        border: `1px solid ${activeInput === 'start' ? 'var(--accent-primary)' : '#D1D5DB'}`
       }} onClick={() => setActiveInput('start')}>
               <input type="text" readOnly value={rangeSelect.start ? formatDateStr(rangeSelect.start) : 'Start date'} style={styles.hiddenTextInp} />
               {rangeSelect.start && <span onClick={e => {
@@ -450,7 +450,7 @@ export default function DatePickerPopover({
             </div>}
           <div style={{
         ...styles.popoverInputBox,
-        border: `1px solid ${!isRangeMode || activeInput === 'end' ? '#4F46E5' : '#D1D5DB'}`
+        border: `1px solid ${!isRangeMode || activeInput === 'end' ? 'var(--accent-primary)' : '#D1D5DB'}`
       }} onClick={() => {
         setActiveInput('end');
       }}>
@@ -548,7 +548,7 @@ export default function DatePickerPopover({
         }}>
               <span style={{
             ...styles.calendarDayCell,
-            backgroundColor: isStart || isEnd ? '#4F46E5' : isRepeatingDay ? '#DBEAFE' : 'transparent',
+            backgroundColor: isStart || isEnd ? 'var(--accent-primary)' : isRepeatingDay ? '#DBEAFE' : 'transparent',
             color: isStart || isEnd ? '#FFF' : isRepeatingDay ? '#1E40AF' : 'var(--text-primary)',
             borderRadius: isStart || isEnd || isRepeatingDay ? '50%' : '4px',
             width: '28px',
@@ -676,7 +676,7 @@ export default function DatePickerPopover({
           borderRadius: '6px',
           cursor: 'pointer',
           backgroundColor: recurrence.isRecurring ? '#E0E7FF' : 'transparent',
-          color: recurrence.isRecurring ? '#4F46E5' : 'var(--text-secondary)',
+          color: recurrence.isRecurring ? 'var(--accent-primary)' : 'var(--text-secondary)',
           transition: 'all 0.2s'
         }} onMouseEnter={e => {
           if (!recurrence.isRecurring) e.currentTarget.style.backgroundColor = '#F3F4F6';
@@ -780,7 +780,7 @@ const styles = {
   clearDatesBtn: {
     background: 'none',
     border: 'none',
-    color: '#EF4444',
+    color: 'var(--accent-danger)',
     cursor: 'pointer',
     fontSize: '0.85rem',
     fontWeight: '500'
@@ -788,7 +788,7 @@ const styles = {
   saveDatesBtn: {
     background: 'none',
     border: 'none',
-    color: '#4F46E5',
+    color: 'var(--accent-primary)',
     cursor: 'pointer',
     fontSize: '0.85rem',
     fontWeight: 'bold'

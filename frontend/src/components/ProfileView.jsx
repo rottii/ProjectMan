@@ -199,7 +199,7 @@ export default function ProfileView({
           }}>{user?.aboutMe || t("add_about_me", "+ Add about me")}</span>
           </div>
           <button onClick={() => setShowSettings(true)} style={{
-          backgroundColor: '#4F46E5',
+          backgroundColor: 'var(--accent-primary)',
           color: 'white',
           border: 'none',
           borderRadius: '6px',
@@ -352,7 +352,7 @@ export default function ProfileView({
                 width: '24px',
                 height: '24px',
                 borderRadius: '4px',
-                backgroundColor: project.color || '#4F46E5',
+                backgroundColor: project.color || 'var(--accent-primary)',
                 color: 'white',
                 display: 'flex',
                 alignItems: 'center',
@@ -493,7 +493,7 @@ export default function ProfileView({
               fontSize: '0.85rem'
             }}>{t("no_goals_created_yet", "No goals created yet.")}</div> : goals.slice(0, 3).map(goal => {
               const progress = goal.targetValue > 0 ? Math.round(goal.currentValue / goal.targetValue * 100) : 0;
-              const statusColor = goal.status === 'On track' ? '#10B981' : goal.status === 'At risk' ? '#F59E0B' : goal.status === 'Off track' ? '#EF4444' : '#6B7280';
+              const statusColor = goal.status === 'On track' ? 'var(--accent-success)' : goal.status === 'At risk' ? 'var(--accent-warning)' : goal.status === 'Off track' ? 'var(--accent-danger)' : '#6B7280';
               const trackColor = goal.status === 'On track' ? '#A7F3D0' : goal.status === 'At risk' ? '#FDE68A' : goal.status === 'Off track' ? '#FECACA' : 'var(--bg-tertiary)';
               return <div key={goal.id}>
                       <div style={{

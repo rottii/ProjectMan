@@ -157,7 +157,7 @@ const styles = {
     width: '28px',
     height: '28px',
     borderRadius: '50%',
-    backgroundColor: '#4F46E5',
+    backgroundColor: 'var(--accent-primary)',
     color: 'white',
     display: 'flex',
     alignItems: 'center',
@@ -194,7 +194,7 @@ const styles = {
   unassignBtn: {
     background: 'none',
     border: 'none',
-    color: '#EF4444',
+    color: 'var(--accent-danger)',
     fontSize: '0.8rem',
     cursor: 'pointer',
     fontWeight: '500'

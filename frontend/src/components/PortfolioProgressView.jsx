@@ -18,7 +18,7 @@ export default function PortfolioProgressView({
       desc: t('everything_is_running_smoothly', 'Everything is running smoothly.')
     },
     'At risk': {
-      color: '#F59E0B',
+      color: 'var(--accent-warning)',
       label: t('at_risk', 'At risk'),
       desc: t('there_are_some_concerns', 'There are some concerns.')
     },

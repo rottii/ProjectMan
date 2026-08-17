@@ -49,6 +49,17 @@ export default function App() {
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(initialWorkspaceId)
   const [isInitialDataLoading, setIsInitialDataLoading] = useState(false)
   const [isSocketConnected, setIsSocketConnected] = useState(true)
+  const [showOfflineBanner, setShowOfflineBanner] = useState(false)
+
+  useEffect(() => {
+    let timeoutId;
+    if (!isSocketConnected) {
+      timeoutId = setTimeout(() => setShowOfflineBanner(true), 3000);
+    } else {
+      setShowOfflineBanner(false);
+    }
+    return () => clearTimeout(timeoutId);
+  }, [isSocketConnected]);
 
   const handleWorkspaceChange = (newId) => {
     setActiveWorkspaceId(newId);
@@ -476,7 +487,7 @@ export default function App() {
           activeWorkspaceId={activeWorkspaceId}
           setActiveWorkspaceId={handleWorkspaceChange}
         />
-        {!isSocketConnected && (
+        {showOfflineBanner && (
           <div style={{ backgroundColor: 'var(--accent-warning)', color: '#000', padding: '8px', textAlign: 'center', fontSize: '14px', zIndex: 1000 }}>
             You are offline. Trying to reconnect...
           </div>

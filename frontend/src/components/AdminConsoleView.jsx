@@ -43,8 +43,8 @@ const styles = {
   activeTab: {
     padding: '0.75rem 0',
     cursor: 'pointer',
-    borderBottom: '2px solid var(--primary-color, #4F46E5)',
-    color: 'var(--primary-color, #4F46E5)',
+    borderBottom: '2px solid var(--primary-color, var(--accent-primary))',
+    color: 'var(--primary-color, var(--accent-primary))',
     fontWeight: '500',
     fontSize: '0.95rem',
     transition: 'all 0.2s'
@@ -118,8 +118,8 @@ const styles = {
   removeBtn: {
     padding: '0.5rem 1rem',
     backgroundColor: 'transparent',
-    color: '#ef4444',
-    border: '1px solid #ef4444',
+    color: 'var(--accent-danger)',
+    border: '1px solid var(--accent-danger)',
     borderRadius: '6px',
     fontSize: '0.85rem',
     cursor: 'pointer',
@@ -132,7 +132,7 @@ const styles = {
     color: '#991b1b',
     borderRadius: '8px',
     marginBottom: '1rem',
-    border: '1px solid #f87171'
+    border: '1px solid var(--accent-danger)'
   },
   loadingBox: {
     padding: '2rem',
@@ -422,7 +422,7 @@ export default function AdminConsoleView({
         <>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
             <button onClick={handleGenerateInvite} style={{
-              backgroundColor: 'var(--primary-color, #4F46E5)', color: 'white', border: 'none',
+              backgroundColor: 'var(--primary-color, var(--accent-primary))', color: 'white', border: 'none',
               borderRadius: '6px', padding: '8px 16px', fontSize: '0.9rem', fontWeight: '500', cursor: 'pointer'
             }}>
               {t("generate_invite_link", "Generate Invite Link")}
@@ -531,7 +531,7 @@ export default function AdminConsoleView({
               }}
             />
             <button onClick={handleSaveSettings} style={{
-              backgroundColor: 'var(--primary-color, #4F46E5)', color: 'white', border: 'none',
+              backgroundColor: 'var(--primary-color, var(--accent-primary))', color: 'white', border: 'none',
               borderRadius: '6px', padding: '10px 16px', fontSize: '1rem', fontWeight: '500', cursor: 'pointer', width: 'fit-content'
             }}>
               Save Changes
@@ -540,10 +540,10 @@ export default function AdminConsoleView({
 
           {isOriginalAdmin && (
             <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '2rem' }}>
-              <h3 style={{ color: '#ef4444', marginTop: 0 }}>Danger Zone</h3>
+              <h3 style={{ color: 'var(--accent-danger)', marginTop: 0 }}>Danger Zone</h3>
               <p style={{ color: 'var(--text-secondary)' }}>Deleting this workspace will remove all associated projects, tasks, and members. This cannot be undone.</p>
               <button onClick={handleDeleteWorkspace} style={{
-                backgroundColor: 'transparent', color: '#ef4444', border: '1px solid #ef4444',
+                backgroundColor: 'transparent', color: 'var(--accent-danger)', border: '1px solid var(--accent-danger)',
                 borderRadius: '6px', padding: '8px 16px', fontSize: '0.9rem', fontWeight: '500', cursor: 'pointer'
               }}>
                 Delete Workspace
@@ -662,7 +662,7 @@ export default function AdminConsoleView({
               <input type="text" readOnly value={`${window.location.origin}/invite/${inviteLinkToken}`} style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
               <button onClick={() => copyToClipboard(`${window.location.origin}/invite/${inviteLinkToken}`)} style={{ padding: '0.5rem 1rem', cursor: 'pointer', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px' }}>Copy</button>
             </div>
-            <button onClick={() => setInviteLinkToken(null)} style={{ padding: '0.5rem 1rem', cursor: 'pointer', backgroundColor: 'var(--primary-color, #4F46E5)', color: 'white', border: 'none', borderRadius: '4px' }}>Close</button>
+            <button onClick={() => setInviteLinkToken(null)} style={{ padding: '0.5rem 1rem', cursor: 'pointer', backgroundColor: 'var(--primary-color, var(--accent-primary))', color: 'white', border: 'none', borderRadius: '4px' }}>Close</button>
           </div>
         </div>
       )}
@@ -676,7 +676,7 @@ export default function AdminConsoleView({
               <input type="text" readOnly value={`${window.location.origin}/reset-password/${resetLinkToken}`} style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
               <button onClick={() => copyToClipboard(`${window.location.origin}/reset-password/${resetLinkToken}`)} style={{ padding: '0.5rem 1rem', cursor: 'pointer', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px' }}>Copy</button>
             </div>
-            <button onClick={() => setResetLinkToken(null)} style={{ padding: '0.5rem 1rem', cursor: 'pointer', backgroundColor: 'var(--primary-color, #4F46E5)', color: 'white', border: 'none', borderRadius: '4px' }}>Close</button>
+            <button onClick={() => setResetLinkToken(null)} style={{ padding: '0.5rem 1rem', cursor: 'pointer', backgroundColor: 'var(--primary-color, var(--accent-primary))', color: 'white', border: 'none', borderRadius: '4px' }}>Close</button>
           </div>
         </div>
       )}

@@ -114,9 +114,9 @@ export default function GoalDetail({
   };
   const progress = currentGoal.targetValue > 0 ? currentGoal.currentValue / currentGoal.targetValue * 100 : 0;
   const cappedProgress = Math.min(Math.max(progress, 0), 100);
-  let statusColor = '#10B981';
-  if (currentGoal.status === 'At risk') statusColor = '#F59E0B';
-  if (currentGoal.status === 'Off track') statusColor = '#EF4444';
+  let statusColor = 'var(--accent-success)';
+  if (currentGoal.status === 'At risk') statusColor = 'var(--accent-warning)';
+  if (currentGoal.status === 'Off track') statusColor = 'var(--accent-danger)';
   const linkedProjectIds = currentGoal.projects?.map(p => p.projectId) || [];
   const availableProjectsToLink = allWorkspaceProjects.filter(p => !linkedProjectIds.includes(p.id) && !p.isArchived);
   return <div style={{
@@ -195,8 +195,8 @@ export default function GoalDetail({
           </button>
           <button onClick={handleDeleteGoal} style={{
           padding: '0.5rem 1rem',
-          border: '1px solid #EF4444',
-          color: '#EF4444',
+          border: '1px solid var(--accent-danger)',
+          color: 'var(--accent-danger)',
           backgroundColor: 'var(--bg-primary)',
           borderRadius: '6px',
           cursor: 'pointer'
@@ -324,7 +324,7 @@ export default function GoalDetail({
         }} />
           </div>
           <button onClick={handleSave} style={{
-        backgroundColor: '#4F46E5',
+        backgroundColor: 'var(--accent-primary)',
         color: 'white',
         border: 'none',
         padding: '0.5rem 1.5rem',

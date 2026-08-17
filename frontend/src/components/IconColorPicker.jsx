@@ -1,12 +1,12 @@
 import { useTranslation } from "react-i18next";
 import React from 'react';
-const COLORS = ['#4F46E5',
+const COLORS = ['var(--accent-primary)',
 // Indigo
-'#EF4444',
+'var(--accent-danger)',
 // Red
-'#10B981',
+'var(--accent-success)',
 // Green
-'#F59E0B',
+'var(--accent-warning)',
 // Yellow
 '#3B82F6',
 // Blue

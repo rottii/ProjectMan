@@ -499,7 +499,7 @@ export default function ProjectGanttView({
                 if (setDraggingTaskId) setDraggingTaskId(task.id);
                 e.dataTransfer.setData('drag-type', 'task');
                 e.dataTransfer.setData('task-id', task.id);
-                const ghostEl = document.getElementById('asana-drag-ghost-preview-card');
+                const ghostEl = document.getElementById('projectman-drag-ghost-preview-card');
                 if (ghostEl) {
                   ghostEl.textContent = task.title;
                   e.dataTransfer.setDragImage(ghostEl, 20, 15);
@@ -525,7 +525,7 @@ export default function ProjectGanttView({
                   e.stopPropagation();
                   handleToggleComplete(e, task);
                 }} style={{
-                  color: task.isCompleted ? '#10B981' : task.isMilestone ? '#6366F1' : '#D1D5DB',
+                  color: task.isCompleted ? 'var(--accent-success)' : task.isMilestone ? '#6366F1' : '#D1D5DB',
                   cursor: isReadOnly ? 'default' : 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -536,8 +536,8 @@ export default function ProjectGanttView({
                     width: '10px',
                     height: '10px',
                     transform: 'rotate(45deg)',
-                    backgroundColor: task.isCompleted ? '#10B981' : 'transparent',
-                    border: task.isCompleted ? '2px solid #10B981' : '2px solid #6366F1'
+                    backgroundColor: task.isCompleted ? 'var(--accent-success)' : 'transparent',
+                    border: task.isCompleted ? '2px solid var(--accent-success)' : '2px solid #6366F1'
                   }} /> : '✓'}
                       </span>
                       {editingTaskId === task.id ? <input ref={editingTaskId === task.id ? inputRef : null} type="text" value={editTaskTitleValue} autoFocus onChange={e => setEditTaskTitleValue(e.target.value)} onBlur={() => submitTaskRename(task, section.id)} onKeyDown={e => {
@@ -616,7 +616,7 @@ export default function ProjectGanttView({
               {days.map((d, i) => <div key={i} style={{
               ...styles.dayHeaderCell,
               width: DAY_WIDTH,
-              borderBottom: d.isToday ? '3px solid #10B981' : '1px solid var(--border-color)'
+              borderBottom: d.isToday ? '3px solid var(--accent-success)' : '1px solid var(--border-color)'
             }}>
                   <div style={{
                 fontSize: '0.7rem',
@@ -626,7 +626,7 @@ export default function ProjectGanttView({
                   <div style={{
                 fontSize: '0.85rem',
                 fontWeight: d.isToday ? '700' : '500',
-                color: d.isToday ? '#10B981' : 'var(--text-primary)'
+                color: d.isToday ? 'var(--accent-success)' : 'var(--text-primary)'
               }}>
                     {d.dayNum}
                   </div>
@@ -638,7 +638,7 @@ export default function ProjectGanttView({
               <style>{`
                 .dependency-line-group .delete-btn { opacity: 0; pointer-events: none; }
                 .dependency-line-group:hover .delete-btn { opacity: 1; pointer-events: auto; }
-                .dependency-line-group:hover .line-path { stroke: #EF4444 !important; }
+                .dependency-line-group:hover .line-path { stroke: var(--accent-danger) !important; }
               `}</style>
               
               <svg ref={svgRef} style={{
@@ -692,7 +692,7 @@ export default function ProjectGanttView({
                     e.stopPropagation();
                     handleDeleteDependency(line.taskId, line.id);
                   }}>
-                        <circle cx={btnX} cy={btnY} r="8" fill="#EF4444" />
+                        <circle cx={btnX} cy={btnY} r="8" fill="var(--accent-danger)" />
                         <text x={btnX} y={btnY + 1} fill="white" fontSize="10" fontWeight="bold" textAnchor="middle" dominantBaseline="central">×</text>
                       </g>
                     </g>;
@@ -702,7 +702,7 @@ export default function ProjectGanttView({
                 const startX = connectingTask.isStart ? cTask.left : cTask.left + cTask.width;
                 const cp1X = connectingTask.isStart ? startX - 30 : startX + 30;
                 const cp2X = connectingTask.isStart ? mousePos.x + 30 : mousePos.x - 30;
-                return <path d={`M ${startX} ${cTask.yCenter} C ${cp1X} ${cTask.yCenter}, ${cp2X} ${mousePos.y}, ${mousePos.x} ${mousePos.y}`} stroke="#4F46E5" strokeWidth="2" strokeDasharray="4" fill="none" />;
+                return <path d={`M ${startX} ${cTask.yCenter} C ${cp1X} ${cTask.yCenter}, ${cp2X} ${mousePos.y}, ${mousePos.x} ${mousePos.y}`} stroke="var(--accent-primary)" strokeWidth="2" strokeDasharray="4" fill="none" />;
               })()}
                 <defs>
                   <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">

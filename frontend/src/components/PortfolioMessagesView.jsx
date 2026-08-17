@@ -25,7 +25,7 @@ const styles = {
   },
   newMessageBtn: {
     padding: '8px 16px',
-    backgroundColor: '#4F46E5',
+    backgroundColor: 'var(--accent-primary)',
     // Indigo color matching primary buttons
     color: '#fff',
     border: 'none',
@@ -89,7 +89,7 @@ const styles = {
   },
   submitBtn: {
     padding: '8px 16px',
-    backgroundColor: '#4F46E5',
+    backgroundColor: 'var(--accent-primary)',
     color: '#fff',
     border: 'none',
     borderRadius: '4px',
@@ -115,7 +115,7 @@ const styles = {
     width: '40px',
     height: '40px',
     borderRadius: '50%',
-    backgroundColor: '#4F46E5',
+    backgroundColor: 'var(--accent-primary)',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',

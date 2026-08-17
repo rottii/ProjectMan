@@ -68,15 +68,15 @@ export default function AddFieldModal({
   })) : [{
     id: 1,
     value: '',
-    color: '#10B981'
+    color: 'var(--accent-success)'
   }, {
     id: 2,
     value: '',
-    color: '#EF4444'
+    color: 'var(--accent-danger)'
   }]);
   const hasOptions = fieldType === 'single-select' || fieldType === 'multi-select';
   const handleAddOption = () => {
-    const randomColors = ['#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899', '#10B981'];
+    const randomColors = ['#3B82F6', 'var(--accent-warning)', '#8B5CF6', '#EC4899', 'var(--accent-success)'];
     const randomColor = randomColors[Math.floor(Math.random() * randomColors.length)];
     setOptions([...options, {
       id: Date.now(),
@@ -193,7 +193,7 @@ export default function AddFieldModal({
                       width: '100%',
                       padding: '0.5rem 0.75rem',
                       backgroundColor: 'transparent',
-                      color: 'var(--accent-danger, #ef4444)',
+                      color: 'var(--accent-danger, var(--accent-danger))',
                       border: 'none',
                       borderRadius: '4px',
                       cursor: 'pointer',
@@ -228,7 +228,7 @@ export default function AddFieldModal({
             flex: 1
           }}>
               <label style={styles.fieldLabel}>{t("field_title", "Field title")}<span style={{
-                color: '#EF4444'
+                color: 'var(--accent-danger)'
               }}>*</span></label>
               <input type="text" placeholder={t("stage_status_cost", "Stage, Status, Cost...")} value={fieldTitle} onChange={e => setFieldTitle(e.target.value)} style={styles.mainInput} required />
             </div>
@@ -249,7 +249,7 @@ export default function AddFieldModal({
           marginTop: '1.25rem'
         }}>
               <label style={styles.fieldLabel}>{t("options", "Options")}<span style={{
-              color: '#EF4444'
+              color: 'var(--accent-danger)'
             }}>*</span></label>
               <div style={styles.optionsListContainer}>
                 {options.map((option, index) => <div key={option.id} draggable={dragEnabledId === option.id} onDragStart={e => handleDragStartOption(e, option.id)} onDragOver={e => handleDragOverOption(e, option.id)} onDragLeave={e => handleDragLeaveOption(e, option.id)} onDrop={e => handleDropOption(e, option.id)} onDragEnd={handleDragEndOption} style={{
@@ -444,9 +444,9 @@ const styles = {
     position: 'relative'
   },
   activeTabItem: {
-    color: '#4F46E5',
+    color: 'var(--accent-primary)',
     fontWeight: '600',
-    borderBottom: '2px solid #4F46E5'
+    borderBottom: '2px solid var(--accent-primary)'
   },
   formBody: {
     display: 'flex',
@@ -539,7 +539,7 @@ const styles = {
   addOptionTextBtn: {
     background: 'none',
     border: 'none',
-    color: '#4F46E5',
+    color: 'var(--accent-primary)',
     fontSize: '0.8rem',
     cursor: 'pointer',
     fontWeight: '600',
@@ -585,7 +585,7 @@ const styles = {
     cursor: 'pointer'
   },
   createFieldFooterBtn: {
-    backgroundColor: '#4F46E5',
+    backgroundColor: 'var(--accent-primary)',
     border: 'none',
     borderRadius: '6px',
     padding: '0.5rem 1rem',

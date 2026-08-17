@@ -842,7 +842,7 @@ export default function ProjectNoteView({
                 justifyContent: 'center',
                 cursor: 'pointer',
                 boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                color: '#EF4444',
+                color: 'var(--accent-danger)',
                 fontSize: '18px',
                 fontWeight: 'bold',
                 padding: 0,

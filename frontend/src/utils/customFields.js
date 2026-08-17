@@ -4,13 +4,13 @@ export const GITHUB_PR_STATUSES = [
 
 export const GITHUB_PR_OPTIONS = [
   { id: 'pr-merged', label: 'Merged', color: '#8b5cf6' },
-  { id: 'pr-approved', label: 'Approved', color: '#10b981' },
-  { id: 'pr-changes', label: 'Changes requested', color: '#ef4444' },
-  { id: 'pr-review', label: 'In review', color: '#f59e0b' },
+  { id: 'pr-approved', label: 'Approved', color: '#10B981' },
+  { id: 'pr-changes', label: 'Changes requested', color: '#F43F5E' },
+  { id: 'pr-review', label: 'In review', color: '#F59E0B' },
   { id: 'pr-noreview', label: 'No reviews', color: '#9ca3af' },
   { id: 'pr-open', label: 'Open', color: '#3b82f6' },
   { id: 'pr-draft', label: 'Draft', color: '#6b7280' },
-  { id: 'pr-closed', label: 'Closed', color: '#ef4444' }
+  { id: 'pr-closed', label: 'Closed', color: '#F43F5E' }
 ];
 
 export const GITHUB_PR_SORT_MAP = {

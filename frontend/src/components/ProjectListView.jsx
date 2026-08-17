@@ -639,7 +639,7 @@ export default function ProjectListView({
         setDraggingTaskId(task.id);
         e.dataTransfer.setData('drag-type', 'task');
         e.dataTransfer.setData('task-id', task.id);
-        const ghostEl = document.getElementById('asana-drag-ghost-preview-card');
+        const ghostEl = document.getElementById('projectman-drag-ghost-preview-card');
         if (ghostEl) {
           if (selectedTaskIds && selectedTaskIds.size > 1 && selectedTaskIds.has(task.id)) {
             ghostEl.textContent = `${selectedTaskIds.size} tasks`;
@@ -723,7 +723,7 @@ export default function ProjectListView({
             justifyContent: 'center',
             cursor: isReadOnly ? 'default' : 'pointer',
             flexShrink: 0,
-            backgroundColor: task.approvalStatus === 'APPROVED' ? 'var(--accent-success)' : task.approvalStatus === 'REJECTED' ? 'var(--accent-danger)' : task.approvalStatus === 'CHANGES_REQUESTED' ? '#F59E0B' : 'transparent',
+            backgroundColor: task.approvalStatus === 'APPROVED' ? 'var(--accent-success)' : task.approvalStatus === 'REJECTED' ? 'var(--accent-danger)' : task.approvalStatus === 'CHANGES_REQUESTED' ? 'var(--accent-warning)' : 'transparent',
             border: task.approvalStatus === 'PENDING' || !task.approvalStatus ? '1px solid var(--text-tertiary)' : 'none',
             color: task.approvalStatus === 'PENDING' || !task.approvalStatus ? 'var(--text-secondary)' : '#fff'
           }} title={task.approvalStatus || 'PENDING'} onClick={e => {
@@ -905,7 +905,7 @@ export default function ProjectListView({
             width: colWidths.dueDate,
             flexShrink: 0,
             cursor: isReadOnly ? 'default' : 'pointer',
-            color: task.dueDate && new Date(task.dueDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0) && !task.isCompleted ? '#EF4444' : '#4F46E5',
+            color: task.dueDate && new Date(task.dueDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0) && !task.isCompleted ? 'var(--accent-danger)' : 'var(--accent-primary)',
             fontSize: '0.8rem',
             fontWeight: '500'
           }} onClick={e => !isReadOnly && handleOpenPopoverInline(e, 'date', task, sectionId)}>
@@ -1277,7 +1277,7 @@ export default function ProjectListView({
                       fontSize: '1rem',
                       fontFamily: 'monospace',
                       textAlign: 'center',
-                      color: isRunning ? '#10B981' : 'var(--text-primary)'
+                      color: isRunning ? 'var(--accent-success)' : 'var(--text-primary)'
                     }}>
                                 {`${h}h ${m}m ${s}s`}
                               </div>
@@ -1307,7 +1307,7 @@ export default function ProjectListView({
                         border: 'none',
                         borderRadius: '4px',
                         backgroundColor: isRunning ? '#FEF2F2' : '#ECFDF5',
-                        color: isRunning ? '#EF4444' : '#10B981',
+                        color: isRunning ? 'var(--accent-danger)' : 'var(--accent-success)',
                         cursor: 'pointer',
                         fontWeight: 'bold'
                       }}>
@@ -1474,7 +1474,7 @@ export default function ProjectListView({
             alignItems: 'center',
             opacity: draggingColId === colId ? 0.5 : 1,
             cursor: draggingColId === colId ? 'grabbing' : 'pointer',
-            boxShadow: dropTargetCol.id === colId ? dropTargetCol.position === 'left' ? 'inset 3px 0 0 #4F46E5' : 'inset -3px 0 0 #4F46E5' : 'none'
+            boxShadow: dropTargetCol.id === colId ? dropTargetCol.position === 'left' ? 'inset 3px 0 0 var(--accent-primary)' : 'inset -3px 0 0 var(--accent-primary)' : 'none'
           }} onMouseEnter={() => setHoveredColumnName(menuName)} onMouseLeave={() => setHoveredColumnName(null)}>
                 <span style={{
               overflow: 'hidden',
@@ -1608,7 +1608,7 @@ export default function ProjectListView({
                 setDraggingSectionId(section.id);
                 e.dataTransfer.setData('drag-type', 'section');
                 e.dataTransfer.setData('section-id', section.id);
-                const ghostEl = document.getElementById('asana-drag-ghost-preview-card');
+                const ghostEl = document.getElementById('projectman-drag-ghost-preview-card');
                 if (ghostEl) {
                   ghostEl.textContent = section.name;
                   e.dataTransfer.setDragImage(ghostEl, 20, 15);

@@ -30,7 +30,7 @@ export default function EmailVerificationBanner({ token, user, setUser }) {
 
   return (
     <div style={{
-      backgroundColor: '#EEF2FF',
+      backgroundColor: 'var(--bg-tertiary)',
       borderBottom: '1px solid #C7D2FE',
       padding: '10px 16px',
       display: 'flex',
@@ -54,7 +54,7 @@ export default function EmailVerificationBanner({ token, user, setUser }) {
           onClick={handleResend}
           disabled={status === 'sending'}
           style={{
-            backgroundColor: '#4F46E5',
+            backgroundColor: 'var(--accent-primary)',
             color: 'white',
             border: 'none',
             borderRadius: '4px',

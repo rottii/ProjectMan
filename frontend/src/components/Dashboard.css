@@ -1,13 +1,13 @@
 /* ============================
    DASHBOARD GRID SYSTEM
-   Asana-style interactive dashboard
+   ProjectMan-style interactive dashboard
    ============================ */
 
 .dashboard-container {
   background-color: var(--bg-secondary);
   height: 100%;
   padding: 2rem 3rem 6rem 3rem;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
   box-sizing: border-box;
   overflow-y: auto;
 }
@@ -794,7 +794,7 @@
   background: transparent;
   color: var(--text-primary);
   font-size: 0.9rem;
-  font-family: inherit;
+
   resize: none;
   outline: none;
   padding: 0;

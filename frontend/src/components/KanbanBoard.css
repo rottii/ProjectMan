@@ -15,7 +15,7 @@
 }
 
 .view-context-menu-item.delete-item {
-  color: #EF4444;
+  color: var(--accent-danger);
 }
 
 .view-context-menu-item.delete-item:hover {

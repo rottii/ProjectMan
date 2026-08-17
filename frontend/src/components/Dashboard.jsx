@@ -209,7 +209,7 @@ export default function Dashboard({
             tasksMap.set(t.id, {
               ...t,
               projectName: p.name,
-              projectColor: p.color || '#4F46E5'
+              projectColor: p.color || 'var(--accent-primary)'
             });
           }
         });
@@ -286,11 +286,11 @@ export default function Dashboard({
     return [{
       name: 'Completed',
       value: completed,
-      color: '#10B981'
+      color: 'var(--accent-success)'
     }, {
       name: 'Overdue',
       value: overdue,
-      color: '#EF4444'
+      color: 'var(--accent-danger)'
     }, {
       name: 'Upcoming',
       value: upcoming,
@@ -390,11 +390,11 @@ export default function Dashboard({
     const diffDays = Math.round((date - now) / 86400000);
     if (diffDays === 0) return {
       text: 'Today',
-      color: '#10B981'
+      color: 'var(--accent-success)'
     };
     if (diffDays === -1) return {
       text: 'Yesterday',
-      color: '#EF4444'
+      color: 'var(--accent-danger)'
     };
     if (diffDays === 1) return {
       text: 'Tomorrow',
@@ -411,7 +411,7 @@ export default function Dashboard({
         month: 'short',
         day: 'numeric'
       }),
-      color: '#EF4444'
+      color: 'var(--accent-danger)'
     };
     return {
       text: date.toLocaleDateString('en-US', {
@@ -598,7 +598,7 @@ export default function Dashboard({
           </div>}
         {activeProjects.map(p => <div key={p.id} className="widget-project-card" onClick={() => setSelectedProject(p)}>
             <div className="widget-project-icon" style={{
-          backgroundColor: p.color || '#4F46E5'
+          backgroundColor: p.color || 'var(--accent-primary)'
         }}>
               <span>{p.icon || '📋'}</span>
             </div>
@@ -765,7 +765,7 @@ export default function Dashboard({
         {goalsData.length === 0 && <div className="widget-empty-state">{t("no_goals_found_create_goals_to_track_progress", "No goals found. Create goals to track progress.")}</div>}
         {goalsData.map(goal => {
         const pct = goal.targetValue > 0 ? Math.round(goal.currentValue / goal.targetValue * 100) : 0;
-        const statusColor = goal.status === 'On track' ? '#10B981' : goal.status === 'At risk' ? '#F59E0B' : '#EF4444';
+        const statusColor = goal.status === 'On track' ? 'var(--accent-success)' : goal.status === 'At risk' ? 'var(--accent-warning)' : 'var(--accent-danger)';
         return <div key={goal.id} className="widget-goal-row">
               <div className="widget-goal-status" style={{
             backgroundColor: statusColor
@@ -785,7 +785,7 @@ export default function Dashboard({
       })}
       </div>
     </>;
-  const CHART_COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
+  const CHART_COLORS = ['#6366F1', 'var(--accent-success)', 'var(--accent-warning)', 'var(--accent-danger)', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
   const renderCharts = widget => <>
       <div className="widget-header">
         <div className="widget-header-left">
@@ -831,7 +831,7 @@ export default function Dashboard({
             }} labelStyle={{
               color: 'var(--text-primary)'
             }} />
-                  <Bar dataKey="completed" fill="#10B981" radius={[4, 4, 0, 0]} name="Completed" />
+                  <Bar dataKey="completed" fill="var(--accent-success)" radius={[4, 4, 0, 0]} name="Completed" />
                   <Bar dataKey="incomplete" fill="#6366F1" radius={[4, 4, 0, 0]} name="Incomplete" />
                 </BarChart>
               </ResponsiveContainer> : <div className="widget-empty-state">{t("no_project_data_to_display", "No project data to display.")}</div>)}
@@ -878,7 +878,7 @@ export default function Dashboard({
             }} labelStyle={{
               color: 'var(--text-primary)'
             }} />
-                <Line type="monotone" dataKey="completed" stroke="#10B981" strokeWidth={2} name="Completed" dot={{
+                <Line type="monotone" dataKey="completed" stroke="var(--accent-success)" strokeWidth={2} name="Completed" dot={{
               r: 3
             }} />
                 <Line type="monotone" dataKey="created" stroke="#6366F1" strokeWidth={2} name="Created" dot={{
@@ -946,7 +946,7 @@ export default function Dashboard({
         }} onClick={() => setSelectedProject(p)}>
                 <div className="widget-task-left">
                   <div className="widget-project-icon" style={{
-              backgroundColor: p.color || '#4F46E5',
+              backgroundColor: p.color || 'var(--accent-primary)',
               width: 28,
               height: 28,
               borderRadius: 6
@@ -1022,20 +1022,45 @@ export default function Dashboard({
   // ========================
   return <div className="dashboard-container">
       {/* HEADER */}
-      <div className="dashboard-header">
-        <div>
-          <div className="dashboard-header-date">{dateStr}</div>
-          <h1 className="dashboard-header-greeting">{greeting}, {user?.name || 'User'}</h1>
+      <div className="dashboard-header-status-bar" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '12px 24px',
+        backgroundColor: 'var(--bg-secondary)',
+        borderBottom: '1px solid var(--border-color)',
+        fontSize: '0.9rem',
+        color: 'var(--text-secondary)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontWeight: '500', color: 'var(--text-primary)' }}>📅 {dateStr}</span>
+          <span>·</span>
+          <span><span style={{ color: 'var(--accent-success)', fontWeight: 'bold' }}>{myCompleted.length}</span> {t("tasks_completed", "tasks completed")}</span>
+          <span>·</span>
+          <span><span style={{ color: 'var(--accent-danger)', fontWeight: 'bold' }}>{myOverdue.length}</span> {t("overdue", "overdue")}</span>
         </div>
-        <div className="dashboard-header-actions">
-          <button className="dashboard-header-btn">{t("my_week", "My week")}<span style={{
-            fontSize: '0.6rem'
-          }}>▼</span></button>
-          <button className="dashboard-header-btn"><span style={{
-            color: 'var(--accent-success)'
-          }}>✓</span> {myCompleted.length}{t("tasks_completed", "tasks completed")}</button>
-          <button className="dashboard-header-btn">👥 {peopleList.length}{t("collaborators", "collaborators")}</button>
-          <button className="dashboard-header-btn customize-btn" onClick={() => setShowWidgetPicker(true)}>{t("customize", "\u2699 Customize")}</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button style={{
+            background: 'transparent',
+            border: '1px solid var(--border-color)',
+            borderRadius: '6px',
+            padding: '4px 10px',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            fontSize: '0.85rem'
+          }}>👥 {peopleList.length} {t("collaborators", "collaborators")}</button>
+          <button style={{
+            background: 'transparent',
+            border: '1px solid var(--border-color)',
+            borderRadius: '6px',
+            padding: '4px 10px',
+            color: 'var(--text-primary)',
+            cursor: 'pointer',
+            fontSize: '0.85rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }} onClick={() => setShowWidgetPicker(true)}>{t("customize", "⚙️ Customize")}</button>
         </div>
       </div>
 

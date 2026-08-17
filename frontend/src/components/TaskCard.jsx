@@ -336,8 +336,8 @@ export default function TaskCard({
     ...styles.cardContainer,
     ...styles.taskCard,
     backgroundColor: 'var(--bg-primary)',
-    border: selectedTaskIds?.has(task.id) ? '1px solid #4F46E5' : `1px solid ${isHovered ? '#9CA3AF' : 'var(--border-color)'}`,
-    boxShadow: selectedTaskIds?.has(task.id) ? 'inset 0 0 0 1px #4F46E5' : isEditingMode ? '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)' : '0 1px 3px rgba(0,0,0,0.05)',
+    border: selectedTaskIds?.has(task.id) ? '1px solid var(--accent-primary)' : `1px solid ${isHovered ? '#9CA3AF' : 'var(--border-color)'}`,
+    boxShadow: selectedTaskIds?.has(task.id) ? 'inset 0 0 0 1px var(--accent-primary)' : isEditingMode ? '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)' : '0 1px 3px rgba(0,0,0,0.05)',
     zIndex: openFieldMenuId || isEditingMode ? 100 : 1,
     cursor: isEditingMode ? 'default' : 'pointer',
     opacity: task.isCompleted && !isEditingMode && !openFieldMenuId ? 0.6 : draggingTaskId === task.id ? 0.4 : 1,
@@ -388,7 +388,7 @@ export default function TaskCard({
             flexShrink: 0,
             marginTop: '2px',
             cursor: isReadOnly ? 'default' : 'pointer',
-            backgroundColor: task.approvalStatus === 'APPROVED' ? 'var(--accent-success)' : task.approvalStatus === 'REJECTED' ? 'var(--accent-danger)' : task.approvalStatus === 'CHANGES_REQUESTED' ? '#F59E0B' : 'transparent',
+            backgroundColor: task.approvalStatus === 'APPROVED' ? 'var(--accent-success)' : task.approvalStatus === 'REJECTED' ? 'var(--accent-danger)' : task.approvalStatus === 'CHANGES_REQUESTED' ? 'var(--accent-warning)' : 'transparent',
             border: task.approvalStatus === 'PENDING' || !task.approvalStatus ? '1px solid var(--text-tertiary)' : 'none',
             color: task.approvalStatus === 'PENDING' || !task.approvalStatus ? 'var(--text-secondary)' : '#fff'
           }} title={task.approvalStatus || 'PENDING'} onClick={e => {
@@ -660,7 +660,7 @@ export default function TaskCard({
                       height: 12,
                       borderRadius: '3px',
                       border: isSelected ? 'none' : '1px solid #D1D5DB',
-                      backgroundColor: isSelected ? '#4F46E5' : 'transparent',
+                      backgroundColor: isSelected ? 'var(--accent-primary)' : 'transparent',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -795,7 +795,7 @@ export default function TaskCard({
                       height: 12,
                       borderRadius: '3px',
                       border: isSelected ? 'none' : '1px solid #D1D5DB',
-                      backgroundColor: isSelected ? '#4F46E5' : 'transparent',
+                      backgroundColor: isSelected ? 'var(--accent-primary)' : 'transparent',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -845,7 +845,7 @@ export default function TaskCard({
                 }
               }} style={{
                 background: 'var(--bg-primary)',
-                border: '1px solid #4F46E5',
+                border: '1px solid var(--accent-primary)',
                 borderRadius: '4px',
                 fontSize: '0.75rem',
                 padding: '0.2rem 0.5rem',
@@ -893,7 +893,7 @@ export default function TaskCard({
                 }
               }} style={{
                 background: 'var(--bg-primary)',
-                border: '1px solid #4F46E5',
+                border: '1px solid var(--accent-primary)',
                 borderRadius: '4px',
                 fontSize: '0.75rem',
                 padding: '0.2rem 0.5rem',
@@ -987,7 +987,7 @@ export default function TaskCard({
               }} style={{
                 ...styles.staticCustomBadge,
                 fontFamily: 'monospace',
-                color: isRunning ? '#10B981' : 'var(--text-primary)',
+                color: isRunning ? 'var(--accent-success)' : 'var(--text-primary)',
                 cursor: !isReadOnly ? 'pointer' : 'default',
                 border: elapsed === 0 && !isRunning ? '1px dashed var(--border-color)' : styles.staticCustomBadge.border,
                 opacity: elapsed === 0 && !isRunning ? 0.7 : 1
@@ -1018,7 +1018,7 @@ export default function TaskCard({
                 }} style={{
                   ...styles.dropdownItem,
                   padding: '4px 8px',
-                  color: isRunning ? '#EF4444' : '#10B981',
+                  color: isRunning ? 'var(--accent-danger)' : 'var(--accent-success)',
                   fontWeight: 'bold'
                 }}>
                       {isRunning ? '⏹ Stop Timer' : '▶ Start Timer'}
@@ -1129,7 +1129,7 @@ export default function TaskCard({
           ...styles.likeIconPlaceholder,
           cursor: isReadOnly ? 'default' : 'pointer',
           opacity: isLiked || task.likes > 0 ? 1 : 0.3,
-          color: isLiked ? '#4F46E5' : 'inherit'
+          color: isLiked ? 'var(--accent-primary)' : 'inherit'
         }}>
             👍 {task.likes > 0 ? task.likes : ''}
           </span>

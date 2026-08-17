@@ -29,9 +29,9 @@ function getTransporter() {
   return transporter;
 }
 
-const FROM_ADDRESS = process.env.SMTP_FROM || 'noreply@asanaclone.app';
+const FROM_ADDRESS = process.env.SMTP_FROM || 'noreply@projectman.app';
 const APP_URL = process.env.APP_URL || 'http://localhost:5173';
-const APP_NAME = 'Asana Clone';
+const APP_NAME = 'ProjectMan';
 
 // ========================
 // HTML EMAIL TEMPLATE

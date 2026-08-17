@@ -172,15 +172,15 @@ export default function PortfolioDetail({
   const getStatusColor = status => {
     if (status === 'On track') return {
       bg: '#E0F2E9',
-      color: '#10B981'
+      color: 'var(--accent-success)'
     };
     if (status === 'At risk') return {
       bg: '#FEF3C7',
-      color: '#F59E0B'
+      color: 'var(--accent-warning)'
     };
     if (status === 'Off track') return {
       bg: '#FEE2E2',
-      color: '#EF4444'
+      color: 'var(--accent-danger)'
     };
     return {
       bg: '#F3F4F6',
@@ -247,13 +247,13 @@ export default function PortfolioDetail({
                   <div style={styles.dropdownItem} onClick={handleRenamePortfolio}>{t("rename_portfolio", "\u270F\uFE0F Rename portfolio")}</div>
                   <div style={{
                 ...styles.dropdownItem,
-                color: '#EF4444'
+                color: 'var(--accent-danger)'
               }} onClick={handleDeletePortfolio}>{t("delete_portfolio", "\uD83D\uDDD1\uFE0F Delete portfolio")}</div>
                 </div>}
             </div>
             <span style={{
             ...styles.starIcon,
-            color: details?.starredBy?.some(s => s.userId === user.id) ? '#F59E0B' : 'var(--text-tertiary)',
+            color: details?.starredBy?.some(s => s.userId === user.id) ? 'var(--accent-warning)' : 'var(--text-tertiary)',
             cursor: 'pointer'
           }} onClick={handleToggleStar}>
               {details?.starredBy?.some(s => s.userId === user.id) ? '★' : '☆'}
@@ -535,7 +535,7 @@ export default function PortfolioDetail({
                         <div style={{
                     ...styles.projectIcon,
                     color: '#FFF',
-                    backgroundColor: proj.color || '#4F46E5',
+                    backgroundColor: proj.color || 'var(--accent-primary)',
                     borderRadius: '4px',
                     width: '24px',
                     height: '24px',
@@ -704,8 +704,8 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     padding: '6px 16px',
-    backgroundColor: '#4F46E5',
-    // Asana blue
+    backgroundColor: 'var(--accent-primary)',
+    // ProjectMan blue
     color: '#FFFFFF',
     border: 'none',
     borderRadius: '6px',
@@ -845,8 +845,8 @@ const styles = {
     width: '24px',
     height: '24px',
     borderRadius: '4px',
-    backgroundColor: '#EEF2FF',
-    color: '#4F46E5',
+    backgroundColor: 'var(--bg-tertiary)',
+    color: 'var(--accent-primary)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -880,7 +880,7 @@ const styles = {
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#10B981',
+    backgroundColor: 'var(--accent-success)',
     // Green
     borderRadius: '3px'
   },
@@ -922,7 +922,7 @@ const styles = {
   addWorkInput: {
     width: '100%',
     padding: '8px 12px',
-    border: '1px solid #4F46E5',
+    border: '1px solid var(--accent-primary)',
     // blue border as in screenshot
     outline: 'none',
     fontSize: '13px',
@@ -945,7 +945,7 @@ const styles = {
   dropdownItemBlue: {
     padding: '10px 16px',
     fontSize: '13px',
-    color: '#4F46E5',
+    color: 'var(--accent-primary)',
     // Blue text for create actions
     cursor: 'pointer',
     display: 'flex',

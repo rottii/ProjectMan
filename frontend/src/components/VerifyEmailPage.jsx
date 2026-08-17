@@ -58,7 +58,7 @@ const styles = {
     padding: '0.75rem 1.5rem',
     borderRadius: '6px',
     border: 'none',
-    backgroundColor: '#4F46E5',
+    backgroundColor: 'var(--accent-primary)',
     color: 'white',
     fontSize: '1rem',
     fontWeight: '500',
@@ -124,13 +124,13 @@ export default function VerifyEmailPage({ token, onVerified }) {
     <div style={styles.container}>
       <div style={styles.card}>
         <div style={styles.logo}>
-          <span style={{ color: '#4F46E5' }}>●</span>
-          {t("asana_clone", "Asana Clone")}
+          <span style={{ color: 'var(--accent-primary)' }}>●</span>
+          {t("asana_clone", "ProjectMan")}
         </div>
 
         {status === 'loading' && (
           <>
-            <div style={{ ...styles.iconCircle, backgroundColor: '#EEF2FF' }}>⏳</div>
+            <div style={{ ...styles.iconCircle, backgroundColor: 'var(--bg-tertiary)' }}>⏳</div>
             <h2 style={styles.title}>{t("verifying_email", "Verifying your email...")}</h2>
             <p style={styles.subtitle}>{t("please_wait", "Please wait a moment.")}</p>
           </>

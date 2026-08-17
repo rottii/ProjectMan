@@ -20,7 +20,7 @@ export default function CreateProject({
   const [projectName, setProjectName] = useState('new project');
   const [privacy, setPrivacy] = useState('My workspace');
   const [teamId, setTeamId] = useState('');
-  const [color, setColor] = useState('#4F46E5');
+  const [color, setColor] = useState('var(--accent-primary)');
   const [icon, setIcon] = useState('📋');
   const [showPicker, setShowPicker] = useState(false);
   const [templates, setTemplates] = useState([]);
@@ -307,7 +307,7 @@ const styles = {
   },
   continueBtn: {
     padding: '12px 16px',
-    backgroundColor: '#4F46E5',
+    backgroundColor: 'var(--accent-primary)',
     color: '#FFFFFF',
     border: 'none',
     borderRadius: '4px',

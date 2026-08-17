@@ -194,7 +194,7 @@ export default function Inbox({
       width: '8px',
       height: '8px',
       borderRadius: '50%',
-      backgroundColor: '#4F46E5',
+      backgroundColor: 'var(--accent-primary)',
       marginTop: '0.5rem'
     }
   };
@@ -224,7 +224,7 @@ export default function Inbox({
           {notifications.some(n => !n.isRead) && <button style={{
           ...styles.manageBtn,
           border: 'none',
-          color: '#4F46E5'
+          color: 'var(--accent-primary)'
         }} onClick={handleMarkAllAsRead}>{t("mark_all_as_read", "Mark all as read")}</button>}
           <button style={styles.manageBtn}>{t("manage_notifications", "Manage notifications")}</button>
         </div>

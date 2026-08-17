@@ -308,7 +308,7 @@ export default function ProjectWorkloadView({
               {days.map((d, i) => <div key={i} style={{
               ...styles.dayHeaderCell,
               width: DAY_WIDTH,
-              borderBottom: d.isToday ? '3px solid #10B981' : '1px solid #E5E7EB'
+              borderBottom: d.isToday ? '3px solid var(--accent-success)' : '1px solid #E5E7EB'
             }}>
                   <div style={{
                 fontSize: '0.7rem',
@@ -318,7 +318,7 @@ export default function ProjectWorkloadView({
                   <div style={{
                 fontSize: '0.85rem',
                 fontWeight: d.isToday ? '700' : '500',
-                color: d.isToday ? '#10B981' : '#111827'
+                color: d.isToday ? 'var(--accent-success)' : '#111827'
               }}>
                     {d.dayNum}
                   </div>
@@ -379,7 +379,7 @@ export default function ProjectWorkloadView({
                         top: p.y - 8,
                         textAlign: 'center',
                         fontSize: '0.75rem',
-                        color: isOverloaded ? '#EF4444' : 'var(--text-primary)',
+                        color: isOverloaded ? 'var(--accent-danger)' : 'var(--text-primary)',
                         fontWeight: isOverloaded ? 'bold' : '500',
                         pointerEvents: 'none'
                       }}>

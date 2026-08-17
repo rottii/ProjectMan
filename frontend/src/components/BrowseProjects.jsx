@@ -183,7 +183,7 @@ export default function BrowseProjects({
           {filteredProjects.map((project, index) => <div key={project.id} className="bp-table-row" onClick={() => handleSelectProject(project)}>
               <div className="bp-col-name bp-flex-name">
                 <div className="bp-project-icon" style={{
-              backgroundColor: project.color || '#4F46E5',
+              backgroundColor: project.color || 'var(--accent-primary)',
               color: '#FFF'
             }}>
                   {project.icon || '📋'}

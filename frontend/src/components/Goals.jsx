@@ -81,9 +81,9 @@ export default function Goals({
   const renderGoalCard = goal => {
     const progress = goal.targetValue > 0 ? goal.currentValue / goal.targetValue * 100 : 0;
     const cappedProgress = Math.min(Math.max(progress, 0), 100);
-    let statusColor = '#10B981'; // On track - Green
-    if (goal.status === 'At risk') statusColor = '#F59E0B'; // Yellow
-    if (goal.status === 'Off track') statusColor = '#EF4444'; // Red
+    let statusColor = 'var(--accent-success)'; // On track - Green
+    if (goal.status === 'At risk') statusColor = 'var(--accent-warning)'; // Yellow
+    if (goal.status === 'Off track') statusColor = 'var(--accent-danger)'; // Red
 
     return <div key={goal.id} className="goal-card" onClick={() => setSelectedGoal(goal)}>
         <div className="goal-card-header">

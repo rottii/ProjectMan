@@ -79,7 +79,7 @@ const CHART_REGISTRY = [
   type: 'number-completed',
   label: 'Total completed projects',
   icon: '#️⃣',
-  color: '#10B981',
+  color: 'var(--accent-success)',
   category: 'summary',
   description: 'Count of completed tasks'
 }, {
@@ -93,7 +93,7 @@ const CHART_REGISTRY = [
   type: 'number-overdue',
   label: 'Total overdue projects',
   icon: '#️⃣',
-  color: '#EF4444',
+  color: 'var(--accent-danger)',
   category: 'summary',
   description: 'Count of Overdue projects'
 }, {
@@ -216,7 +216,7 @@ const DEFAULT_CHARTS = [{
   w: 10,
   h: 12
 }];
-const COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#06B6D4', '#84CC16'];
+const COLORS = ['#6366F1', 'var(--accent-success)', 'var(--accent-warning)', 'var(--accent-danger)', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#06B6D4', '#84CC16'];
 const dateFieldOptions = [{
   value: 'date_due',
   label: 'Due date'
@@ -672,7 +672,7 @@ export default function PortfolioDashboardView({
     })).sort((a, b) => b.value - a.value);
 
     const byStatus = [{
-      name: 'Completed', value: completed, color: '#10B981'
+      name: 'Completed', value: completed, color: 'var(--accent-success)'
     }, {
       name: 'Incomplete', value: incomplete, color: '#6366F1'
     }].filter(d => d.value > 0);
@@ -704,11 +704,11 @@ export default function PortfolioDashboardView({
     const dueStatusData = [{
       name: 'Upcoming', value: dsUpcoming, color: '#A78BFA'
     }, {
-      name: 'Overdue', value: dsOverdue, color: '#EF4444'
+      name: 'Overdue', value: dsOverdue, color: 'var(--accent-danger)'
     }, {
       name: 'Unscheduled', value: dsUnscheduled, color: '#9CA3AF'
     }, {
-      name: 'Completed', value: dsCompleted, color: '#10B981'
+      name: 'Completed', value: dsCompleted, color: 'var(--accent-success)'
     }];
     
     return {
@@ -849,7 +849,7 @@ export default function PortfolioDashboardView({
         data = [{
           name: 'Overdue',
           value: overdueTotalCount,
-          color: '#EF4444'
+          color: 'var(--accent-danger)'
         }];
         emptyMsg = 'No Overdue projects';
         emptyIcon = '⚠️';
@@ -1002,9 +1002,9 @@ export default function PortfolioDashboardView({
     if (chartStyle === 'bar' || chartStyle === 'stacked-bar') {
       if (chartStyle === 'stacked-bar' && stackedKeys.length > 0) {
         const getGroupColor = (key, idx) => {
-          if (key === 'Completed') return '#10B981';
+          if (key === 'Completed') return 'var(--accent-success)';
           if (key === 'Incomplete') return '#6366F1';
-          if (key === 'Overdue') return '#EF4444';
+          if (key === 'Overdue') return 'var(--accent-danger)';
           if (key === 'Upcoming') return '#A78BFA';
           if (key === 'Unscheduled') return '#60A5FA';
           return COLORS[idx % COLORS.length];
@@ -1190,7 +1190,7 @@ export default function PortfolioDashboardView({
             <div style={{
             fontSize: '3.5rem',
             fontWeight: 300,
-            color: '#10B981',
+            color: 'var(--accent-success)',
             lineHeight: 1
           }}>{completedTasks}</div>
           </div>;
@@ -1235,7 +1235,7 @@ export default function PortfolioDashboardView({
             <div style={{
             fontSize: '3.5rem',
             fontWeight: 300,
-            color: overdueTotalCount > 0 ? '#EF4444' : 'var(--text-primary)',
+            color: overdueTotalCount > 0 ? 'var(--accent-danger)' : 'var(--text-primary)',
             lineHeight: 1
           }}>{overdueTotalCount}</div>
           </div>;
@@ -1262,7 +1262,7 @@ export default function PortfolioDashboardView({
               <Legend iconType="circle" wrapperStyle={{
               fontSize: '0.78rem'
             }} />
-              <Bar dataKey="Completed" stackId="a" fill="#10B981" radius={[0, 0, 4, 4]} />
+              <Bar dataKey="Completed" stackId="a" fill="var(--accent-success)" radius={[0, 0, 4, 4]} />
               <Bar dataKey="Incomplete" stackId="a" fill="#E5E7EB" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer> : <div className="proj-dash-empty"><span className="proj-dash-empty-icon">📊</span>{t("no_sections_to_display", "No sections to display")}</div>;
@@ -1292,7 +1292,7 @@ export default function PortfolioDashboardView({
               <div style={{
               fontSize: '3rem',
               fontWeight: 300,
-              color: '#10B981'
+              color: 'var(--accent-success)'
             }}>{completedTasks}</div>
               <div style={{
               fontSize: '0.85rem',
@@ -1371,7 +1371,7 @@ export default function PortfolioDashboardView({
               <RechartsTooltip cursor={{
               fill: 'rgba(0,0,0,0.04)'
             }} contentStyle={tooltipStyle} />
-              <Bar dataKey="Overdue" fill="#EF4444" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Overdue" fill="var(--accent-danger)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>;
       case 'completion-over-time':
@@ -1384,8 +1384,8 @@ export default function PortfolioDashboardView({
           }}>
               <defs>
                 <linearGradient id="completionGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--accent-success)" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="var(--accent-success)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
@@ -1398,9 +1398,9 @@ export default function PortfolioDashboardView({
               fontSize: 11
             }} allowDecimals={false} />
               <RechartsTooltip contentStyle={tooltipStyle} />
-              <Area type="monotone" dataKey="Tasks" stroke="#10B981" strokeWidth={2} fill="url(#completionGrad)" dot={{
+              <Area type="monotone" dataKey="Tasks" stroke="var(--accent-success)" strokeWidth={2} fill="url(#completionGrad)" dot={{
               r: 3,
-              fill: '#10B981'
+              fill: 'var(--accent-success)'
             }} />
             </AreaChart>
           </ResponsiveContainer>;
@@ -1756,7 +1756,7 @@ export default function PortfolioDashboardView({
       {/* End Grid Wrapper */}
 
 
-      {/* ========== ADD CHART MODAL (Asana style) ========== */}
+      {/* ========== ADD CHART MODAL (ProjectMan style) ========== */}
       {addChartModal && <div className="proj-dash-picker-overlay" onClick={() => setAddChartModal(null)}>
           <div className="add-chart-modal" onClick={e => e.stopPropagation()}>
             {/* Header */}

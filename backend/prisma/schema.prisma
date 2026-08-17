@@ -52,7 +52,7 @@ model User {
   language        String?  @default("en")
   firstDayOfWeek  String?  @default("Automatic")
   notificationDuration String? @default("10 seconds (default)")
-  openAppAs       String?  @default("Asana.com homepage")
+  openAppAs       String?  @default("ProjectMan.com homepage")
   showRowNumbers  Boolean  @default(false)
   compactMode     Boolean  @default(false)
   colorBlindMode  Boolean  @default(false)

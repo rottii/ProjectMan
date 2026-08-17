@@ -14,7 +14,7 @@ const UserAvatar = ({ name, size = 26, style = {}, onClick, profilePhoto, userId
         height: `${size}px`,
         borderRadius: '50%',
         backgroundColor: profilePhoto ? 'transparent' : '#E0E7FF',
-        color: '#4F46E5',
+        color: 'var(--accent-primary)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

@@ -106,8 +106,8 @@ const styles = {
     fontWeight: '700'
   },
   badge: {
-    backgroundColor: '#EEF2FF',
-    color: '#4F46E5',
+    backgroundColor: 'var(--bg-tertiary)',
+    color: 'var(--accent-primary)',
     padding: '0.25rem 0.75rem',
     borderRadius: '9999px',
     fontSize: '0.85rem',

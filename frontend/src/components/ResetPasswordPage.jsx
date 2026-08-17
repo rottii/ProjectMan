@@ -71,7 +71,7 @@ const styles = {
     padding: '0.75rem',
     borderRadius: '6px',
     border: 'none',
-    backgroundColor: '#4F46E5',
+    backgroundColor: 'var(--accent-primary)',
     // indigo-600
     color: 'white',
     fontSize: '1rem',
@@ -145,8 +145,8 @@ export default function ResetPasswordPage({
         <div style={styles.card}>
            <div style={styles.logo}>
              <span style={{
-            color: '#4F46E5'
-          }}>●</span>{t("asana_clone", "Asana Clone")}</div>
+            color: 'var(--accent-primary)'
+          }}>●</span>{t("asana_clone", "ProjectMan")}</div>
            <div style={styles.success}>{t("your_password_has_been_successfully_reset", "Your password has been successfully reset!")}</div>
            <a href="/" style={{
           ...styles.button,
@@ -161,8 +161,8 @@ export default function ResetPasswordPage({
       <div style={styles.card}>
         <div style={styles.logo}>
           <span style={{
-          color: '#4F46E5'
-        }}>●</span>{t("asana_clone", "Asana Clone")}</div>
+          color: 'var(--accent-primary)'
+        }}>●</span>{t("asana_clone", "ProjectMan")}</div>
         
         <h2 style={styles.title}>{t("reset_your_password", "Reset Your Password")}</h2>
         <p style={styles.subtitle}>{t("please_enter_your_new_password_below", "Please enter your new password below.")}</p>

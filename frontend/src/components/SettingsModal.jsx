@@ -155,7 +155,7 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
                   <UserAvatar name={user?.name} size={100} profilePhoto={user?.profilePhoto} userId={user?.id} />
                   <div>
                     <button className="settings-upload-btn">Upload your photo</button>
-                    <div className="settings-photo-text">Photos help your teammates recognize you in Asana</div>
+                    <div className="settings-photo-text">Photos help your teammates recognize you in ProjectMan</div>
                   </div>
                 </div>
 
@@ -225,7 +225,7 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
                   <div>
                     <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Personalization settings</div>
                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      Only you can see these fields. We use them to tailor Asana to you and to share relevant product recommendations.
+                      Only you can see these fields. We use them to tailor ProjectMan to you and to share relevant product recommendations.
                     </div>
                   </div>
                   <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
@@ -315,14 +315,14 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
 
                 <div className="settings-form-row">
                   <div className="settings-form-group">
-                    <label>Open asana.com as</label>
+                    <label>Open projectman.com as</label>
                     <select 
                       className="settings-select" 
                       name="openAppAs" 
-                      value={user?.openAppAs || 'Asana.com homepage'} 
+                      value={user?.openAppAs || 'ProjectMan.com homepage'} 
                       onChange={handleDisplayPrefChange}
                     >
-                      <option value="Asana.com homepage">Asana.com homepage</option>
+                      <option value="ProjectMan.com homepage">ProjectMan.com homepage</option>
                       <option value="My tasks">My tasks</option>
                     </select>
                   </div>

@@ -1,52 +1,103 @@
 :root {
-  /* Light Theme (Default) */
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F9FAFB;
-  --bg-tertiary: #F3F4F6;
+  /* Modern SaaS Light Theme */
+  --bg-primary: #FAFAFA;
+  --bg-secondary: #F3F4F6;
+  --bg-tertiary: #E5E7EB;
 
-  --text-primary: #111827;
-  --text-secondary: #6B7280;
-  --text-tertiary: #9CA3AF;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-tertiary: #94A3B8;
 
-  --border-color: #E5E7EB;
+  --border-color: #E2E8F0;
 
-  --accent-primary: #4F46E5;
+  --accent-primary: #0F766E; /* Teal */
+  --accent-primary-hover: #115E59;
   --accent-success: #10B981;
   --accent-danger: #EF4444;
   --accent-warning: #F59E0B;
 
-  /* Sidebar & TopNav fixed dark theme */
-  --nav-bg: #1E1F21;
-  --nav-bg-hover: #2A2B2E;
-  --nav-border: #3F3F46;
-  --nav-text: #F3F4F6;
-  --nav-text-secondary: #9CA3AF;
+  /* Status Colors (Light) */
+  --status-on-track-bg: #DCFCE7;
+  --status-on-track-text: #166534;
+  --status-at-risk-bg: #FEF3C7;
+  --status-at-risk-text: #92400E;
+  --status-off-track-bg: #FEE2E2;
+  --status-off-track-text: #991B1B;
+  --status-on-hold-bg: #DBEAFE;
+  --status-on-hold-text: #1E40AF;
+  --status-complete-bg: var(--accent-success);
+  --status-complete-text: #FFFFFF;
+  --status-dropped-bg: var(--bg-tertiary);
+  --status-dropped-text: var(--text-secondary);
+
+  /* Sidebar & TopNav frosted glass (Default Dark) */
+  --nav-bg: rgba(11, 15, 25, 0.85);
+  --nav-bg-hover: rgba(255, 255, 255, 0.08);
+  --nav-border: rgba(30, 41, 59, 0.6);
+  --nav-text: #F8FAFC;
+  --nav-text-secondary: #94A3B8;
+  
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.06);
 }
 
 body.dark {
-  /* Dark Theme */
-  --bg-primary: #18181A;
-  --bg-secondary: #242427;
-  --bg-tertiary: #2A2B2E;
+  /* Modern SaaS Dark Theme */
+  --bg-primary: #0B0F19;
+  --bg-secondary: #131B2C;
+  --bg-tertiary: #1E293B;
 
-  --text-primary: #EDEDED;
-  --text-secondary: #A1A1AA;
-  --text-tertiary: #71717A;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
 
-  --border-color: #3F3F46;
+  --border-color: #1E293B;
 
-  --accent-primary: #6366F1;
-  --accent-success: #10B981;
-  --accent-danger: #F87171;
+  --accent-primary: #14B8A6; /* Bright Teal */
+  --accent-primary-hover: #2DD4BF;
+  --accent-success: #34D399;
+  --accent-danger: #FB7185;
   --accent-warning: #FBBF24;
+
+  /* Status Colors (Dark) */
+  --status-on-track-bg: #064E3B;
+  --status-on-track-text: #34D399;
+  --status-at-risk-bg: #78350F;
+  --status-at-risk-text: #FBBF24;
+  --status-off-track-bg: #7F1D1D;
+  --status-off-track-text: #F87171;
+  --status-on-hold-bg: #1E3A8A;
+  --status-on-hold-text: #60A5FA;
+  --status-complete-bg: var(--accent-success);
+  --status-complete-text: #FFFFFF;
+  --status-dropped-bg: var(--bg-tertiary);
+  --status-dropped-text: var(--text-secondary);
+
+  /* Dark Frosted Glass */
+  --nav-bg: rgba(11, 15, 25, 0.75);
+  --nav-bg-hover: rgba(255, 255, 255, 0.08);
+  --nav-border: rgba(30, 41, 59, 0.6);
+  --nav-text: #F8FAFC;
+  --nav-text-secondary: #94A3B8;
+  
+  --shadow-sm: 0 4px 12px rgba(0,0,0,0.2);
+  --shadow-md: 0 12px 32px rgba(0,0,0,0.3);
 }
 
 /* Base styles for document body based on theme */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background-color: var(--bg-primary);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(15, 118, 110, 0.03) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(15, 118, 110, 0.03) 0px, transparent 50%);
+  background-attachment: fixed;
   color: var(--text-primary);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
+
   overflow-y: scroll;
 }
 
@@ -92,17 +143,44 @@ body {
 /* List View Task Hover Styles */
 .list-view-task-row {
   background-color: var(--bg-primary);
-  border-left: 3px solid transparent;
-  transition: background-color 0.1s, opacity 0.15s ease;
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid transparent;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .list-view-task-row:hover {
   background-color: var(--bg-secondary) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .list-view-task-row.selected {
-  background-color: var(--bg-secondary);
-  border-left: 3px solid var(--accent-primary);
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--accent-primary);
+  box-shadow: none;
+}
+
+.list-view-task-row.selected .task-title-input {
+  color: var(--text-primary);
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: var(--nav-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--nav-border);
+}
+
+button {
+  transition: all 0.2s ease !important;
+  font-family: 'Inter', sans-serif;
+}
+button:active {
+  transform: scale(0.97);
 }
 
 /* Dark mode timeline task bar filter - using saturate-bg to avoid filtering child images */
@@ -152,11 +230,11 @@ body.dark .saturate-bg::before {
 
 /* Theme Mods */
 body.theme-sidebar-white {
-  --nav-bg: #FFFFFF !important;
-  --nav-bg-hover: #F3F4F6 !important;
-  --nav-border: #E5E7EB !important;
-  --nav-text: #111827 !important;
-  --nav-text-secondary: #6B7280 !important;
+  --nav-bg: rgba(255, 255, 255, 0.85) !important;
+  --nav-bg-hover: rgba(0, 0, 0, 0.05) !important;
+  --nav-border: rgba(226, 232, 240, 0.6) !important;
+  --nav-text: #0F172A !important;
+  --nav-text-secondary: #475569 !important;
 }
 
 body.theme-color-blind {

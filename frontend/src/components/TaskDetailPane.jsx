@@ -569,7 +569,7 @@ export default function TaskDetailPane({
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          text: newCommentText
+          content: newCommentText
         })
       });
       const data = await response.json();
@@ -882,7 +882,7 @@ export default function TaskDetailPane({
         }}>
             {task.type === 'APPROVAL' ? <div style={{
             ...styles.completeBtn,
-            backgroundColor: task.approvalStatus === 'APPROVED' ? 'var(--accent-success)' : task.approvalStatus === 'REJECTED' ? 'var(--accent-danger)' : task.approvalStatus === 'CHANGES_REQUESTED' ? '#F59E0B' : 'transparent',
+            backgroundColor: task.approvalStatus === 'APPROVED' ? 'var(--accent-success)' : task.approvalStatus === 'REJECTED' ? 'var(--accent-danger)' : task.approvalStatus === 'CHANGES_REQUESTED' ? 'var(--accent-warning)' : 'transparent',
             color: task.approvalStatus === 'PENDING' || !task.approvalStatus ? 'var(--text-primary)' : '#FFF',
             border: task.approvalStatus === 'PENDING' || !task.approvalStatus ? '1px solid var(--border-color)' : '1px solid transparent',
             cursor: 'default'
@@ -1168,7 +1168,7 @@ export default function TaskDetailPane({
             width: '32px',
             height: '32px',
             borderRadius: '8px',
-            backgroundColor: task.approvalStatus === 'APPROVED' ? 'var(--accent-success)' : task.approvalStatus === 'REJECTED' ? 'var(--accent-danger)' : task.approvalStatus === 'CHANGES_REQUESTED' ? '#F59E0B' : 'transparent',
+            backgroundColor: task.approvalStatus === 'APPROVED' ? 'var(--accent-success)' : task.approvalStatus === 'REJECTED' ? 'var(--accent-danger)' : task.approvalStatus === 'CHANGES_REQUESTED' ? 'var(--accent-warning)' : 'transparent',
             border: task.approvalStatus === 'PENDING' || !task.approvalStatus ? '2px dashed var(--text-tertiary)' : 'none',
             color: task.approvalStatus === 'PENDING' || !task.approvalStatus ? 'var(--text-secondary)' : '#fff',
             display: 'flex',
@@ -1208,9 +1208,9 @@ export default function TaskDetailPane({
             }}>{t("approve", "Approve")}</button>
                   <button onClick={() => handleApproval('CHANGES_REQUESTED')} style={{
               ...styles.approvalBtn,
-              backgroundColor: task.approvalStatus === 'CHANGES_REQUESTED' ? '#F59E0B' : 'transparent',
+              backgroundColor: task.approvalStatus === 'CHANGES_REQUESTED' ? 'var(--accent-warning)' : 'transparent',
               color: task.approvalStatus === 'CHANGES_REQUESTED' ? '#fff' : 'var(--text-primary)',
-              borderColor: '#F59E0B'
+              borderColor: 'var(--accent-warning)'
             }}>{t("request_changes", "Request Changes")}</button>
                   <button onClick={() => handleApproval('REJECTED')} style={{
               ...styles.approvalBtn,
@@ -1811,7 +1811,7 @@ export default function TaskDetailPane({
                                       height: 14,
                                       borderRadius: '3px',
                                       border: isSelected ? 'none' : '1px solid #D1D5DB',
-                                      backgroundColor: isSelected ? '#4F46E5' : 'transparent',
+                                      backgroundColor: isSelected ? 'var(--accent-primary)' : 'transparent',
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
@@ -1901,7 +1901,7 @@ export default function TaskDetailPane({
                                     alignItems: 'center',
                                     gap: '4px',
                                     backgroundColor: '#EDE9FE',
-                                    color: '#4F46E5',
+                                    color: 'var(--accent-primary)',
                                     padding: '0.15rem 0.5rem',
                                     borderRadius: '12px',
                                     fontSize: '0.8rem'
@@ -1943,7 +1943,7 @@ export default function TaskDetailPane({
                                       height: 14,
                                       borderRadius: '3px',
                                       border: isSelected ? 'none' : '1px solid #D1D5DB',
-                                      backgroundColor: isSelected ? '#4F46E5' : 'transparent',
+                                      backgroundColor: isSelected ? 'var(--accent-primary)' : 'transparent',
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
@@ -2032,7 +2032,7 @@ export default function TaskDetailPane({
                             }}>
                                   <span style={{
                                 fontSize: '0.85rem',
-                                color: isRunning ? '#10B981' : 'var(--text-secondary)',
+                                color: isRunning ? 'var(--accent-success)' : 'var(--text-secondary)',
                                 fontFamily: 'monospace'
                               }}>
                                     {formatTime(elapsed)}
@@ -2060,7 +2060,7 @@ export default function TaskDetailPane({
                                 padding: '2px 8px',
                                 fontSize: '0.75rem',
                                 cursor: 'pointer',
-                                color: isRunning ? '#EF4444' : '#10B981'
+                                color: isRunning ? 'var(--accent-danger)' : 'var(--accent-success)'
                               }}>
                                       {isRunning ? '⏹ Stop' : '▶ Start'}
                                     </button>}

@@ -543,7 +543,7 @@ const styles = {
   },
   listJoinedText: {
     fontSize: '12px',
-    color: '#10B981' // Green
+    color: 'var(--accent-success)' // Green
   },
   memberBadgeSmall: {
     width: '24px',

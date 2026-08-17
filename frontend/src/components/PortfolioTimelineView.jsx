@@ -29,7 +29,7 @@ const PROJECT_COLORS = ['#A7F3D0',
 ];
 const ICON_COLORS = ['#059669',
 // dark green
-'#4F46E5',
+'var(--accent-primary)',
 // dark indigo
 '#D97706',
 // dark yellow/amber

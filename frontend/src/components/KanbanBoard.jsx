@@ -198,13 +198,13 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
   const activeViewObj = parsedViews.find(v => v.id === currentTab) || parsedViews.find(v => v.type === currentTab) || parsedViews[0];
 
   const projectStatuses = [
-    { id: 'ON_TRACK', label: t('on_track', 'On track'), color: '#34D399', bgColor: '#064E3B', icon: '●' },
-    { id: 'AT_RISK', label: t('at_risk', 'At risk'), color: '#FBBF24', bgColor: '#78350F', icon: '●' },
-    { id: 'OFF_TRACK', label: t('off_track', 'Off track'), color: '#F87171', bgColor: '#7F1D1D', icon: '●' },
-    { id: 'ON_HOLD', label: t('on_hold', 'On hold'), color: '#60A5FA', bgColor: '#1E3A8A', icon: '●' },
+    { id: 'ON_TRACK', label: t('on_track', 'On track'), color: 'var(--status-on-track-text)', bgColor: 'var(--status-on-track-bg)', icon: '●' },
+    { id: 'AT_RISK', label: t('at_risk', 'At risk'), color: 'var(--status-at-risk-text)', bgColor: 'var(--status-at-risk-bg)', icon: '●' },
+    { id: 'OFF_TRACK', label: t('off_track', 'Off track'), color: 'var(--status-off-track-text)', bgColor: 'var(--status-off-track-bg)', icon: '●' },
+    { id: 'ON_HOLD', label: t('on_hold', 'On hold'), color: 'var(--status-on-hold-text)', bgColor: 'var(--status-on-hold-bg)', icon: '●' },
     { id: 'DIVIDER', isDivider: true },
-    { id: 'COMPLETE', label: t('complete', 'Complete'), color: '#FFF', bgColor: '#10B981', icon: '✓' },
-    { id: 'DROPPED', label: t('dropped', 'Dropped'), color: '#9CA3AF', bgColor: 'var(--text-primary)', icon: '●' }
+    { id: 'COMPLETE', label: t('complete', 'Complete'), color: 'var(--status-complete-text)', bgColor: 'var(--status-complete-bg)', icon: '✓' },
+    { id: 'DROPPED', label: t('dropped', 'Dropped'), color: 'var(--status-dropped-text)', bgColor: 'var(--status-dropped-bg)', icon: '●' }
   ];
 
   // Akıllı konum hafıza takipleri
@@ -2324,15 +2324,15 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
 
   return (
     <div style={styles.boardContainer}>
-      {/* 1. SATIR: ASANA MAIN HEADER */}
-      <div style={styles.asanaMainHeader}>
+      {/* 1. SATIR: PROJECTMAN MAIN HEADER */}
+      <div style={styles.projectMainHeader}>
         <div style={styles.headerLeftBlock}>
           <div style={{ position: 'relative' }}>
             {selectedProject?.status === 'MY_TASKS' ? (
               <UserAvatar name={user?.name} userId={user?.id} profilePhoto={user?.profilePhoto} size={32} style={{ marginRight: '4px' }} />
             ) : (
               <div
-                style={{ ...styles.asanaProjectIcon, backgroundColor: selectedProject.color || '#4F46E5', cursor: (projectRole === 'ADMIN' || projectRole === 'EDITOR') ? 'pointer' : 'default' }}
+                style={{ ...styles.projectIcon, backgroundColor: selectedProject.color || 'var(--accent-primary)', cursor: (projectRole === 'ADMIN' || projectRole === 'EDITOR') ? 'pointer' : 'default' }}
                 onClick={(e) => {
                   if (projectRole === 'ADMIN' || projectRole === 'EDITOR') {
                     document.body.click();
@@ -2347,10 +2347,10 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
             {isIconPickerOpen && selectedProject?.status !== 'MY_TASKS' && (
               <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '8px', zIndex: 10000 }}>
                 <IconColorPicker
-                  selectedColor={selectedProject.color || '#4F46E5'}
+                  selectedColor={selectedProject.color || 'var(--accent-primary)'}
                   setSelectedColor={(c) => handleUpdateIconColor(c, selectedProject.icon || '📋')}
                   selectedIcon={selectedProject.icon || '📋'}
-                  setSelectedIcon={(i) => handleUpdateIconColor(selectedProject.color || '#4F46E5', i)}
+                  setSelectedIcon={(i) => handleUpdateIconColor(selectedProject.color || 'var(--accent-primary)', i)}
                   onClose={() => setIsIconPickerOpen(false)}
                 />
               </div>
@@ -2375,7 +2375,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                     <div onClick={handleArchiveProject} style={styles.dropdownOptionItem}>📦 {selectedProject?.isArchived ? 'Unarchive Project' : 'Archive Project'}</div>
                     <div onClick={handleSaveAsTemplate} style={styles.dropdownOptionItem}>💾 Save as Template</div>
                     <div style={styles.dropdownDivider}></div>
-                    <div onClick={handleDeleteProject} style={{ ...styles.dropdownOptionItem, color: '#EF4444' }}>🗑️ Delete Project</div>
+                    <div onClick={handleDeleteProject} style={{ ...styles.dropdownOptionItem, color: 'var(--accent-danger)' }}>🗑️ Delete Project</div>
                   </>
                 ) : (
                   <div style={{ ...styles.dropdownOptionItem, color: '#9CA3AF', cursor: 'not-allowed' }}>🔒 No admin rights</div>
@@ -2388,7 +2388,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
               <span
                 style={{
                   ...styles.starIconStyle,
-                  color: selectedProject?.starredBy?.some(s => s.userId === user.id) ? '#F59E0B' : 'var(--text-tertiary)'
+                  color: selectedProject?.starredBy?.some(s => s.userId === user.id) ? 'var(--accent-warning)' : 'var(--text-tertiary)'
                 }}
                 onClick={handleToggleStar}
               >
@@ -2474,15 +2474,16 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                   style={{ cursor: 'pointer', border: '1px solid #FFF' }}
                 />
               </div>
-              <button onClick={(e) => { e.stopPropagation(); setIsShareModalOpen(true); }} style={{ ...styles.asanaShareButtonLight, fontWeight: 'normal' }}>👥 {t('share', 'Share')}</button>
+              <button onClick={(e) => { e.stopPropagation(); setIsShareModalOpen(true); }} style={styles.shareButton}>👥 {t('share', 'Share')}</button>
             </>
           )}
-          <button id="customize-pane-toggle-btn" onClick={(e) => { e.stopPropagation(); setIsCustomizePanelOpen(prev => !prev); setIsOptionsPaneOpen(false); }} style={styles.asanaCustomizeBtn}>🎛️ {t('customize', 'Customize')}</button>
+          <button id="customize-pane-toggle-btn" onClick={(e) => { e.stopPropagation(); setIsCustomizePanelOpen(prev => !prev); setIsOptionsPaneOpen(false); }} style={styles.customizeBtn}>🎛️ {t('customize', 'Customize')}</button>
         </div>
       </div>
 
-      {/* 2. SATIR: ASANA TAB BAR */}
-      <div style={styles.asanaTabsRow}>
+      {/* 2. SATIR: PROJECTMAN TOOLBAR */}
+      <div style={styles.projectToolbar}>
+        <div style={styles.tabsContainer}>
         {parsedViews.map(view => (
           <span
             key={view.id}
@@ -2561,15 +2562,15 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
             </div>
           )}
         </div>
-      </div>
+        </div>
 
-      {/* 3. SATIR: OPTIONS SUB-HEADER */}
-      {activeViewObj.type !== 'Overview' && activeViewObj.type !== 'Note' && activeViewObj.type !== 'Files' && activeViewObj.type !== 'Messages' && (
-        <div style={styles.asanaOptionsSubHeader}>
-          {activeViewObj.type === 'Dashboard' ? (
-            <>
-              <div>
-                <div style={{ position: 'relative', display: 'inline-block' }}>
+        {/* OPTIONS RIGHT SIDE OF TOOLBAR */}
+        {activeViewObj.type !== 'Overview' && activeViewObj.type !== 'Note' && activeViewObj.type !== 'Files' && activeViewObj.type !== 'Messages' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {activeViewObj.type === 'Dashboard' ? (
+              <>
+                <div>
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
                   <button
                     style={styles.addTaskDropdownBtn}
                     disabled={isReadOnly}
@@ -2702,7 +2703,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                       <span
                         onClick={(e) => { e.stopPropagation(); setActiveFilters([]); }}
                         style={{ marginLeft: '4px', padding: '0 4px', color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = '#EF4444'}
+                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-danger)'}
                         onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
                       >×</span>
                     )}
@@ -2719,20 +2720,20 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                       <div style={{ marginBottom: '24px' }}>
                         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>Quick filters</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                          <div onClick={() => handleToggleFilter('incomplete')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('incomplete') ? '1px solid #4F46E5' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('incomplete') ? '#4F46E5' : 'var(--text-primary)', backgroundColor: activeFilters.includes('incomplete') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
-                            <span style={{ color: activeFilters.includes('incomplete') ? '#4F46E5' : 'var(--text-secondary)' }}>✓</span> Incomplete tasks
+                          <div onClick={() => handleToggleFilter('incomplete')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('incomplete') ? '1px solid var(--accent-primary)' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('incomplete') ? 'var(--accent-primary)' : 'var(--text-primary)', backgroundColor: activeFilters.includes('incomplete') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
+                            <span style={{ color: activeFilters.includes('incomplete') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>✓</span> Incomplete tasks
                           </div>
-                          <div onClick={() => handleToggleFilter('completed')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('completed') ? '1px solid #4F46E5' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('completed') ? '#4F46E5' : 'var(--text-primary)', backgroundColor: activeFilters.includes('completed') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
-                            <span style={{ color: activeFilters.includes('completed') ? '#4F46E5' : 'var(--text-secondary)' }}>✓</span> Completed tasks
+                          <div onClick={() => handleToggleFilter('completed')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('completed') ? '1px solid var(--accent-primary)' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('completed') ? 'var(--accent-primary)' : 'var(--text-primary)', backgroundColor: activeFilters.includes('completed') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
+                            <span style={{ color: activeFilters.includes('completed') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>✓</span> Completed tasks
                           </div>
-                          <div onClick={() => handleToggleFilter('my-tasks')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('my-tasks') ? '1px solid #4F46E5' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('my-tasks') ? '#4F46E5' : 'var(--text-primary)', backgroundColor: activeFilters.includes('my-tasks') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
-                            <span style={{ color: activeFilters.includes('my-tasks') ? '#4F46E5' : 'var(--text-secondary)' }}>👤</span> Just my tasks
+                          <div onClick={() => handleToggleFilter('my-tasks')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('my-tasks') ? '1px solid var(--accent-primary)' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('my-tasks') ? 'var(--accent-primary)' : 'var(--text-primary)', backgroundColor: activeFilters.includes('my-tasks') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
+                            <span style={{ color: activeFilters.includes('my-tasks') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>👤</span> Just my tasks
                           </div>
-                          <div onClick={() => handleToggleFilter('this-week')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('this-week') ? '1px solid #4F46E5' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('this-week') ? '#4F46E5' : 'var(--text-primary)', backgroundColor: activeFilters.includes('this-week') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
-                            <span style={{ color: activeFilters.includes('this-week') ? '#4F46E5' : 'var(--text-secondary)' }}>📅</span> Due this week
+                          <div onClick={() => handleToggleFilter('this-week')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('this-week') ? '1px solid var(--accent-primary)' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('this-week') ? 'var(--accent-primary)' : 'var(--text-primary)', backgroundColor: activeFilters.includes('this-week') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
+                            <span style={{ color: activeFilters.includes('this-week') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>📅</span> Due this week
                           </div>
-                          <div onClick={() => handleToggleFilter('next-week')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('next-week') ? '1px solid #4F46E5' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('next-week') ? '#4F46E5' : 'var(--text-primary)', backgroundColor: activeFilters.includes('next-week') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
-                            <span style={{ color: activeFilters.includes('next-week') ? '#4F46E5' : 'var(--text-secondary)' }}>📅</span> Due next week
+                          <div onClick={() => handleToggleFilter('next-week')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('next-week') ? '1px solid var(--accent-primary)' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('next-week') ? 'var(--accent-primary)' : 'var(--text-primary)', backgroundColor: activeFilters.includes('next-week') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
+                            <span style={{ color: activeFilters.includes('next-week') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>📅</span> Due next week
                           </div>
                         </div>
                       </div>
@@ -2824,7 +2825,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                       <span
                         onClick={(e) => { e.stopPropagation(); setActiveSorts([]); }}
                         style={{ marginLeft: '4px', padding: '0 4px', color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = '#EF4444'}
+                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-danger)'}
                         onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
                       >×</span>
                     )}
@@ -2918,7 +2919,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                     >
                                       <span style={styles.sortDropdownIcon}>{item.icon}</span>
                                       <span style={{ flex: 1 }}>{item.label}</span>
-                                      {isActive && <span style={{ fontSize: '0.8rem', color: '#4F46E5' }}>{activeObj.direction === 'asc' ? '↑' : '↓'}</span>}
+                                      {isActive && <span style={{ fontSize: '0.8rem', color: 'var(--accent-primary)' }}>{activeObj.direction === 'asc' ? '↑' : '↓'}</span>}
                                     </div>
                                   )
                                 })}
@@ -2952,7 +2953,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                               >
                                 <span style={styles.sortDropdownIcon}>{item.icon}</span>
                                 <span style={{ flex: 1 }}>{item.label}</span>
-                                {isActive && <span style={{ fontSize: '0.8rem', color: '#4F46E5' }}>{activeObj.direction === 'asc' ? '↑' : '↓'}</span>}
+                                {isActive && <span style={{ fontSize: '0.8rem', color: 'var(--accent-primary)' }}>{activeObj.direction === 'asc' ? '↑' : '↓'}</span>}
                               </div>
                             )
                           })}
@@ -2960,7 +2961,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                             <>
                               <div style={{ height: '1px', backgroundColor: '#E5E7EB', margin: '4px 0' }}></div>
                               <div
-                                style={{ ...styles.sortDropdownItem, color: '#EF4444', justifyContent: 'center' }}
+                                style={{ ...styles.sortDropdownItem, color: 'var(--accent-danger)', justifyContent: 'center' }}
                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FEF2F2'}
                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                 onClick={() => { setActiveSorts([]); setIsSortDropdownOpen(false); }}
@@ -2986,7 +2987,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                       <span
                         onClick={(e) => { e.stopPropagation(); setActiveGroups([{ field: 'Sections', order: 'Custom order' }]); }}
                         style={{ marginLeft: '4px', padding: '0 4px', color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = '#EF4444'}
+                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-danger)'}
                         onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
                       >×</span>
                     )}
@@ -3046,7 +3047,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                   ))}
                                   <div style={{ height: '1px', backgroundColor: '#E5E7EB', margin: '4px 0' }}></div>
                                   <div
-                                    style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', color: '#4F46E5', fontWeight: '500' }}
+                                    style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: '500' }}
                                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'}
                                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                     onClick={() => { setShowAddFieldMenu(true); setIsGroupDropdownOpen(false); setOpenFilterDropdown(null); }}
@@ -3084,7 +3085,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                       }}
                                     >
                                       <div style={{ width: '16px', display: 'flex', justifyContent: 'center' }}>
-                                        {groupObj.order === opt && <span style={{ color: '#4F46E5' }}>✓</span>}
+                                        {groupObj.order === opt && <span style={{ color: 'var(--accent-primary)' }}>✓</span>}
                                       </div>
                                       {opt}
                                     </div>
@@ -3164,7 +3165,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>Show empty groups</span>
                           <div
-                            style={{ width: '36px', height: '20px', backgroundColor: showEmptyGroups ? '#4F46E5' : '#D1D5DB', borderRadius: '10px', position: 'relative', cursor: 'pointer', transition: 'background-color 0.2s' }}
+                            style={{ width: '36px', height: '20px', backgroundColor: showEmptyGroups ? 'var(--accent-primary)' : '#D1D5DB', borderRadius: '10px', position: 'relative', cursor: 'pointer', transition: 'background-color 0.2s' }}
                             onClick={() => setShowEmptyGroups(!showEmptyGroups)}
                           >
                             <div style={{ position: 'absolute', top: '2px', left: showEmptyGroups ? '18px' : '2px', width: '16px', height: '16px', backgroundColor: 'white', borderRadius: '50%', transition: 'left 0.2s' }}></div>
@@ -3201,10 +3202,14 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                 )}
               </div>
 
-            </div>
-          )}
-        </div>
-      )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 3. MAIN CONTENT WRAPPER */}
+      <div style={styles.contentWrapper}>
 
       {/* --- GÖRÜNÜM SEÇİM ALANI --- */}
       {activeViewObj.type === 'Overview' ? (
@@ -3273,7 +3278,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                     onDrop={(e) => { if (!isVirtualGrouping) handleGeneralDrop(e, section.id); }}
                     style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', opacity: draggingSectionId === section.id ? 0.4 : 1 }}
                   >
-                    <KanbanColumn section={{ ...section, tasks: filteredTasks }} token={token} isVirtualGrouping={isVirtualGrouping} customFieldSettings={selectedProject?.customFieldSettings || []} projectMembers={selectedProject?.members || []} onTaskUpdate={handleTaskUpdate} onDeleteSection={handleDeleteSection} onRenameSection={handleRenameSection} onGeneralDrop={handleGeneralDrop} onTaskContextMenu={(e, id) => { if (!isReadOnly) setContextMenu({ visible: true, x: e.clientX, y: e.clientY, taskId: id }) }} onOpenApprovalMenu={handleOpenApprovalMenu} onOpenPopover={(type, task, coords, extra = {}) => setActivePopover({ type, task, coords, ...extra })} onOpenTaskPane={setActiveTaskPaneId} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} draggableSection={!isReadOnly && !isVirtualGrouping} onDragStartSection={(e) => { setDraggingSectionId(section.id); e.dataTransfer.setData('drag-type', 'section'); e.dataTransfer.setData('section-id', section.id); const ghostEl = document.getElementById('asana-drag-ghost-preview-card'); if (ghostEl) { ghostEl.textContent = section.name; e.dataTransfer.setDragImage(ghostEl, 20, 15); } }} onDragEndSection={() => { handleFinalSectionMove(); setDraggingSectionId(null); }} setLastInteractedSectionId={setLastInteractedSectionId} setLastInteractedTaskId={setLastInteractedTaskId} selectedTaskIds={selectedTaskIds} setSelectedTaskIds={setSelectedTaskIds} onTaskSelect={handleTaskSelect} />
+                    <KanbanColumn section={{ ...section, tasks: filteredTasks }} token={token} isVirtualGrouping={isVirtualGrouping} customFieldSettings={selectedProject?.customFieldSettings || []} projectMembers={selectedProject?.members || []} onTaskUpdate={handleTaskUpdate} onDeleteSection={handleDeleteSection} onRenameSection={handleRenameSection} onGeneralDrop={handleGeneralDrop} onTaskContextMenu={(e, id) => { if (!isReadOnly) setContextMenu({ visible: true, x: e.clientX, y: e.clientY, taskId: id }) }} onOpenApprovalMenu={handleOpenApprovalMenu} onOpenPopover={(type, task, coords, extra = {}) => setActivePopover({ type, task, coords, ...extra })} onOpenTaskPane={setActiveTaskPaneId} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} draggableSection={!isReadOnly && !isVirtualGrouping} onDragStartSection={(e) => { setDraggingSectionId(section.id); e.dataTransfer.setData('drag-type', 'section'); e.dataTransfer.setData('section-id', section.id); const ghostEl = document.getElementById('projectman-drag-ghost-preview-card'); if (ghostEl) { ghostEl.textContent = section.name; e.dataTransfer.setDragImage(ghostEl, 20, 15); } }} onDragEndSection={() => { handleFinalSectionMove(); setDraggingSectionId(null); }} setLastInteractedSectionId={setLastInteractedSectionId} setLastInteractedTaskId={setLastInteractedTaskId} selectedTaskIds={selectedTaskIds} setSelectedTaskIds={setSelectedTaskIds} onTaskSelect={handleTaskSelect} />
                   </div>
                 )
               })}
@@ -3401,7 +3406,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
       ) : null}
 
       {/* Sürükleme Ghost Önizleme Taslağı */}
-      <div id="asana-drag-ghost-preview-card" style={styles.ghostDragCardTemplate}></div>
+      <div id="projectman-drag-ghost-preview-card" style={styles.ghostDragCardTemplate}></div>
 
       {/* Popover ve Modallar */}
       {contextMenu.visible && (
@@ -3436,7 +3441,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
       {approvalMenu.visible && (
         <div style={{ ...styles.contextMenu, top: `${approvalMenu.y}px`, left: `${approvalMenu.x}px`, overflow: 'visible', width: '150px', minWidth: '150px' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
           <button onClick={() => handleApprovalStatusChange('APPROVED')} style={{ ...styles.contextMenuItem, padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-success)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '16px', height: '16px', borderRadius: '4px', backgroundColor: 'var(--accent-success)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div> Approve</button>
-          <button onClick={() => handleApprovalStatusChange('CHANGES_REQUESTED')} style={{ ...styles.contextMenuItem, padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: '#F59E0B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '16px', height: '16px', borderRadius: '4px', backgroundColor: '#F59E0B', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-9.21l5.67-5.67"></path></svg></div> Request Changes</button>
+          <button onClick={() => handleApprovalStatusChange('CHANGES_REQUESTED')} style={{ ...styles.contextMenuItem, padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-warning)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '16px', height: '16px', borderRadius: '4px', backgroundColor: 'var(--accent-warning)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-9.21l5.67-5.67"></path></svg></div> Request Changes</button>
           <button onClick={() => handleApprovalStatusChange('REJECTED')} style={{ ...styles.contextMenuItem, padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-danger)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '16px', height: '16px', borderRadius: '4px', backgroundColor: 'var(--accent-danger)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div> Reject</button>
           <div style={{ borderTop: '1px solid var(--border-color)', margin: '4px 0' }}></div>
           <button onClick={() => handleApprovalStatusChange('PENDING')} style={{ ...styles.contextMenuItem, padding: '0.3rem 0.5rem', fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '16px', height: '16px', borderRadius: '4px', backgroundColor: 'transparent', border: '1px dashed var(--text-tertiary)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '10px', lineHeight: 1 }}>⚖️</span></div> Clear</button>
@@ -3691,7 +3696,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                           onClick={() => handleEditRule(r)}
                         >
                           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                            <span style={{ color: '#F87171', fontSize: '1.2rem', marginTop: '2px' }}>⚡</span>
+                            <span style={{ color: 'var(--accent-danger)', fontSize: '1.2rem', marginTop: '2px' }}>⚡</span>
                             <div>
                               <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: '500' }}>{ruleName}</div>
                               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
@@ -3710,7 +3715,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                               <div style={{ position: 'absolute', top: '100%', right: 0, backgroundColor: 'var(--bg-primary)', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '4px 0', zIndex: 10, minWidth: '120px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
                                 <div style={{ padding: '6px 12px', fontSize: '0.85rem', cursor: 'pointer' }} onClick={() => { handleEditRule(r); setActiveRuleMenuId(null); }}>✏️ Edit</div>
                                 <div style={{ padding: '6px 12px', fontSize: '0.85rem', cursor: 'pointer' }} onClick={() => { handleDuplicateRule(r); setActiveRuleMenuId(null); }}>📋 Duplicate</div>
-                                <div style={{ padding: '6px 12px', fontSize: '0.85rem', cursor: 'pointer', color: '#EF4444' }} onClick={() => { handleDeleteRule(r.id); setActiveRuleMenuId(null); }}>🗑️ Delete</div>
+                                <div style={{ padding: '6px 12px', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--accent-danger)' }} onClick={() => { handleDeleteRule(r.id); setActiveRuleMenuId(null); }}>🗑️ Delete</div>
                               </div>
                             )}
                           </div>
@@ -4181,7 +4186,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                             ))}
                             <div style={{ height: '1px', backgroundColor: '#E5E7EB', margin: '4px 0' }}></div>
                             <div
-                              style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', color: '#4F46E5', fontWeight: '500' }}
+                              style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: '500' }}
                               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'}
                               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                               onClick={() => { setShowAddFieldMenu(true); setIsOptionsPaneOpen(false); setOpenFilterDropdown(null); }}
@@ -4219,7 +4224,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                 }}
                               >
                                 <div style={{ width: '16px', display: 'flex', justifyContent: 'center' }}>
-                                  {groupObj.order === opt && <span style={{ color: '#4F46E5' }}>✓</span>}
+                                  {groupObj.order === opt && <span style={{ color: 'var(--accent-primary)' }}>✓</span>}
                                 </div>
                                 {opt}
                               </div>
@@ -4257,7 +4262,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                 onClick={() => { setShowEmptyGroups(false); setOpenFilterDropdown(null); }}
                               >
                                 <div style={{ width: '16px', display: 'flex', justifyContent: 'center' }}>
-                                  {!showEmptyGroups && <span style={{ color: '#4F46E5' }}>✓</span>}
+                                  {!showEmptyGroups && <span style={{ color: 'var(--accent-primary)' }}>✓</span>}
                                 </div>
                                 Hide empty groups
                               </div>
@@ -4268,7 +4273,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                 onClick={() => { setShowEmptyGroups(true); setOpenFilterDropdown(null); }}
                               >
                                 <div style={{ width: '16px', display: 'flex', justifyContent: 'center' }}>
-                                  {showEmptyGroups && <span style={{ color: '#4F46E5' }}>✓</span>}
+                                  {showEmptyGroups && <span style={{ color: 'var(--accent-primary)' }}>✓</span>}
                                 </div>
                                 Show empty groups
                               </div>
@@ -4358,7 +4363,11 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
           <div className="view-context-menu-item" onMouseDown={(e) => { e.stopPropagation(); handleSetDefaultView(); }}>⭐ Set as default</div>
           <div className="view-context-menu-item delete-item" onMouseDown={(e) => { e.stopPropagation(); handleDeleteView(); }}>🗑️ Delete</div>
         </div>
-      )}      {selectedTaskIds.size > 0 && (
+      )}
+
+      </div>
+
+      {selectedTaskIds.size > 0 && (
         <BulkActionBar
           selectedCount={selectedTaskIds.size}
           sections={selectedProject.sections}
@@ -4401,32 +4410,33 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
 }
 
 const styles = {
-  boardContainer: { padding: '0', fontFamily: 'system-ui', backgroundColor: 'var(--bg-primary)', height: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box', overflow: 'hidden' },
-  asanaMainHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 1.5rem', borderBottom: '1px solid var(--border-color)', flexShrink: 0 },
+  boardContainer: { padding: '1.5rem', backgroundColor: 'var(--bg-secondary)', height: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box', overflow: 'hidden', gap: '1.5rem' },
+  projectMainHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0', flexShrink: 0 },
   headerLeftBlock: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
-  asanaProjectIcon: { width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', backgroundColor: 'var(--bg-tertiary)' },
-  projectTitleText: { margin: 0, color: 'var(--text-primary)', fontSize: '1.2rem', fontWeight: '700' },
-  titleDropdownArrowBtn: { background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '0.65rem', cursor: 'pointer', alignSelf: 'center', padding: '4px' },
-  renameInputInline: { fontSize: '1.2rem', fontWeight: '700', color: 'var(--text-primary)', border: '1px solid var(--accent-primary)', borderRadius: '4px', outline: 'none', padding: '2px 6px', backgroundColor: 'transparent' },
-  titleActionDropdown: { position: 'absolute', top: '100%', left: '0', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: '0 10px 15px rgba(0,0,0,0.05)', padding: '0.4rem', zIndex: 10002, minWidth: '170px', marginTop: '4px' },
+  projectIcon: { width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', backgroundColor: 'var(--bg-tertiary)' },
+  projectTitleText: { margin: 0, color: 'var(--text-primary)', fontSize: '1.4rem', fontWeight: '800', letterSpacing: '-0.02em' },
+  titleDropdownArrowBtn: { background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '0.75rem', cursor: 'pointer', alignSelf: 'center', padding: '4px' },
+  renameInputInline: { fontSize: '1.4rem', fontWeight: '800', letterSpacing: '-0.02em', color: 'var(--text-primary)', border: '1px solid var(--accent-primary)', borderRadius: '4px', outline: 'none', padding: '2px 6px', backgroundColor: 'var(--bg-primary)' },
+  titleActionDropdown: { position: 'absolute', top: '100%', left: '0', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: 'var(--shadow-md)', padding: '0.4rem', zIndex: 10002, minWidth: '170px', marginTop: '4px' },
   dropdownOptionItem: { padding: '0.5rem 0.75rem', fontSize: '0.85rem', color: 'var(--text-primary)', borderRadius: '6px', cursor: 'pointer' },
   dropdownDivider: { height: '1px', backgroundColor: 'var(--border-color)', margin: '0.3rem 0' },
-  starIconStyle: { color: 'var(--text-tertiary)', fontSize: '1.1rem', cursor: 'pointer' },
-  setStatusDummyBtn: { backgroundColor: 'transparent', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '3px 10px', fontSize: '0.75rem', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' },
-  statusDropdownMenu: { position: 'absolute', top: '100%', left: 0, marginTop: '4px', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', borderRadius: '6px', border: '1px solid var(--border-color)', padding: '4px 0', minWidth: '150px', zIndex: 50, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' },
-  addWidgetDropdownMenu: { position: 'absolute', top: '100%', left: 0, marginTop: '4px', backgroundColor: 'var(--bg-primary)', borderRadius: '6px', border: '1px solid var(--border-color)', padding: '4px 0', minWidth: '120px', zIndex: 50, boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' },
+  starIconStyle: { color: 'var(--text-tertiary)', fontSize: '1.2rem', cursor: 'pointer' },
+  setStatusDummyBtn: { backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '20px', padding: '4px 12px', fontSize: '0.75rem', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500' },
+  statusDropdownMenu: { position: 'absolute', top: '100%', left: 0, marginTop: '4px', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '4px 0', minWidth: '150px', zIndex: 1000, boxShadow: 'var(--shadow-md)' },
+  addWidgetDropdownMenu: { position: 'absolute', top: '100%', left: 0, marginTop: '4px', backgroundColor: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '4px 0', minWidth: '120px', zIndex: 50, boxShadow: 'var(--shadow-sm)' },
   addWidgetDropdownItem: { padding: '8px 16px', fontSize: '0.85rem', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'background-color 0.1s' },
   headerRightBlock: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
   avatarListWrapper: { display: 'flex', alignItems: 'center' },
-  avatarCircleOwner: { width: '26px', height: '26px', borderRadius: '50%', backgroundColor: 'var(--accent-primary)', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', cursor: 'pointer' },
-  asanaShareButtonLight: { backgroundColor: 'var(--bg-tertiary)', color: 'var(--accent-primary)', border: 'none', borderRadius: '6px', padding: '0.45rem 0.9rem', fontSize: '0.8rem', fontWeight: 'normal', cursor: 'pointer' },
-  asanaCustomizeBtn: { backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)', border: 'none', borderRadius: '6px', padding: '0.45rem 0.9rem', fontSize: '0.8rem', fontWeight: '500', cursor: 'pointer' },
-  logoutTopBtn: { backgroundColor: '#FEE2E2', color: 'var(--accent-danger)', border: 'none', borderRadius: '6px', padding: '0.45rem 0.75rem', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' },
-  asanaTabsRow: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1.5rem', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', flexShrink: 0 },
-  tabItemBack: { fontSize: '0.8rem', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: '600', padding: '6px 12px', borderRadius: '6px' },
-  tabItemPassive: { fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '6px 12px', fontWeight: '500', cursor: 'pointer', borderRadius: '6px' },
-  tabItemActive: { fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: '500', padding: '6px 12px', cursor: 'pointer', borderRadius: '6px', backgroundColor: 'var(--bg-tertiary)' },
-  asanaOptionsSubHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 1.5rem', height: '52px', boxSizing: 'border-box', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', flexShrink: 0 },
+  avatarCircleOwner: { width: '28px', height: '28px', borderRadius: '50%', backgroundColor: 'var(--accent-primary)', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'pointer' },
+  shareButton: { backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '20px', padding: '0.45rem 1rem', fontSize: '0.8rem', fontWeight: '500', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' },
+  customizeBtn: { backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '20px', padding: '0.45rem 1rem', fontSize: '0.8rem', fontWeight: '500', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' },
+  logoutTopBtn: { backgroundColor: '#FEE2E2', color: 'var(--accent-danger)', border: 'none', borderRadius: '8px', padding: '0.45rem 0.75rem', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' },
+  projectToolbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0', flexShrink: 0 },
+  tabsContainer: { display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'var(--bg-tertiary)', padding: '0.25rem', borderRadius: '12px', border: '1px solid var(--border-color)' },
+  tabItemBack: { fontSize: '0.85rem', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: '600', padding: '6px 16px', borderRadius: '8px' },
+  tabItemPassive: { fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '6px 16px', fontWeight: '600', cursor: 'pointer', borderRadius: '8px', transition: 'color 0.2s' },
+  tabItemActive: { fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: '600', padding: '6px 16px', cursor: 'pointer', borderRadius: '8px', backgroundColor: 'var(--bg-primary)', boxShadow: 'var(--shadow-sm)' },
+  contentWrapper: { flex: 1, backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-md)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', overflow: 'hidden' },
   addTaskDropdownBtn: { backgroundColor: '#6366F1', color: '#FFF', border: 'none', borderRadius: '6px', padding: '0.35rem 0.75rem', fontSize: '0.8rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', transition: 'background-color 0.2s' },
   optionsRightGroup: { display: 'flex', alignItems: 'center', gap: '1rem' },
   optionSubItem: { fontSize: '0.8rem', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500', padding: '4px 8px', borderRadius: '6px' },

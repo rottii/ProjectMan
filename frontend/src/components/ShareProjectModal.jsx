@@ -359,13 +359,13 @@ export default function ShareProjectModal({
             {/* SADECE AYRILMA / ÇIKARMA SEÇENEĞİ */}
             <div onClick={() => handleUpdateRole(activeMenuMemberId, 'REMOVE')} style={{
           ...styles.menuItemRow,
-          color: '#EF4444'
+          color: 'var(--accent-danger)'
         }}>
               <div style={styles.tickCell}>🚫</div>
               <div>
                 <div style={{
               ...styles.itemTitle,
-              color: '#EF4444'
+              color: 'var(--accent-danger)'
             }}>
                   {currentUser && activeMenuMemberId === currentUser.id ? 'Leave project' : 'Remove from project'}
                 </div>

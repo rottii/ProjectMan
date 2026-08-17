@@ -88,7 +88,7 @@ router.post('/auto-code/:taskId', authenticateToken, async (req, res) => {
         if (!project.allowAutoCodeOnPR) {
             try {
                 const repoRes = await fetch(`https://api.github.com/repos/${repoPath}/pulls?state=open`, {
-                    headers: { 'Authorization': `token ${githubToken}`, 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'Asana-Clone-AI' }
+                    headers: { 'Authorization': `token ${githubToken}`, 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'ProjectMan-AI' }
                 });
                 if (repoRes.ok) {
                     const pulls = await repoRes.json();
@@ -102,7 +102,7 @@ router.post('/auto-code/:taskId', authenticateToken, async (req, res) => {
         }
 
         const cloneUrl = `https://${githubToken}@github.com/${repoPath}.git`;
-        const tempDir = path.join(os.tmpdir(), `asana-autocode-${taskId}-${Date.now()}`);
+        const tempDir = path.join(os.tmpdir(), `projectman-autocode-${taskId}-${Date.now()}`);
 
         console.log(`Cloning ${repoPath} into ${tempDir}...`);
 
@@ -233,7 +233,7 @@ Return a valid JSON object strictly matching this format (no markdown, no extra 
         console.log(`Committing and pushing to ${branchName}...`);
 
         // Git config
-        await execPromise(`git config user.email "ai@asana-clone.local"`, { cwd: tempDir });
+        await execPromise(`git config user.email "ai@projectman.local"`, { cwd: tempDir });
         await execPromise(`git config user.name "AI Auto-Coder"`, { cwd: tempDir });
 
         await execPromise(`git checkout -b ${branchName}`, { cwd: tempDir });
@@ -249,7 +249,7 @@ Return a valid JSON object strictly matching this format (no markdown, no extra 
         try {
             console.log('Creating Pull Request...');
             const repoRes = await fetch(`https://api.github.com/repos/${repoPath}`, {
-                headers: { 'Authorization': `token ${githubToken}`, 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'Asana-Clone-AI' }
+                headers: { 'Authorization': `token ${githubToken}`, 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'ProjectMan-AI' }
             });
             if (repoRes.ok) {
                 const repoData = await repoRes.json();
@@ -261,7 +261,7 @@ Return a valid JSON object strictly matching this format (no markdown, no extra 
                         'Authorization': `token ${githubToken}`,
                         'Accept': 'application/vnd.github.v3+json',
                         'Content-Type': 'application/json',
-                        'User-Agent': 'Asana-Clone-AI'
+                        'User-Agent': 'ProjectMan-AI'
                     },
                     body: JSON.stringify({
                         title: `Auto-implemented task: ${task.title}`,

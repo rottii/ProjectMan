@@ -175,10 +175,10 @@ export default function PortfolioWorkloadView({
                 <div key={i} style={{
                   ...styles.dayHeaderCell,
                   width: DAY_WIDTH,
-                  borderBottom: d.isToday ? '3px solid #10B981' : '1px solid #E5E7EB'
+                  borderBottom: d.isToday ? '3px solid var(--accent-success)' : '1px solid #E5E7EB'
                 }}>
                   <div style={{ fontSize: '0.7rem', color: '#6B7280', textTransform: 'uppercase' }}>{d.dayName}</div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: d.isToday ? '700' : '500', color: d.isToday ? '#10B981' : '#111827' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: d.isToday ? '700' : '500', color: d.isToday ? 'var(--accent-success)' : '#111827' }}>
                     {d.dayNum}
                   </div>
                 </div>
@@ -224,7 +224,7 @@ export default function PortfolioWorkloadView({
                             return (
                               <div key={i} style={{
                                 position: 'absolute', left: p.dayIdx * DAY_WIDTH, width: DAY_WIDTH, top: p.y - 8,
-                                textAlign: 'center', fontSize: '0.75rem', color: isOverloaded ? '#EF4444' : 'var(--text-primary)',
+                                textAlign: 'center', fontSize: '0.75rem', color: isOverloaded ? 'var(--accent-danger)' : 'var(--text-primary)',
                                 fontWeight: isOverloaded ? 'bold' : '500', pointerEvents: 'none'
                               }}>
                                 {p.count}

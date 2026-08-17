@@ -68,7 +68,7 @@ const MentionList = forwardRef((props, ref) => {
       width: '100%',
       padding: '8px 12px',
       border: 'none',
-      borderLeft: index === selectedIndex ? '3px solid #4F46E5' : '3px solid transparent',
+      borderLeft: index === selectedIndex ? '3px solid var(--accent-primary)' : '3px solid transparent',
       background: index === selectedIndex ? 'var(--bg-secondary)' : 'transparent',
       color: 'var(--text-primary)',
       textAlign: 'left',
@@ -139,7 +139,7 @@ export default function RichTextEditor({
     }), Mention.configure({
       HTMLAttributes: {
         class: 'mention',
-        style: 'color: #4F46E5; background: #EEF2FF; padding: 2px 4px; border-radius: 4px; font-weight: 500;'
+        style: 'color: var(--accent-primary); background: var(--bg-tertiary); padding: 2px 4px; border-radius: 4px; font-weight: 500;'
       },
       renderLabel({
         options,

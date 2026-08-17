@@ -365,11 +365,11 @@ export default function ProjectTimelineView({
             }}>
                   <span style={{
                 ...styles.dayName,
-                color: d.isToday ? '#4F46E5' : 'var(--text-secondary)'
+                color: d.isToday ? 'var(--accent-primary)' : 'var(--text-secondary)'
               }}>{d.dayName.charAt(0)}</span>
                   <span style={{
                 ...styles.dayNum,
-                color: d.isToday ? '#4F46E5' : 'var(--text-primary)'
+                color: d.isToday ? 'var(--accent-primary)' : 'var(--text-primary)'
               }}>{d.dayNum}</span>
                 </div>)}
             </div>
@@ -379,7 +379,7 @@ export default function ProjectTimelineView({
             <style>{`
               .dependency-line-group .delete-btn { opacity: 0; pointer-events: none; }
               .dependency-line-group:hover .delete-btn { opacity: 1; pointer-events: auto; }
-              .dependency-line-group:hover .line-path { stroke: #EF4444 !important; }
+              .dependency-line-group:hover .line-path { stroke: var(--accent-danger) !important; }
               .timeline-section-row .section-controls { opacity: 0; transition: opacity 0.2s; }
               .timeline-section-row:hover .section-controls { opacity: 1; }
             `}</style>
@@ -431,7 +431,7 @@ export default function ProjectTimelineView({
                   e.stopPropagation();
                   handleDeleteDependency(line.taskId, line.id);
                 }}>
-                      <circle cx={btnX} cy={btnY} r="8" fill="#EF4444" />
+                      <circle cx={btnX} cy={btnY} r="8" fill="var(--accent-danger)" />
                       <text x={btnX} y={btnY + 1} fill="white" fontSize="10" fontWeight="bold" textAnchor="middle" dominantBaseline="central">×</text>
                     </g>
                   </g>;
@@ -441,7 +441,7 @@ export default function ProjectTimelineView({
               const startX = connectingTask.isStart ? cTask.left : cTask.left + cTask.width;
               const cp1X = connectingTask.isStart ? startX - 30 : startX + 30;
               const cp2X = connectingTask.isStart ? mousePos.x + 30 : mousePos.x - 30;
-              return <path d={`M ${startX} ${cTask.yCenter} C ${cp1X} ${cTask.yCenter}, ${cp2X} ${mousePos.y}, ${mousePos.x} ${mousePos.y}`} stroke="#4F46E5" strokeWidth="2" strokeDasharray="4" fill="none" />;
+              return <path d={`M ${startX} ${cTask.yCenter} C ${cp1X} ${cTask.yCenter}, ${cp2X} ${mousePos.y}, ${mousePos.x} ${mousePos.y}`} stroke="var(--accent-primary)" strokeWidth="2" strokeDasharray="4" fill="none" />;
             })()}
               <defs>
                 <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -493,7 +493,7 @@ export default function ProjectTimelineView({
                     if (setDraggingSectionId) setDraggingSectionId(group.section.id);
                     e.dataTransfer.setData('drag-type', 'section');
                     e.dataTransfer.setData('section-id', group.section.id);
-                    const ghostEl = document.getElementById('asana-drag-ghost-preview-card');
+                    const ghostEl = document.getElementById('projectman-drag-ghost-preview-card');
                     if (ghostEl) {
                       ghostEl.textContent = group.section.name;
                       e.dataTransfer.setDragImage(ghostEl, 20, 15);
@@ -654,7 +654,7 @@ export default function ProjectTimelineView({
                           height: '14px',
                           flexShrink: 0,
                           transform: 'rotate(45deg)',
-                          backgroundColor: t.isCompleted ? '#10B981' : t.color,
+                          backgroundColor: t.isCompleted ? 'var(--accent-success)' : t.color,
                           border: '2px solid rgba(0,0,0,0.15)'
                         }} />
                               <span style={{
