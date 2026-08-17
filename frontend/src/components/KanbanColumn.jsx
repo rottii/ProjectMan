@@ -95,8 +95,8 @@ export default function KanbanColumn({
     boxShadow: 'none',
     padding: '0'
   }}>
-      {/* Sütun Başlığı */}
-      {!isMatrixCell && <div className="section-header" draggable={draggableSection} onDragStart={onDragStartSection} onDragEnd={onDragEndSection} style={{
+    {/* Sütun Başlığı */}
+    {!isMatrixCell && <div className="section-header" draggable={draggableSection} onDragStart={onDragStartSection} onDragEnd={onDragEndSection} style={{
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -109,14 +109,14 @@ export default function KanbanColumn({
       cursor: isReadOnly || isEditingName || isVirtualGrouping ? 'default' : 'pointer',
       flexShrink: 0
     }}>
-        <div style={{
+      <div style={{
         display: 'flex',
         alignItems: 'center',
         gap: '0.5rem',
         flex: 1,
         minWidth: 0
       }}>
-          {isEditingName ? <input autoFocus value={editNameValue} onChange={e => setEditNameValue(e.target.value)} onBlur={submitRename} onKeyDown={e => e.key === 'Enter' && submitRename()} style={{
+        {isEditingName ? <input autoFocus value={editNameValue} onChange={e => setEditNameValue(e.target.value)} onBlur={submitRename} onKeyDown={e => e.key === 'Enter' && submitRename()} style={{
           ...styles.miniInput,
           flex: 1
         }} /> : <h3 onClick={() => {
@@ -131,40 +131,40 @@ export default function KanbanColumn({
           overflow: 'hidden',
           textOverflow: 'ellipsis'
         }}>
-              {section.name}
-            </h3>}
-          {!isEditingName && <span style={styles.taskCountBadge}>{section.tasks?.length || 0}</span>}
-        </div>
+          {section.name}
+        </h3>}
+        {!isEditingName && <span style={styles.taskCountBadge}>{section.tasks?.length || 0}</span>}
+      </div>
 
-        {/* Sadece yetkili kullanıcılar sütun yönetim menüsünü görebilir */}
-        {!isReadOnly && !isEditingName && !isVirtualGrouping && <div style={{
+      {/* Sadece yetkili kullanıcılar sütun yönetim menüsünü görebilir */}
+      {!isReadOnly && !isEditingName && !isVirtualGrouping && <div style={{
         position: 'relative'
       }}>
-            <button onClick={e => {
+        <button onClick={e => {
           e.stopPropagation();
           setIsMenuOpen(!isMenuOpen);
         }} style={styles.threeDotButton}>⋮</button>
-            {isMenuOpen && <div style={{
+        {isMenuOpen && <div style={{
           ...styles.dropdownMenu,
           top: '100%',
           left: '0',
           right: 'auto',
           marginTop: '4px'
         }}>
-                <button onClick={() => {
+          <button onClick={() => {
             setIsEditingName(true);
             setIsMenuOpen(false);
           }} style={styles.dropdownItem}>{t("rename_section", "Rename Section")}</button>
-                <button onClick={() => {
+          <button onClick={() => {
             onDeleteSection(section.id);
             setIsMenuOpen(false);
           }} style={styles.dropdownItemDelete}>{t("delete_section", "Delete Section")}</button>
-              </div>}
-          </div>}
+        </div>}
       </div>}
+    </div>}
 
-      {/* SADECE GÖREV KARTLARININ KAYDIRILDIĞI SCROLL ALANI - TEK BÜYÜK KUTU */}
-      <div className="kanban-task-list" style={{
+    {/* SADECE GÖREV KARTLARININ KAYDIRILDIĞI SCROLL ALANI - TEK BÜYÜK KUTU */}
+    <div className="kanban-task-list" style={{
       ...styles.taskListContainer,
       gap: isSubgrouped ? '1rem' : '0.75rem',
       backgroundColor: 'var(--bg-tertiary)',
@@ -173,12 +173,12 @@ export default function KanbanColumn({
       marginRight: 0,
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
     }}>
-        {section.subgroups ? section.subgroups.map((subgroup, index) => <div key={subgroup.id} style={{
+      {section.subgroups ? section.subgroups.map((subgroup, index) => <div key={subgroup.id} style={{
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0
       }}>
-              <div style={{
+        <div style={{
           position: 'sticky',
           top: '-0.75rem',
           zIndex: 5,
@@ -191,11 +191,11 @@ export default function KanbanColumn({
           gap: '0.5rem',
           cursor: 'pointer'
         }}>
-                <span style={{
+          <span style={{
             fontSize: '0.8rem',
             color: 'var(--text-secondary)'
           }}>▼</span>
-                <span style={{
+          <span style={{
             fontSize: '1.1rem',
             fontWeight: 'bold',
             color: 'var(--text-primary)',
@@ -203,16 +203,16 @@ export default function KanbanColumn({
             overflow: 'hidden',
             textOverflow: 'ellipsis'
           }}>
-                  {subgroup.name}
-                </span>
-                <span style={styles.taskCountBadge}>{subgroup.tasks?.length || 0}</span>
-              </div>
-              <div style={{
+            {subgroup.name}
+          </span>
+          <span style={styles.taskCountBadge}>{subgroup.tasks?.length || 0}</span>
+        </div>
+        <div style={{
           display: 'flex',
           flexDirection: 'column',
           gap: '0.5rem'
         }}>
-                {subgroup.tasks?.map(task => <div key={task.id} style={{
+          {subgroup.tasks?.map(task => <div key={task.id} style={{
             width: '100%',
             flexShrink: 0,
             display: task.isHiddenForMultiDrag ? 'none' : 'block'
@@ -220,10 +220,10 @@ export default function KanbanColumn({
             if (setLastInteractedSectionId) setLastInteractedSectionId(section.id);
             if (setLastInteractedTaskId) setLastInteractedTaskId(task.id);
           }}>
-                    <TaskCard task={task} token={token} onTaskUpdate={onTaskUpdate} onTaskContextMenu={onTaskContextMenu} onOpenApprovalMenu={onOpenApprovalMenu} onOpenPopover={onOpenPopover} onOpenTaskPane={onOpenTaskPane} isVirtualGrouping={isVirtualGrouping} customFieldSettings={customFieldSettings} projectMembers={projectMembers} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} fieldConfig={fieldConfig} selectedTaskIds={selectedTaskIds} onTaskSelect={onTaskSelect} isMatrixCell={isMatrixCell} />
-                  </div>)}
-              </div>
-            </div>) : section.tasks?.map(task => <div key={task.id} style={{
+            <TaskCard task={task} token={token} onTaskUpdate={onTaskUpdate} onTaskContextMenu={onTaskContextMenu} onOpenApprovalMenu={onOpenApprovalMenu} onOpenPopover={onOpenPopover} onOpenTaskPane={onOpenTaskPane} isVirtualGrouping={isVirtualGrouping} customFieldSettings={customFieldSettings} projectMembers={projectMembers} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} fieldConfig={fieldConfig} selectedTaskIds={selectedTaskIds} onTaskSelect={onTaskSelect} isMatrixCell={isMatrixCell} />
+          </div>)}
+        </div>
+      </div>) : section.tasks?.map(task => <div key={task.id} style={{
         width: '248px',
         flexShrink: 0,
         display: task.isHiddenForMultiDrag ? 'none' : 'block'
@@ -231,22 +231,22 @@ export default function KanbanColumn({
         if (setLastInteractedSectionId) setLastInteractedSectionId(section.id);
         if (setLastInteractedTaskId) setLastInteractedTaskId(task.id);
       }}>
-              <TaskCard task={task} token={token} onTaskUpdate={onTaskUpdate} onTaskContextMenu={onTaskContextMenu} onOpenApprovalMenu={onOpenApprovalMenu} onOpenPopover={onOpenPopover} onOpenTaskPane={onOpenTaskPane} isVirtualGrouping={isVirtualGrouping} customFieldSettings={customFieldSettings} projectMembers={projectMembers} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} fieldConfig={fieldConfig} selectedTaskIds={selectedTaskIds} onTaskSelect={onTaskSelect} isMatrixCell={isMatrixCell} />
-            </div>)}
-      </div>
+        <TaskCard task={task} token={token} onTaskUpdate={onTaskUpdate} onTaskContextMenu={onTaskContextMenu} onOpenApprovalMenu={onOpenApprovalMenu} onOpenPopover={onOpenPopover} onOpenTaskPane={onOpenTaskPane} isVirtualGrouping={isVirtualGrouping} customFieldSettings={customFieldSettings} projectMembers={projectMembers} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} fieldConfig={fieldConfig} selectedTaskIds={selectedTaskIds} onTaskSelect={onTaskSelect} isMatrixCell={isMatrixCell} />
+      </div>)}
+    </div>
 
-      {/* Sadece yetkili kullanıcılar hızlı görev ekleme alanını görür */}
-      {!isReadOnly && !isVirtualGrouping ? <form onSubmit={handleCreateTask} style={{
+    {/* Sadece yetkili kullanıcılar hızlı görev ekleme alanını görür */}
+    {!isReadOnly && !isVirtualGrouping ? <form onSubmit={handleCreateTask} style={{
       display: 'flex',
       flexDirection: 'column',
       gap: '0.5rem',
       flexShrink: 0,
       marginTop: 'auto'
     }}>
-          <input type="text" placeholder={t("add_task", "+ Add task...")} value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} style={styles.miniInput} required />
-          <button type="submit" style={styles.miniButton}>{t("add", "Add")}</button>
-        </form> : isReadOnly ? <div style={styles.readOnlyFooter}>{t("read_only_mode", "\uD83D\uDC41\uFE0F Read Only Mode")}</div> : null}
-    </div>;
+      <input type="text" placeholder={t("add_task", "+ Add task...")} value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} style={styles.miniInput} required />
+      <button type="submit" style={styles.miniButton}>{t("add", "Add")}</button>
+    </form> : isReadOnly ? <div style={styles.readOnlyFooter}>{t("read_only_mode", "\uD83D\uDC41\uFE0F Read Only Mode")}</div> : null}
+  </div>;
 }
 const styles = {
   kanbanColumn: {

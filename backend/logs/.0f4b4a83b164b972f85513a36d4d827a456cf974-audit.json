@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Users\\iboro\\OneDrive\\Belgeler\\Asana-Clone antigravity\\backend\\logs\\.0f4b4a83b164b972f85513a36d4d827a456cf974-audit.json",
+    "files": [
+        {
+            "date": 1786952874008,
+            "name": "C:\\Users\\iboro\\OneDrive\\Belgeler\\Asana-Clone antigravity\\backend\\logs\\error-2026-08-17.log",
+            "hash": "511a787d4153a50dbf514b0bda271aeb960a45acf44db5b374520a1fde80469d"
+        }
+    ],
+    "hashType": "sha256"
+}

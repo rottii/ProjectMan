@@ -197,7 +197,11 @@ export default function Portfolios({
         </div>
 
         <div style={styles.tabsAndActionsRow}>
-          <div style={styles.tabsContainer}>
+          <div className="thin-scrollbar" onWheel={(e) => {
+            if (e.deltaY !== 0) {
+              e.currentTarget.scrollLeft += e.deltaY;
+            }
+          }} style={styles.tabsContainer}>
             <div style={{
             ...styles.tab,
             ...(activeTab === 'Recent and starred' ? styles.activeTab : {})

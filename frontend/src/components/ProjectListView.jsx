@@ -1414,7 +1414,7 @@ export default function ProjectListView({
           flexShrink: 0,
           boxSizing: 'border-box'
         }} />
-          <div style={{
+          <div className="list-header-cell" style={{
           ...styles.gridHeaderCell,
           width: colWidths.name,
           flexShrink: 0,
@@ -1424,7 +1424,7 @@ export default function ProjectListView({
           justifyContent: 'space-between',
           alignItems: 'center',
           cursor: 'pointer'
-        }} onMouseEnter={() => setHoveredColumnName('name')} onMouseLeave={() => setHoveredColumnName(null)} onClick={e => {
+        }} onClick={e => {
           handleSortOptionClick && handleSortOptionClick('Alphabetical');
         }} onMouseDown={e => e.stopPropagation()}>
             <div style={{
@@ -1442,13 +1442,13 @@ export default function ProjectListView({
             }}>{t("name", "Name")}{activeSorts?.find(s => s.field === 'Alphabetical') && (activeSorts.find(s => s.field === 'Alphabetical').direction === 'asc' ? '↑' : '↓')}
               </span>
             </div>
-            {(hoveredColumnName === 'name' || openColumnMenuName === 'name') && <button onClick={e => {
+            <button className={`list-header-menu-btn ${openColumnMenuName === 'name' ? 'active' : ''}`} onClick={e => {
             document.body.click();
             e.stopPropagation();
             const isOpen = openColumnMenuName === 'name';
             closeAllMenus();
             if (!isOpen) setOpenColumnMenuName('name');
-          }} style={styles.columnHeaderMenuBtn}>▼</button>}
+          }} style={styles.columnHeaderMenuBtn}>▼</button>
             {openColumnMenuName === 'name' && renderColumnDropdownMenu('name', 'name')}
             <div style={styles.resizeHandle} onMouseDown={e => handleResizeStart(e, 'name')} onClick={e => e.stopPropagation()} />
           </div>
@@ -1464,7 +1464,7 @@ export default function ProjectListView({
               return null;
             }
           }
-          return <div key={colId} draggable onDragStart={e => handleColDragStart(e, colId)} onDragOver={e => handleColDragOver(e, colId)} onDrop={e => handleColDrop(e, colId)} onDragEnd={handleColDragEnd} onClick={() => handleSortOptionClick && handleSortOptionClick(title)} onMouseDown={e => e.stopPropagation()} style={{
+          return <div key={colId} className="list-header-cell" draggable onDragStart={e => handleColDragStart(e, colId)} onDragOver={e => handleColDragOver(e, colId)} onDrop={e => handleColDrop(e, colId)} onDragEnd={handleColDragEnd} onClick={() => handleSortOptionClick && handleSortOptionClick(title)} onMouseDown={e => e.stopPropagation()} style={{
             ...styles.gridHeaderCell,
             width: colWidths[colId] || 140,
             flexShrink: 0,
@@ -1475,7 +1475,7 @@ export default function ProjectListView({
             opacity: draggingColId === colId ? 0.5 : 1,
             cursor: draggingColId === colId ? 'grabbing' : 'pointer',
             boxShadow: dropTargetCol.id === colId ? dropTargetCol.position === 'left' ? 'inset 3px 0 0 var(--accent-primary)' : 'inset -3px 0 0 var(--accent-primary)' : 'none'
-          }} onMouseEnter={() => setHoveredColumnName(menuName)} onMouseLeave={() => setHoveredColumnName(null)}>
+          }}>
                 <span style={{
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -1487,13 +1487,13 @@ export default function ProjectListView({
             }}>
                   {title} {activeSorts?.find(s => s.field === title) && (activeSorts.find(s => s.field === title).direction === 'asc' ? '↑' : '↓')}
                 </span>
-                {(hoveredColumnName === menuName || openColumnMenuName === menuName) && <button onClick={e => {
+                <button className={`list-header-menu-btn ${openColumnMenuName === menuName ? 'active' : ''}`} onClick={e => {
               document.body.click();
               e.stopPropagation();
               const isOpen = openColumnMenuName === menuName;
               closeAllMenus();
               if (!isOpen) setOpenColumnMenuName(menuName);
-            }} style={styles.columnHeaderMenuBtn}>▼</button>}
+            }} style={styles.columnHeaderMenuBtn}>▼</button>
                 {openColumnMenuName === menuName && renderColumnDropdownMenu(menuName, colId)}
                 <div style={styles.resizeHandle} onMouseDown={e => handleResizeStart(e, colId)} onClick={e => e.stopPropagation()} />
               </div>;
@@ -1576,6 +1576,35 @@ export default function ProjectListView({
             e.preventDefault();
             if (draggingSectionId && draggingSectionId !== section.id && !isVirtualGrouping) {
               const sortedSections = [...(selectedProject.sections || [])].sort((a, b) => a.order - b.order);
+              const dragIndex = sortedSections.findIndex(s => s.id === draggingSectionId);
+              const hoverIndex = sortedSections.findIndex(s => s.id === section.id);
+              if (dragIndex === -1 || hoverIndex === -1) return;
+
+              const rect = e.currentTarget.getBoundingClientRect();
+
+              if (!window.__sectionDragState) {
+                window.__sectionDragState = { draggedId: null, hoverId: null, lastSwapY: 0, lastSwapX: 0 };
+              }
+              const state = window.__sectionDragState;
+
+              if (dragIndex < hoverIndex) {
+                // Dragging DOWN: swap as soon as we enter the target section from the top
+                // Hysteresis to prevent flicker
+                if (state.draggedId === draggingSectionId && state.hoverId === section.id && e.clientY < state.lastSwapY + 30) {
+                  return;
+                }
+              } else {
+                // Dragging UP: swap as soon as we enter the target section from below
+                // Hysteresis to prevent flicker
+                if (state.draggedId === draggingSectionId && state.hoverId === section.id && e.clientY > state.lastSwapY - 30) {
+                  return;
+                }
+              }
+
+              state.draggedId = draggingSectionId;
+              state.hoverId = section.id;
+              state.lastSwapY = e.clientY;
+
               handleLiveSectionSwap(draggingSectionId, section.id);
             }
           }} onDrop={e => {
@@ -1616,6 +1645,7 @@ export default function ProjectListView({
               }} onDragEnd={() => {
                 handleFinalSectionMove();
                 setDraggingSectionId(null);
+                window.__sectionDragState = null;
               }} style={{
                 ...styles.drag6DotHandleCell,
                 cursor: isReadOnly ? 'pointer' : 'grab',

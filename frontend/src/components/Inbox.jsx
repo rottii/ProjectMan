@@ -231,7 +231,11 @@ export default function Inbox({
       </div>
 
       {/* 2. Tabs */}
-      <div style={styles.tabsContainer}>
+      <div className="thin-scrollbar" onWheel={(e) => {
+        if (e.deltaY !== 0) {
+          e.currentTarget.scrollLeft += e.deltaY;
+        }
+      }} style={styles.tabsContainer}>
         <div style={styles.tabActive}>{t("activity", "Activity")}</div>
         <div style={styles.tabInactive}>{t("bookmarks", "Bookmarks")}</div>
         <div style={styles.tabInactive}>{t("archive", "Archive")}</div>

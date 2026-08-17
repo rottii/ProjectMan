@@ -280,7 +280,11 @@ export default function PortfolioDetail({
           </div>
         </div>
 
-        <div style={styles.tabsContainer}>
+        <div className="thin-scrollbar" onWheel={(e) => {
+          if (e.deltaY !== 0) {
+            e.currentTarget.scrollLeft += e.deltaY;
+          }
+        }} style={styles.tabsContainer}>
           {['List', 'Timeline', 'Dashboard', 'Progress', 'Workload', 'Messages', '+'].map(tab => <div key={tab} style={{
           ...styles.tab,
           ...(activeTab === tab ? styles.activeTab : {})

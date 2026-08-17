@@ -287,10 +287,11 @@ export default function ProjectCalendarView({
           margin: 0,
           fontSize: '1.1rem',
           fontWeight: '600',
-          color: 'var(--text-primary)'
+          color: 'var(--text-primary)',
+          width: '150px',
+          textAlign: 'left'
         }}>{visibleMonth}</h2>
           </div>
-          <button style={styles.filterBtn}>{t("weekend", "Weekend")}</button>
         </>, portalTarget)}
 
       <div style={styles.calendarGridContainer}>

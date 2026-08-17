@@ -8,12 +8,13 @@ export default function ProjectWorkloadView({
   handleTaskUpdate,
   onOpenTaskPane,
   token,
-  isReadOnly
+  isReadOnly,
+  activeViewObj
 }) {
   const {
     t
   } = useTranslation();
-  const [capacityLimit, setCapacityLimit] = useState(3);
+  const capacityLimit = activeViewObj?.capacityLimit || 3;
   const [expandedAssignees, setExpandedAssignees] = useState({});
   const [dragState, setDragState] = useState(null);
   const scrollContainerRef = useRef(null);
@@ -241,106 +242,90 @@ export default function ProjectWorkloadView({
   };
   const portalTarget = document.getElementById('timeline-topbar-portal');
   return <div style={styles.container}>
-      {portalTarget && createPortal(<div style={{
+    {portalTarget && createPortal(<div style={{
       display: 'flex',
       alignItems: 'center',
       gap: '1rem'
     }}>
-          <h2 style={{
-        margin: 0,
-        fontSize: '1.1rem',
-        fontWeight: '600',
-        color: 'var(--text-primary)'
-      }}>{t("team_workload", "Team Workload")}</h2>
-          <div style={styles.capacityControl}>
-            <label style={{
-          fontSize: '0.85rem',
-          color: '#6B7280'
-        }}>{t("capacity_limit", "Capacity limit:")}</label>
-            <input type="number" value={capacityLimit} onChange={e => setCapacityLimit(Math.max(1, parseInt(e.target.value) || 1))} style={styles.capacityInput} min="1" />
-            <span style={{
-          fontSize: '0.85rem',
-          color: '#6B7280'
-        }}>{t("tasks_day", "tasks/day")}</span>
-          </div>
-        </div>, portalTarget)}
 
-      <div style={styles.layoutWrapper}>
-        
-        {/* Left Sidebar (Assignees) */}
-        <div style={styles.sidebar} onWheel={handleSidebarWheel}>
-          <div style={styles.sidebarHeader}>{t("assignee", "Assignee")}</div>
-          <div style={styles.sidebarContent} ref={sidebarScrollRef}>
-            {assigneeData.length === 0 && <div style={styles.emptyState}>{t("no_scheduled_tasks", "No scheduled tasks")}</div>}
-            
-            {assigneeData.map((assignee, idx) => <div key={idx} style={styles.assigneeGroupSidebar}>
-                <div style={styles.assigneeMainRowSidebar} onClick={() => toggleExpand(assignee.name)}>
-                  <span style={{
+    </div>, portalTarget)}
+
+    <div style={styles.layoutWrapper}>
+
+      {/* Left Sidebar (Assignees) */}
+      <div style={styles.sidebar} onWheel={handleSidebarWheel}>
+        <div style={styles.sidebarHeader}>{t("assignee", "Assignee")}</div>
+        <div style={styles.sidebarContent} ref={sidebarScrollRef}>
+          {assigneeData.length === 0 && <div style={styles.emptyState}>{t("no_scheduled_tasks", "No scheduled tasks")}</div>}
+
+          {assigneeData.map((assignee, idx) => <div key={idx} style={styles.assigneeGroupSidebar}>
+            <div style={styles.assigneeMainRowSidebar} onClick={() => toggleExpand(assignee.name)}>
+              <span style={{
                 ...styles.chevron,
                 transform: expandedAssignees[assignee.name] ? 'rotate(90deg)' : 'rotate(0)'
               }}>▶</span>
-                  <UserAvatar name={assignee.name} userId={assignee.id} profilePhoto={assignee.profilePhoto} size={24} style={{
+              <UserAvatar name={assignee.name} userId={assignee.id} profilePhoto={assignee.profilePhoto} size={24} style={{
                 marginRight: '8px'
               }} />
-                  <span style={styles.assigneeName}>{assignee.name}</span>
-                </div>
-                {expandedAssignees[assignee.name] && <div style={{
+              <span style={styles.assigneeName}>{assignee.name}</span>
+            </div>
+            {expandedAssignees[assignee.name] && <div style={{
               ...styles.expandedTasksSidebar,
               height: assignee.tasks.length * 32
             }}>
-                    {assignee.tasks.map(task => <div key={task.id} style={styles.taskLabelRow}>
-                        {task.title}
-                      </div>)}
-                  </div>}
+              {assignee.tasks.map(task => <div key={task.id} style={styles.taskLabelRow}>
+                {task.title}
               </div>)}
-          </div>
+            </div>}
+          </div>)}
         </div>
+      </div>
 
-        {/* Right Scrollable Timeline Grid */}
-        <div style={styles.timelineScrollArea} ref={scrollContainerRef} onScroll={handleTimelineScroll}>
-          <div style={{
+      {/* Right Scrollable Timeline Grid */}
+      <div style={styles.timelineScrollArea} ref={scrollContainerRef} onScroll={handleTimelineScroll}>
+        <div style={{
           width: days.length * DAY_WIDTH,
           position: 'relative'
         }}>
-            
-            {/* Timeline Header */}
-            <div style={styles.timelineHeader}>
-              {days.map((d, i) => <div key={i} style={{
+
+          {/* Timeline Header */}
+          <div style={styles.timelineHeader}>
+            {days.map((d, i) => <div key={i} style={{
               ...styles.dayHeaderCell,
               width: DAY_WIDTH,
               borderBottom: d.isToday ? '3px solid var(--accent-success)' : '1px solid #E5E7EB'
             }}>
-                  <div style={{
+              <div style={{
                 fontSize: '0.7rem',
                 color: '#6B7280',
                 textTransform: 'uppercase'
               }}>{d.dayName}</div>
-                  <div style={{
+              <div style={{
                 fontSize: '0.85rem',
                 fontWeight: d.isToday ? '700' : '500',
                 color: d.isToday ? 'var(--accent-success)' : '#111827'
               }}>
-                    {d.dayNum}
-                  </div>
-                </div>)}
-            </div>
+                {d.dayNum}
+              </div>
+            </div>)}
+          </div>
 
-            {/* Timeline Content */}
-            <div style={styles.timelineContent}>
-              {/* Background Grid Lines */}
-              <div style={styles.gridLinesContainer}>
-                {days.map((d, i) => <div key={i} style={{
+          {/* Timeline Content */}
+          <div style={styles.timelineContent}>
+            {/* Background Grid Lines */}
+            <div style={styles.gridLinesContainer}>
+              {days.map((d, i) => <div key={i} style={{
                 ...styles.gridLine,
                 left: i * DAY_WIDTH,
                 backgroundColor: d.isToday ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
                 borderLeft: d.dayName === 'Mon' ? '1px solid #E5E7EB' : '1px dashed #F3F4F6'
               }}></div>)}
-              </div>
+            </div>
 
-              {assigneeData.map((assignee, idx) => <div key={idx} style={styles.assigneeGroupTimeline}>
-                  {/* Summary Row (Line Graph) */}
-                  <div style={styles.assigneeMainRowTimeline}>
-                    {(() => {
+            {assigneeData.map((assignee, idx) => <div key={idx} style={styles.assigneeGroupTimeline}>
+              {/* Summary Row (Line Graph) */}
+              <div style={styles.assigneeMainRowTimeline}>
+                {(() => {
                   const points = assignee.dailyCounts.map((count, dayIdx) => {
                     const x = dayIdx * DAY_WIDTH + DAY_WIDTH / 2;
                     const y = count === 0 ? 44 : Math.max(10, 44 - count * 12);
@@ -357,7 +342,7 @@ export default function ProjectWorkloadView({
                   const linePoints = `0,${firstY} ${points.map(p => `${p.x},${p.y}`).join(' ')} ${days.length * DAY_WIDTH},${lastY}`;
                   const polyPoints = `0,44 ${linePoints} ${days.length * DAY_WIDTH},44`;
                   return <>
-                          <svg style={{
+                    <svg style={{
                       position: 'absolute',
                       top: 0,
                       left: 0,
@@ -365,11 +350,11 @@ export default function ProjectWorkloadView({
                       height: '100%',
                       pointerEvents: 'none'
                     }}>
-                            <polygon points={polyPoints} fill="rgba(99, 102, 241, 0.15)" />
-                            <polyline points={linePoints} fill="none" stroke="#818CF8" strokeWidth="2" />
-                          </svg>
+                      <polygon points={polyPoints} fill="rgba(99, 102, 241, 0.15)" />
+                      <polyline points={linePoints} fill="none" stroke="#818CF8" strokeWidth="2" />
+                    </svg>
 
-                          {points.map((p, i) => {
+                    {points.map((p, i) => {
                       if (p.count === 0) return null;
                       const isOverloaded = p.count > capacityLimit;
                       return <div key={i} style={{
@@ -383,23 +368,23 @@ export default function ProjectWorkloadView({
                         fontWeight: isOverloaded ? 'bold' : '500',
                         pointerEvents: 'none'
                       }}>
-                                {p.count}
-                              </div>;
+                        {p.count}
+                      </div>;
                     })}
-                        </>;
+                  </>;
                 })()}
-                  </div>
+              </div>
 
-                  {/* Expanded Tasks (Gantt Bars) */}
-                  {expandedAssignees[assignee.name] && <div style={{
+              {/* Expanded Tasks (Gantt Bars) */}
+              {expandedAssignees[assignee.name] && <div style={{
                 ...styles.expandedTasksTimeline,
                 height: assignee.tasks.length * 32
               }}>
-                      {assignee.tasks.map((task, tIdx) => <div key={task.id} style={{
+                {assignee.tasks.map((task, tIdx) => <div key={task.id} style={{
                   ...styles.taskBarRow,
                   top: tIdx * 32
                 }}>
-                          <div data-task-id={task.id} style={{
+                  <div data-task-id={task.id} style={{
                     ...styles.taskBar,
                     left: task.left,
                     width: Math.max(task.width, 10),
@@ -407,7 +392,7 @@ export default function ProjectWorkloadView({
                   }} onClick={() => {
                     if (!hasDraggedRef.current && onOpenTaskPane) onOpenTaskPane(task.id);
                   }}>
-                            {!isReadOnly && <div style={{
+                    {!isReadOnly && <div style={{
                       ...styles.dragHandle,
                       left: 0
                     }} onMouseDown={e => {
@@ -419,8 +404,8 @@ export default function ProjectWorkloadView({
                         deltaX: 0
                       });
                     }} />}
-                            
-                            <div style={styles.taskBarContent} onMouseDown={e => {
+
+                    <div style={styles.taskBarContent} onMouseDown={e => {
                       if (!isReadOnly) {
                         e.stopPropagation();
                         setDragState({
@@ -431,10 +416,10 @@ export default function ProjectWorkloadView({
                         });
                       }
                     }}>
-                              <span style={styles.taskTitleTruncated}>{task.title}</span>
-                            </div>
+                      <span style={styles.taskTitleTruncated}>{task.title}</span>
+                    </div>
 
-                            {!isReadOnly && <div style={{
+                    {!isReadOnly && <div style={{
                       ...styles.dragHandle,
                       right: 0
                     }} onMouseDown={e => {
@@ -446,17 +431,17 @@ export default function ProjectWorkloadView({
                         deltaX: 0
                       });
                     }} />}
-                          </div>
-                        </div>)}
-                    </div>}
+                  </div>
                 </div>)}
-            </div>
-            
+              </div>}
+            </div>)}
           </div>
-        </div>
 
+        </div>
       </div>
-    </div>;
+
+    </div>
+  </div>;
 }
 const styles = {
   container: {

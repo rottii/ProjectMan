@@ -407,7 +407,11 @@ export default function AdminConsoleView({
         </div>
       </div>
 
-      <div style={styles.tabsContainer}>
+      <div className="thin-scrollbar" onWheel={(e) => {
+        if (e.deltaY !== 0) {
+          e.currentTarget.scrollLeft += e.deltaY;
+        }
+      }} style={styles.tabsContainer}>
         <div style={activeTab === 'members' ? styles.activeTab : styles.tab} onClick={() => setActiveTab('members')}>Members</div>
         {myMemberRecord?.role === 'ADMIN' && (
           <>

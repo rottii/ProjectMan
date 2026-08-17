@@ -28,7 +28,7 @@ export default function PortfolioWorkloadView({
     const startDate = new Date(today);
     startDate.setDate(today.getDate() - 30);
     startDate.setHours(0, 0, 0, 0);
-    const totalDays = 120; 
+    const totalDays = 120;
 
     const daysArr = [];
     for (let i = 0; i < totalDays; i++) {
@@ -120,17 +120,14 @@ export default function PortfolioWorkloadView({
     <div style={styles.container}>
       {portalTarget && createPortal(
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600', color: 'var(--text-primary)' }}>
-            {t("team_workload", "Team Workload")}
-          </h2>
           <div style={styles.capacityControl}>
             <label style={{ fontSize: '0.85rem', color: '#6B7280' }}>{t("capacity_limit", "Capacity limit:")}</label>
-            <input 
-              type="number" 
-              value={capacityLimit} 
-              onChange={e => setCapacityLimit(Math.max(1, parseInt(e.target.value) || 1))} 
-              style={styles.capacityInput} 
-              min="1" 
+            <input
+              type="number"
+              value={capacityLimit}
+              onChange={e => setCapacityLimit(Math.max(1, parseInt(e.target.value) || 1))}
+              style={styles.capacityInput}
+              min="1"
             />
             <span style={{ fontSize: '0.85rem', color: '#6B7280' }}>projects/day</span>
           </div>
@@ -143,7 +140,7 @@ export default function PortfolioWorkloadView({
           <div style={styles.sidebarHeader}>{t("owner", "Owner")}</div>
           <div style={styles.sidebarContent}>
             {assigneeData.length === 0 && <div style={styles.emptyState}>{t("no_scheduled_projects", "No scheduled projects")}</div>}
-            
+
             {assigneeData.map((assignee, idx) => (
               <div key={idx} style={styles.assigneeGroupSidebar}>
                 <div style={styles.assigneeMainRowSidebar} onClick={() => toggleExpand(assignee.name)}>

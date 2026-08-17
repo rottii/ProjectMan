@@ -463,10 +463,26 @@ export default function ProjectTimelineView({
                 const draggingIndex = tasksRenderData.findIndex(g => g.section.id === draggingSectionId);
                 const hoverIndex = tasksRenderData.findIndex(g => g.section.id === group.section.id);
                 const rect = e.currentTarget.getBoundingClientRect();
-                const hoverMiddleY = (rect.bottom - rect.top) / 2;
-                const hoverClientY = e.clientY - rect.top;
-                if (draggingIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
-                if (draggingIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
+                if (!window.__sectionDragState) {
+                  window.__sectionDragState = { draggedId: null, hoverId: null, lastSwapY: 0, lastSwapX: 0 };
+                }
+                const state = window.__sectionDragState;
+
+                if (draggingIndex < hoverIndex) {
+                  // Dragging DOWN: swap as soon as we enter the target section from the top
+                  if (state.draggedId === draggingSectionId && state.hoverId === group.section.id && e.clientY < state.lastSwapY + 30) {
+                    return;
+                  }
+                } else {
+                  // Dragging UP: swap as soon as we enter the target section from below
+                  if (state.draggedId === draggingSectionId && state.hoverId === group.section.id && e.clientY > state.lastSwapY - 30) {
+                    return;
+                  }
+                }
+
+                state.draggedId = draggingSectionId;
+                state.hoverId = group.section.id;
+                state.lastSwapY = e.clientY;
                 handleLiveSectionSwap(draggingSectionId, group.section.id);
               }
             }}>
@@ -501,6 +517,7 @@ export default function ProjectTimelineView({
                   }} onDragEnd={() => {
                     if (handleFinalSectionMove) handleFinalSectionMove();
                     if (setDraggingSectionId) setDraggingSectionId(null);
+                    window.__sectionDragState = null;
                   }}>
                       <span style={{
                       fontSize: '1.2rem',

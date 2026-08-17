@@ -27,6 +27,14 @@
 }
 
 .option-sub-item:hover {
+  background-color: var(--bg-tertiary) !important;
+}
+
+.white-btn-hover {
+  transition: background-color 0.15s;
+}
+
+.white-btn-hover:hover {
   background-color: var(--bg-secondary) !important;
 }
 

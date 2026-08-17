@@ -455,6 +455,32 @@ export default function ProjectGanttView({
                 <div style={styles.sectionHeaderRow} onDragOver={e => {
               e.preventDefault();
               if (draggingSectionId && draggingSectionId !== section.id) {
+                const sortedSections = [...(sectionData || [])];
+                const dragIndex = sortedSections.findIndex(s => s.id === draggingSectionId);
+                const hoverIndex = sortedSections.findIndex(s => s.id === section.id);
+                if (dragIndex !== -1 && hoverIndex !== -1) {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  if (!window.__sectionDragState) {
+                    window.__sectionDragState = { draggedId: null, hoverId: null, lastSwapY: 0, lastSwapX: 0 };
+                  }
+                  const state = window.__sectionDragState;
+
+                  if (dragIndex < hoverIndex) {
+                    // Dragging DOWN: swap as soon as we enter the target section from the top
+                    if (state.draggedId === draggingSectionId && state.hoverId === section.id && e.clientY < state.lastSwapY + 30) {
+                      return;
+                    }
+                  } else {
+                    // Dragging UP: swap as soon as we enter the target section from below
+                    if (state.draggedId === draggingSectionId && state.hoverId === section.id && e.clientY > state.lastSwapY - 30) {
+                      return;
+                    }
+                  }
+
+                  state.draggedId = draggingSectionId;
+                  state.hoverId = section.id;
+                  state.lastSwapY = e.clientY;
+                }
                 if (handleLiveSectionSwap) handleLiveSectionSwap(draggingSectionId, section.id);
               }
             }} onDrop={e => {
@@ -468,6 +494,7 @@ export default function ProjectGanttView({
               }} onDragEnd={() => {
                 if (setDraggingSectionId) setDraggingSectionId(null);
                 if (handleFinalSectionMove) handleFinalSectionMove();
+                window.__sectionDragState = null;
               }} style={{
                 ...styles.drag6DotHandleCellSection,
                 cursor: isReadOnly ? 'pointer' : 'grab'

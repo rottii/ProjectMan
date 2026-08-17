@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import './Sidebar.css';
 import UserAvatar from './UserAvatar';
 import { apiFetch } from '../api';
@@ -721,7 +722,7 @@ export default function Sidebar({
       <div className={`sidebar-resizer ${isResizing ? 'resizing' : ''}`} onMouseDown={() => setIsResizing(true)} />
 
       {/* Invite Link Modal */}
-      {inviteLinkToken && <div style={{
+      {inviteLinkToken && createPortal(<div style={{
       position: 'fixed',
       top: 0,
       left: 0,
@@ -779,6 +780,6 @@ export default function Sidebar({
           color: 'var(--text-primary)'
         }}>{t("close", "Close")}</button>
           </div>
-        </div>}
+        </div>, document.body)}
     </aside>;
 }
