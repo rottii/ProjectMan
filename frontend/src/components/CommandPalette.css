@@ -24,7 +24,6 @@
   border-radius: 12px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
   overflow: hidden;
-  font-family: 'Inter', sans-serif;
   color: var(--text-primary);
 }
 

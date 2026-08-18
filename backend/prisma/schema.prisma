@@ -88,6 +88,7 @@ model User {
   inviteLinks   InviteLink[]
   passwordResetTokens PasswordResetToken[]
   emailVerifications  EmailVerification[]
+  workspaceMessages   WorkspaceMessage[] @relation("WorkspaceMessages")
 }
 
 model Workspace {
@@ -100,6 +101,7 @@ model Workspace {
   projects    Project[]
   portfolios  Portfolio[]
   inviteLinks InviteLink[]
+  workspaceMessages WorkspaceMessage[]
 }
 
 model WorkspaceMember {
@@ -685,5 +687,20 @@ model EmailVerification {
 
   @@index([token])
   @@index([userId])
+}
+
+// --- YENİ MODEL: WORKSPACE MESSAGES (Global Chat) ---
+model WorkspaceMessage {
+  id          String   @id @default(uuid())
+  content     String
+  createdAt   DateTime @default(now())
+  
+  senderId    String
+  sender      User     @relation("WorkspaceMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
 }
 

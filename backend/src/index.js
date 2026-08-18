@@ -13,6 +13,7 @@ const goalsRoutes = require('./routes/goals');
 const tagsRoutes = require('./routes/tags');
 const reportingRoutes = require('./routes/reporting');
 const workspacesRoutes = require('./routes/workspaces');
+const workspaceMessagesRoutes = require('./routes/workspaceMessages');
 const dashboardRoutes = require('./routes/dashboard');
 const publicRoutes = require('./routes/public');
 const invitesRoutes = require('./routes/invites');
@@ -77,6 +78,17 @@ io.on('connection', (socket) => {
   socket.on('leave_project', (projectId) => {
     socket.leave(projectId);
     console.log(`Socket ${socket.id} left project room: ${projectId}`);
+  });
+
+  // Workspace-wide global chat
+  socket.on('join_workspace', (workspaceId) => {
+    socket.join(`workspace_${workspaceId}`);
+    console.log(`Socket ${socket.id} joined workspace room: workspace_${workspaceId}`);
+  });
+
+  socket.on('leave_workspace', (workspaceId) => {
+    socket.leave(`workspace_${workspaceId}`);
+    console.log(`Socket ${socket.id} left workspace room: workspace_${workspaceId}`);
   });
 
   // Personal room for inbox notifications
@@ -147,6 +159,7 @@ app.use('/api/tags', tagsRoutes);
 app.use('/api/reporting', reportingRoutes);
 app.use('/api/search', require('./routes/search'));
 app.use('/api/workspaces', workspacesRoutes);
+app.use('/api/workspace-messages', workspaceMessagesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/invites', invitesRoutes);
 app.use('/api/github', require('./routes/github'));

@@ -2466,15 +2466,33 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
         <div style={styles.headerRightBlock}>
           {!isMyTasks && (
             <>
-              <div style={styles.avatarListWrapper}>
-                <UserAvatar
-                  name={selectedProject.owner?.name}
-                  userId={selectedProject.owner?.id}
-                  profilePhoto={selectedProject.owner?.profilePhoto}
-                  size={28}
-                  onClick={(e) => { e.stopPropagation(); setIsShareModalOpen(true); }}
-                  style={{ cursor: 'pointer', border: '1px solid #FFF' }}
-                />
+              <div style={{ ...styles.avatarListWrapper, display: 'flex', alignItems: 'center' }}>
+                {(() => {
+                  const displayMembers = [];
+                  if (selectedProject.owner) displayMembers.push(selectedProject.owner);
+                  if (selectedProject.members) {
+                    selectedProject.members.filter(m => m?.user && m.user.id !== selectedProject.owner?.id).forEach(m => {
+                      displayMembers.push(m.user);
+                    });
+                  }
+                  
+                  return displayMembers.slice(0, 3).map((u, i) => (
+                    <UserAvatar
+                      key={u.id || i}
+                      name={u.name}
+                      userId={u.id}
+                      profilePhoto={u.profilePhoto}
+                      size={28}
+                      onClick={(e) => { e.stopPropagation(); setIsShareModalOpen(true); }}
+                      style={{ 
+                        cursor: 'pointer', 
+                        border: '2px solid var(--bg-primary)', 
+                        marginLeft: i > 0 ? '-8px' : '0',
+                        zIndex: 3 - i
+                      }}
+                    />
+                  ));
+                })()}
               </div>
               <button className="white-btn-hover" onClick={(e) => { e.stopPropagation(); setIsShareModalOpen(true); }} style={styles.shareButton}>👥 {t('share', 'Share')}</button>
             </>
@@ -2491,64 +2509,64 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
               e.currentTarget.scrollLeft += e.deltaY;
             }
           }} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', overflowX: 'auto', flexShrink: 1, minWidth: 0 }}>
-          {parsedViews.map(view => (
-            <span
-              key={view.id}
-              className="view-tab-item"
-              draggable
-              onDragStart={(e) => {
-                setDraggingTabId(view.id);
-                e.dataTransfer.setData('text/plain', view.id);
-                e.dataTransfer.effectAllowed = 'move';
-              }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                if (draggingTabId && draggingTabId !== view.id) {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const hoverMiddleX = (rect.right - rect.left) / 2;
-                  const hoverClientX = e.clientX - rect.left;
+            {parsedViews.map(view => (
+              <span
+                key={view.id}
+                className="view-tab-item"
+                draggable
+                onDragStart={(e) => {
+                  setDraggingTabId(view.id);
+                  e.dataTransfer.setData('text/plain', view.id);
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                  if (draggingTabId && draggingTabId !== view.id) {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const hoverMiddleX = (rect.right - rect.left) / 2;
+                    const hoverClientX = e.clientX - rect.left;
 
-                  const draggingIndex = parsedViews.findIndex(v => v.id === draggingTabId);
-                  const hoverIndex = parsedViews.findIndex(v => v.id === view.id);
+                    const draggingIndex = parsedViews.findIndex(v => v.id === draggingTabId);
+                    const hoverIndex = parsedViews.findIndex(v => v.id === view.id);
 
-                  if (draggingIndex < hoverIndex && hoverClientX < hoverMiddleX) return;
-                  if (draggingIndex > hoverIndex && hoverClientX > hoverMiddleX) return;
+                    if (draggingIndex < hoverIndex && hoverClientX < hoverMiddleX) return;
+                    if (draggingIndex > hoverIndex && hoverClientX > hoverMiddleX) return;
 
-                  handleLiveTabSwap(draggingTabId, view.id);
-                }
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                handleTabDrop();
-              }}
-              onDragEnd={() => {
-                setDraggingTabId(null);
-                setDropTargetTab({ id: null, position: null });
-              }}
-              onClick={() => setCurrentTab(view.id)}
-              onContextMenu={(e) => {
-                if (isReadOnly) return;
-                e.preventDefault();
-                setTabContextMenu({ visible: true, x: e.clientX, y: e.clientY, view });
-              }}
-              style={{
-                ...(activeViewObj.id === view.id ? styles.tabItemActive : styles.tabItemPassive),
-                opacity: draggingTabId === view.id ? 0.5 : 1,
-                cursor: draggingTabId === view.id ? 'grabbing' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              <span className="view-tab-text" data-text={t(view.name.toLowerCase(), view.name)} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', maxWidth: '120px' }}>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%', textAlign: 'center' }}>
-                  {t(view.name.toLowerCase(), view.name)}
+                    handleLiveTabSwap(draggingTabId, view.id);
+                  }
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleTabDrop();
+                }}
+                onDragEnd={() => {
+                  setDraggingTabId(null);
+                  setDropTargetTab({ id: null, position: null });
+                }}
+                onClick={() => setCurrentTab(view.id)}
+                onContextMenu={(e) => {
+                  if (isReadOnly) return;
+                  e.preventDefault();
+                  setTabContextMenu({ visible: true, x: e.clientX, y: e.clientY, view });
+                }}
+                style={{
+                  ...(activeViewObj.id === view.id ? styles.tabItemActive : styles.tabItemPassive),
+                  opacity: draggingTabId === view.id ? 0.5 : 1,
+                  cursor: draggingTabId === view.id ? 'grabbing' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <span className="view-tab-text" data-text={t(view.name.toLowerCase(), view.name)} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', maxWidth: '120px' }}>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%', textAlign: 'center' }}>
+                    {t(view.name.toLowerCase(), view.name)}
+                  </span>
                 </span>
+                {selectedProject.defaultView === view.id && <span style={{ fontSize: '10px' }}>⭐</span>}
               </span>
-              {selectedProject.defaultView === view.id && <span style={{ fontSize: '10px' }}>⭐</span>}
-            </span>
-          ))}
+            ))}
           </div>
           <div style={{ position: 'relative' }}>
             <span

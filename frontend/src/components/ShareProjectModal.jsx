@@ -406,7 +406,6 @@ const styles = {
     border: '1px solid var(--border-color)',
     padding: '1.25rem',
     boxSizing: 'border-box',
-    fontFamily: 'system-ui',
     position: 'relative'
   },
   modalHeader: {

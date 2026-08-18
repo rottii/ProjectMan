@@ -320,8 +320,7 @@ const styles = {
     flexDirection: 'column',
     height: '100%',
     backgroundColor: 'var(--bg-primary)',
-    color: 'var(--text-primary)',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+    color: 'var(--text-primary)'
   },
   headerArea: {
     padding: '24px 32px 0 32px',
@@ -579,8 +578,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-    backgroundColor: 'var(--bg-primary)',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+    backgroundColor: 'var(--bg-primary)'
   },
   creationHeader: {
     padding: '24px 32px'

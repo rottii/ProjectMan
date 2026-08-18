@@ -194,94 +194,94 @@ export default function TopNav({
     localStorage.setItem('darkMode', newVal.toString());
   };
   return <>
-      <div className="topnav-container">
-        <div className="topnav-left">
-          <button className="topnav-hamburger" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
-            ≡
-          </button>
-          
-          <div style={{
+    <div className="topnav-container">
+      <div className="topnav-left">
+        <button className="topnav-hamburger" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
+          ≡
+        </button>
+
+        <div style={{
           position: 'relative'
         }} ref={createRef}>
-            <button className="topnav-create-btn" onClick={() => setShowOmniCreate(!showOmniCreate)}>
-              <span className="create-icon">+</span>{t("create", "Create")}</button>
-            {showOmniCreate && <div className="omni-create-dropdown">
-                <div className="omni-create-item" onClick={() => handleOmniAction('task')}>{t("task", "\u2705 Task")}</div>
-                <div className="omni-create-item" onClick={() => handleOmniAction('project')}>{t("project", "\uD83D\uDCCB Project")}</div>
-                <div className="omni-create-item" onClick={() => handleOmniAction('portfolio')}>{t("portfolio", "\uD83D\uDCC1 Portfolio")}</div>
-                <div className="omni-create-item" onClick={() => handleOmniAction('goal')}>{t("goal", "\uD83C\uDFAF Goal")}</div>
-              </div>}
-          </div>
-
+          <button className="topnav-create-btn" onClick={() => setShowOmniCreate(!showOmniCreate)}>
+            <span className="create-icon">+</span>{t("create", "Create")}</button>
+          {showOmniCreate && <div className="omni-create-dropdown">
+            <div className="omni-create-item" onClick={() => handleOmniAction('task')}>{t("task", "\u2705 Task")}</div>
+            <div className="omni-create-item" onClick={() => handleOmniAction('project')}>{t("project", "\uD83D\uDCCB Project")}</div>
+            <div className="omni-create-item" onClick={() => handleOmniAction('portfolio')}>{t("portfolio", "\uD83D\uDCC1 Portfolio")}</div>
+            <div className="omni-create-item" onClick={() => handleOmniAction('goal')}>{t("goal", "\uD83C\uDFAF Goal")}</div>
+          </div>}
         </div>
-        
-        <div className="topnav-center">
-          <div className="topnav-search-bar" ref={searchRef} style={{
+
+      </div>
+
+      <div className="topnav-center">
+        <div className="topnav-search-bar" ref={searchRef} style={{
           position: 'relative'
         }}>
-            <span className="search-icon">🔍</span>
-            <input type="text" placeholder={t('search')} className="topnav-search-input" value={searchQuery} onChange={e => {
+          <span className="search-icon">🔍</span>
+          <input type="text" placeholder={t('search')} className="topnav-search-input" value={searchQuery} onChange={e => {
             setSearchQuery(e.target.value);
             if (e.target.value.trim().length >= 2) setShowSearchDropdown(true);
           }} onFocus={() => {
             if (searchQuery.trim().length >= 2) setShowSearchDropdown(true);
           }} />
-            <span className="cmd-k-badge">⌘K</span>
-            {isSearching && <span style={{
+          <span className="cmd-k-badge">⌘K</span>
+          {isSearching && <span style={{
             color: 'var(--text-tertiary)',
             fontSize: '0.8rem',
             position: 'absolute',
             right: '16px'
           }}>{t("searching", "Searching...")}</span>}
-            
-            {showSearchDropdown && hasSearchResults && <div className="search-dropdown">
-                {searchResults.projects.length > 0 && <div>
-                    <div className="search-group-title">{t('projects')}</div>
-                    {searchResults.projects.map(p => <div key={`p-${p.id}`} className="search-item" onClick={() => handleSearchResultClick('project', p)}>
-                        📋 {p.name}
-                      </div>)}
-                  </div>}
-                
-                {searchResults.tasks.length > 0 && <div>
-                    <div className="search-group-title">{t('tasks')}</div>
-                    {searchResults.tasks.map(t => <div key={`t-${t.id}`} className="search-item" onClick={() => handleSearchResultClick('task', t)}>
-                        ✅ {t.title} <span className="search-item-meta">{t.section?.project?.name}</span>
-                      </div>)}
-                  </div>}
-                
-                {searchResults.users.length > 0 && <div>
-                    <div className="search-group-title">{t('users')}</div>
-                    {searchResults.users.map(u => <div key={`u-${u.id}`} className="search-item" onClick={() => handleSearchResultClick('user', u)}>
-                        👤 {u.name} <span className="search-item-meta">{u.email}</span>
-                      </div>)}
-                  </div>}
 
-                {searchResults.portfolios.length > 0 && <div>
-                    <div className="search-group-title">{t('portfolios')}</div>
-                    {searchResults.portfolios.map(p => <div key={`port-${p.id}`} className="search-item" onClick={() => handleSearchResultClick('portfolio', p)}>
-                        📁 {p.name}
-                      </div>)}
-                  </div>}
+          {showSearchDropdown && hasSearchResults && <div className="search-dropdown">
+            {searchResults.projects.length > 0 && <div>
+              <div className="search-group-title">{t('projects')}</div>
+              {searchResults.projects.map(p => <div key={`p-${p.id}`} className="search-item" onClick={() => handleSearchResultClick('project', p)}>
+                📋 {p.name}
+              </div>)}
+            </div>}
 
-                {searchResults.goals.length > 0 && <div>
-                    <div className="search-group-title">{t('goals')}</div>
-                    {searchResults.goals.map(g => <div key={`g-${g.id}`} className="search-item" onClick={() => handleSearchResultClick('goal', g)}>
-                        🎯 {g.title} <span className="search-item-meta">{g.status}</span>
-                      </div>)}
-                  </div>}
-              </div>}
-          </div>
+            {searchResults.tasks.length > 0 && <div>
+              <div className="search-group-title">{t('tasks')}</div>
+              {searchResults.tasks.map(t => <div key={`t-${t.id}`} className="search-item" onClick={() => handleSearchResultClick('task', t)}>
+                ✅ {t.title} <span className="search-item-meta">{t.section?.project?.name}</span>
+              </div>)}
+            </div>}
+
+            {searchResults.users.length > 0 && <div>
+              <div className="search-group-title">{t('users')}</div>
+              {searchResults.users.map(u => <div key={`u-${u.id}`} className="search-item" onClick={() => handleSearchResultClick('user', u)}>
+                👤 {u.name} <span className="search-item-meta">{u.email}</span>
+              </div>)}
+            </div>}
+
+            {searchResults.portfolios.length > 0 && <div>
+              <div className="search-group-title">{t('portfolios')}</div>
+              {searchResults.portfolios.map(p => <div key={`port-${p.id}`} className="search-item" onClick={() => handleSearchResultClick('portfolio', p)}>
+                📁 {p.name}
+              </div>)}
+            </div>}
+
+            {searchResults.goals.length > 0 && <div>
+              <div className="search-group-title">{t('goals')}</div>
+              {searchResults.goals.map(g => <div key={`g-${g.id}`} className="search-item" onClick={() => handleSearchResultClick('goal', g)}>
+                🎯 {g.title} <span className="search-item-meta">{g.status}</span>
+              </div>)}
+            </div>}
+          </div>}
         </div>
-        <div className="topnav-right" style={{
+      </div>
+      <div className="topnav-right" style={{
         display: 'flex',
         justifyContent: 'flex-end',
         position: 'relative'
       }}>
-          {/* User profile menu moved to Sidebar */}
-        </div>
+        {/* User profile menu moved to Sidebar */}
       </div>
+    </div>
 
-      {showQuickAddTask && <QuickAddTaskModal projects={projects || []} token={token} onClose={() => setShowQuickAddTask(false)} onTaskCreated={task => {
+    {showQuickAddTask && <QuickAddTaskModal projects={projects || []} token={token} onClose={() => setShowQuickAddTask(false)} onTaskCreated={task => {
       console.log("Quick added task:", task);
       if (task.section && task.section.projectId) {
         let updatedCurrentProject = null;
@@ -315,5 +315,5 @@ export default function TopNav({
         }
       }
     }} />}
-    </>;
+  </>;
 }

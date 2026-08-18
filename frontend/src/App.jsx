@@ -23,6 +23,7 @@ import VerifyEmailPage from './components/VerifyEmailPage'
 import EmailVerificationBanner from './components/EmailVerificationBanner'
 import SettingsModal from './components/SettingsModal'
 import CommandPalette from './components/CommandPalette'
+import GlobalChat from './components/GlobalChat'
 import { UndoProvider } from './context/UndoContext'
 
 export default function App() {
@@ -50,6 +51,7 @@ export default function App() {
   const [isInitialDataLoading, setIsInitialDataLoading] = useState(false)
   const [isSocketConnected, setIsSocketConnected] = useState(true)
   const [showOfflineBanner, setShowOfflineBanner] = useState(false)
+  const [socketInstance, setSocketInstance] = useState(null)
 
   useEffect(() => {
     let timeoutId;
@@ -80,7 +82,7 @@ export default function App() {
         const validViews = ['home', 'my-tasks', 'inbox', 'reporting', 'portfolios', 'goals', 'projects', 'profile', 'create_project', 'admin_console'];
         if (validViews.includes(view)) return view;
       }
-      
+
       const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
       return storedUser?.openAppAs === 'My tasks' ? 'my-tasks' : 'home';
     }
@@ -94,7 +96,7 @@ export default function App() {
       const validViews = ['home', 'my-tasks', 'inbox', 'reporting', 'portfolios', 'goals', 'projects', 'profile', 'create_project', 'admin_console'];
       if (validViews.includes(view)) return view;
     }
-    
+
     const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
     const defaultView = storedUser?.openAppAs === 'My tasks' ? 'my-tasks' : 'home';
     return localStorage.getItem('activeView') || defaultView;
@@ -329,27 +331,27 @@ export default function App() {
 
   useEffect(() => {
     if (user && user.id) {
-      const socket = io(API_BASE_URL, {
+      const newSocket = io(API_BASE_URL, {
         reconnection: true,
         reconnectionAttempts: Infinity,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
         timeout: 20000,
       });
-      socket.emit('join_user', user.id);
+      newSocket.emit('join_user', user.id);
 
-      socket.on('connect', () => setIsSocketConnected(true));
-      socket.on('disconnect', () => setIsSocketConnected(false));
-      socket.on('connect_error', () => setIsSocketConnected(false));
+      newSocket.on('connect', () => setIsSocketConnected(true));
+      newSocket.on('disconnect', () => setIsSocketConnected(false));
+      newSocket.on('connect_error', () => setIsSocketConnected(false));
 
-      socket.on('project_created', (newProj) => {
+      newSocket.on('project_created', (newProj) => {
         setProjects(prev => {
           if (prev.find(p => p.id === newProj.id)) return prev;
           return [...prev, newProj];
         });
       });
 
-      socket.on('project_shared', (sharedProj) => {
+      newSocket.on('project_shared', (sharedProj) => {
         setProjects(prev => {
           if (prev.find(p => p.id === sharedProj.id)) {
             return prev.map(p => p.id === sharedProj.id ? sharedProj : p);
@@ -358,8 +360,11 @@ export default function App() {
         });
       });
 
+      setSocketInstance(newSocket);
+
       return () => {
-        socket.disconnect();
+        newSocket.disconnect();
+        setSocketInstance(null);
       }
     }
   }, [user]);
@@ -428,7 +433,7 @@ export default function App() {
             setUser(data.user);
             localStorage.setItem('user', JSON.stringify(data.user));
           }
-        }).catch(() => {});
+        }).catch(() => { });
       }
     }} />;
   }
@@ -447,20 +452,20 @@ export default function App() {
   return (
     <UndoProvider>
       {showSettings && (
-        <SettingsModal 
+        <SettingsModal
           onClose={() => {
             setShowSettings(false)
             setSettingsFocus(null)
-          }} 
-          user={user} 
-          setUser={setUser} 
-          isDarkMode={isDarkMode} 
-          setIsDarkMode={setIsDarkMode} 
+          }}
+          user={user}
+          setUser={setUser}
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
           token={token}
           initialFocus={settingsFocus}
         />
       )}
-      <CommandPalette 
+      <CommandPalette
         projects={filteredProjects}
         portfolios={filteredPortfolios}
         setActiveView={setActiveView}
@@ -643,6 +648,14 @@ export default function App() {
               />
             )}
           </div>
+          
+          <GlobalChat 
+            user={user} 
+            token={token} 
+            activeWorkspaceId={activeWorkspaceId} 
+            workspaces={workspaces}
+            socket={socketInstance}
+          />
         </div>
       </div>
     </UndoProvider>

@@ -630,8 +630,7 @@ const styles = {
     height: '100%',
     backgroundColor: 'var(--bg-primary)',
     color: 'var(--text-primary)',
-    overflow: 'hidden',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+    overflow: 'hidden'
   },
   headerArea: {
     padding: '24px 32px 0 32px',
