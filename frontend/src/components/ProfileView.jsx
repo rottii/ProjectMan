@@ -164,7 +164,7 @@ export default function ProfileView({
           alignItems: 'center',
           gap: '8px'
         }}>
-            <span>{t("set_out_of_office", "\uD83D\uDCC5 Set out of office")}</span>
+            <span>📅 {t("set_out_of_office", "Set out of office")}</span>
           </p>
           <div style={{
           display: 'flex',
@@ -386,12 +386,20 @@ export default function ProfileView({
           borderRadius: '8px',
           border: '1px solid var(--border-color)',
           padding: '20px'
+      }}>
+
+          {/* COLLABORATORS WIDGET */}
+          <div style={{
+          backgroundColor: 'var(--bg-primary)',
+          borderRadius: '8px',
+          border: '1px solid var(--border-color)',
+          padding: '20px'
         }}>
             <h2 style={{
             margin: '0 0 16px 0',
             fontSize: '1.2rem',
             fontWeight: '600'
-          }}>{t("frequent_collaborators", "Frequent collaborators \uD83D\uDD12")}</h2>
+          }}>{t("frequent_collaborators", "Frequent collaborators")} 🔒</h2>
 
             <div style={{
             display: 'flex',
@@ -538,5 +546,6 @@ export default function ProfileView({
 
         </div>
       </div>
-    </div>;
+    </div>
+  </div>;
 }

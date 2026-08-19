@@ -378,7 +378,7 @@ export default function ShareProjectModal({
           </div>}
 
         <div style={styles.modalFooter}>
-          <button type="button" onClick={() => alert('Link copied!')} style={styles.copyLinkBtn}>{t("copy_project_link", "\uD83D\uDD17 Copy project link")}</button>
+          <button type="button" onClick={() => alert('Link copied!')} style={styles.copyLinkBtn}>🔗 {t("copy_project_link", "Copy project link")}</button>
         </div>
 
       </div>

@@ -604,7 +604,7 @@ export default function Dashboard({
             </div>
             <div>
               <div className="widget-project-name">{p.name}</div>
-              <div className="widget-project-sub">{p.sections?.reduce((acc, sec) => acc + (sec.tasks?.length || 0), 0) || 0}{t("tasks", "tasks")}</div>
+              <div className="widget-project-sub">{p.sections?.reduce((acc, sec) => acc + (sec.tasks?.length || 0), 0) || 0} {t("tasks", "tasks")}</div>
             </div>
           </div>)}
       </div>
@@ -705,13 +705,13 @@ export default function Dashboard({
               <div className="widget-people-stats">
                 <span style={{
               color: p.overdue > 0 ? 'var(--accent-danger)' : 'var(--text-tertiary)'
-            }}>{p.overdue}{t("overdue", "overdue")}</span>
+            }}>{p.overdue} {t("overdue", "overdue")}</span>
                 <span style={{
               color: p.completed > 0 ? 'var(--accent-success)' : 'var(--text-tertiary)'
-            }}>{p.completed}{t("completed", "completed")}</span>
+            }}>{p.completed} {t("completed", "completed")}</span>
                 <span style={{
               color: 'var(--text-tertiary)'
-            }}>{p.upcoming}{t("upcoming", "upcoming")}</span>
+            }}>{p.upcoming} {t("upcoming", "upcoming")}</span>
               </div>
             </div>;
       })}
@@ -745,7 +745,7 @@ export default function Dashboard({
   const renderNotepad = widget => <>
       <div className="widget-header">
         <div className="widget-header-left">
-          <h2 className="widget-title">{t("notepad", "\uD83D\uDCDD Notepad")}</h2>
+          <h2 className="widget-title">📝 {t("notepad", "Notepad")}</h2>
         </div>
         {renderWidgetMenuBtn(widget)}
       </div>
@@ -789,7 +789,7 @@ export default function Dashboard({
   const renderCharts = widget => <>
       <div className="widget-header">
         <div className="widget-header-left">
-          <h2 className="widget-title">{t("charts", "\uD83D\uDCCA Charts")}</h2>
+          <h2 className="widget-title">📊 {t("charts", "Charts")}</h2>
         </div>
         {renderWidgetMenuBtn(widget)}
       </div>
@@ -895,7 +895,7 @@ export default function Dashboard({
   const renderDraftComments = widget => <>
       <div className="widget-header">
         <div className="widget-header-left">
-          <h2 className="widget-title">{t("draft_comments", "\uD83D\uDCAC Draft comments")}</h2>
+          <h2 className="widget-title">💬 {t("draft_comments", "Draft comments")}</h2>
         </div>
         {renderWidgetMenuBtn(widget)}
       </div>
@@ -922,7 +922,7 @@ export default function Dashboard({
     return <>
         <div className="widget-header">
           <div className="widget-header-left">
-            <h2 className="widget-title">{t("forms", "\uD83D\uDCCB Forms")}</h2>
+            <h2 className="widget-title">📋 {t("forms", "Forms")}</h2>
           </div>
           {renderWidgetMenuBtn(widget)}
         </div>
@@ -955,7 +955,7 @@ export default function Dashboard({
                 fontSize: '0.8rem'
               }}>{p.icon || '📋'}</span>
                   </div>
-                  <span className="widget-task-title">{p.name}{t("form", "form")}</span>
+                  <span className="widget-task-title">{p.name} {t("form", "form")}</span>
                 </div>
               </div>)}
         </div>
@@ -980,7 +980,7 @@ export default function Dashboard({
             {widget.rowSpan === 2 ? '↕ Short' : '↕ Tall'}
           </button>
           <div className="widget-menu-divider" />
-          <button className="widget-menu-item danger" onClick={() => removeWidget(widget.id)}>{t("remove_widget", "\u2715 Remove widget")}</button>
+          <button className="widget-menu-item danger" onClick={() => removeWidget(widget.id)}>✕ {t("remove_widget", "Remove widget")}</button>
         </div>}
     </div>;
 
@@ -1060,7 +1060,7 @@ export default function Dashboard({
             display: 'flex',
             alignItems: 'center',
             gap: '6px'
-          }} onClick={() => setShowWidgetPicker(true)}>{t("customize", "⚙️ Customize")}</button>
+          }} onClick={() => setShowWidgetPicker(true)}>⚙️ {t("customize", "Customize")}</button>
         </div>
       </div>
 

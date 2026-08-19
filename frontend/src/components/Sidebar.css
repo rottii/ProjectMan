@@ -277,7 +277,7 @@
 
 /* When collapsed class is present, we slide it out of view */
 .sidebar-wrapper.collapsed {
-  margin-right: calc(-1 * var(--sidebar-width));
+  margin-left: calc(-1 * var(--sidebar-width, 240px));
 }
 
 /* --- MOBILE RESPONSIVENESS --- */

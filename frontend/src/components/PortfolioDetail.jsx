@@ -244,11 +244,11 @@ export default function PortfolioDetail({
               zIndex: 50,
               width: '160px'
             }}>
-                  <div style={styles.dropdownItem} onClick={handleRenamePortfolio}>{t("rename_portfolio", "\u270F\uFE0F Rename portfolio")}</div>
+                  <div style={styles.dropdownItem} onClick={handleRenamePortfolio}>✏️ {t("rename_portfolio", "Rename portfolio")}</div>
                   <div style={{
                 ...styles.dropdownItem,
                 color: 'var(--accent-danger)'
-              }} onClick={handleDeletePortfolio}>{t("delete_portfolio", "\uD83D\uDDD1\uFE0F Delete portfolio")}</div>
+              }} onClick={handleDeletePortfolio}>🗑️ {t("delete_portfolio", "Delete portfolio")}</div>
                 </div>}
             </div>
             <span style={{

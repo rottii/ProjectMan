@@ -33,7 +33,7 @@ export default function BulkActionBar({
         {/* Selection count + close */}
         <div style={styles.countSection}>
           <button onClick={onClearSelection} style={styles.closeBtn} title={t("deselect_all", "Deselect all")}>✕</button>
-          <span style={styles.countText}>{selectedCount}{t("task", "task")}{selectedCount !== 1 ? 's' : ''}{t("selected", "selected")}</span>
+          <span style={styles.countText}>{selectedCount} {t("task", "task")}{selectedCount !== 1 ? 's' : ''} {t("selected", "selected")}</span>
         </div>
 
         <div style={styles.divider} />

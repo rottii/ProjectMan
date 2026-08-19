@@ -467,25 +467,25 @@ export default function ProjectListView({
         const cf = customFields.find(f => f.id === colId);
         setFieldOptionsList(cf?.options || []);
         closeAllMenus();
-      }} style={styles.dropdownItem}>{t("edit_field", "✏️ Edit field")}</button>}
+      }} style={styles.dropdownItem}>✏️ {t("edit_field", "Edit field")}</button>}
         <button className="dropdown-item" onClick={() => {
         handleFilterOptionClick && handleFilterOptionClick(titles[colName] || colName);
         closeAllMenus();
-      }} style={styles.dropdownItem}>{t("filter", "≡ Filter")}</button>
+      }} style={styles.dropdownItem}>≡ {t("filter", "Filter")}</button>
         <button className="dropdown-item" onClick={() => {
         handleGroupOptionClick && handleGroupOptionClick(titles[colName] || colName);
         closeAllMenus();
-      }} style={styles.dropdownItem}>{t("group", "⊞ Group")}</button>
+      }} style={styles.dropdownItem}>⊞ {t("group", "Group")}</button>
         <button className="dropdown-item" onClick={() => {
         handleSortOptionClick && handleSortOptionClick(titles[colName] || colName);
         closeAllMenus();
-      }} style={styles.dropdownItem}>{t("sort", "⇅ Sort")}</button>
+      }} style={styles.dropdownItem}>⇅ {t("sort", "Sort")}</button>
         
         <div style={styles.menuDivider}></div>
         <button className="dropdown-item" onClick={() => {
         setShowAddFieldMenu(true);
         setOpenColumnMenuName(null);
-      }} style={styles.dropdownItem}>{t("add_column", "+ Add column")}</button>
+      }} style={styles.dropdownItem}>+ {t("add_column", "Add column")}</button>
         
         <div 
           className="dropdown-item" 
@@ -499,7 +499,7 @@ export default function ProjectListView({
           onMouseEnter={() => setMoveColumnMenuOpenFor(colName)}
           onMouseLeave={() => setMoveColumnMenuOpenFor(null)}
         >
-          <span>{t("move_column", "↔ Move column")}</span>
+          <span>↔ {t("move_column", "Move column")}</span>
           <span>{'>'}</span>
           
           {moveColumnMenuOpenFor === colName && (
@@ -548,7 +548,7 @@ export default function ProjectListView({
             <button className="dropdown-item-delete" onClick={e => {
               e.stopPropagation();
               handleDeleteField(titles[colName] || colName);
-            }} style={styles.dropdownItemDelete}>{t("delete_field", "🗑️ Delete field")}</button>
+            }} style={styles.dropdownItemDelete}>🗑️ {t("delete_field", "Delete field")}</button>
           </>
         )}
       </div>;
@@ -604,8 +604,8 @@ export default function ProjectListView({
       position: 'relative',
       zIndex: openApprovalMenuTaskId === task.id || openCellMenuId && openCellMenuId.startsWith(`${task.id}-`) ? 9999 : 0,
       opacity: draggingTaskId === task.id ? 0.4 : 1,
-      borderTop: dragTargetTaskId?.id === task.id && dragTargetTaskId?.edge === 'top' ? '2px solid var(--accent-primary)' : 'none',
-      borderBottom: dragTargetTaskId?.id === task.id && dragTargetTaskId?.edge === 'bottom' ? '2px solid var(--accent-primary)' : 'none'
+      borderTop: dragTargetTaskId?.id === task.id && dragTargetTaskId?.edge === 'top' ? '2px solid var(--accent-primary)' : undefined,
+      borderBottom: dragTargetTaskId?.id === task.id && dragTargetTaskId?.edge === 'bottom' ? '2px solid var(--accent-primary)' : undefined
     }} onContextMenu={e => {
       e.preventDefault();
       onTaskContextMenu(e, task.id);
@@ -896,7 +896,7 @@ export default function ProjectListView({
                     <span style={{
                 color: '#9CA3AF',
                 fontSize: '0.8rem'
-              }}>{t("unassigned", "\uD83D\uDC64 Unassigned")}</span>
+              }}>👤 {t("unassigned", "Unassigned")}</span>
                   </div>}
               </div>;
         } else if (colId === 'dueDate') {
@@ -1455,7 +1455,7 @@ export default function ProjectListView({
           {columnOrder.map(colId => {
           let title = '';
           let menuName = colId;
-          if (colId === 'assignee') title = 'Assignee';else if (colId === 'dueDate') title = 'Due date';else if (colId === 'projects') title = 'Projects';else {
+          if (colId === 'assignee') title = t('assignee', 'Assignee');else if (colId === 'dueDate') title = t('due_date', 'Due date');else if (colId === 'projects') title = t('projects', 'Projects');else {
             const cf = customFields.find(f => f.id === colId);
             if (cf) {
               title = cf.title;

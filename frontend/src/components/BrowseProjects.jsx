@@ -90,7 +90,7 @@ export default function BrowseProjects({
         <h1>{t("browse_projects", "Browse projects")}</h1>
         <button className="bp-create-btn" onClick={() => {
         if (setActiveView) setActiveView('create_project');
-      }}>{t("create_project", "+ Create project")}</button>
+      }}>+ {t("create_project", "Create project")}</button>
       </div>
 
       <div className="bp-search-container">
@@ -176,7 +176,7 @@ export default function BrowseProjects({
           <div className="bp-col-name">{t("name", "Name")}</div>
           <div className="bp-col-members">{t("members", "Members")}</div>
           <div className="bp-col-portfolios">{t("portfolios", "Portfolios")}</div>
-          <div className="bp-col-lastmod">{t("last_modified", "\u21C5 Last modified")}</div>
+          <div className="bp-col-lastmod">⇅ {t("last_modified", "Last modified")}</div>
         </div>
 
         <div className="bp-table-body">

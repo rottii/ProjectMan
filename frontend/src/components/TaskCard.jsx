@@ -941,7 +941,7 @@ export default function TaskCard({
             if (prs.length === 0 && isEditingMode) return <span key={cf.id} style={{
               ...styles.staticCustomBadge,
               opacity: 0.7
-            }}>{t("github_pr", "\uD83D\uDC19 GitHub PR")}</span>;
+            }}>🐙 {t("github_pr", "GitHub PR")}</span>;
             const firstPr = prs[0];
             let statusColor = getGithubPRStatusColor(firstPr);
             let label = getGithubPRStatusLabel(firstPr);

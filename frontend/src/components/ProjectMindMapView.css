@@ -1,0 +1,62 @@
+.mind-map-view-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: var(--bg-secondary);
+}
+
+.mind-map-node {
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  min-width: 180px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.mind-map-node.completed {
+  opacity: 0.7;
+  border-left: 4px solid var(--accent-success);
+}
+
+.mind-map-node.incomplete {
+  border-left: 4px solid var(--accent-primary);
+}
+
+.mind-map-node-header {
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mind-map-node-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.mind-map-node:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-color: var(--text-tertiary);
+}
+
+.mind-map-controls {
+  bottom: 16px;
+  right: 16px;
+}
+
+.mind-map-node .react-flow__handle {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-color);
+  background-color: var(--bg-primary);
+  transition: all 0.2s ease;
+}
+
+.mind-map-node .react-flow__handle:hover {
+  background-color: var(--accent-primary);
+}

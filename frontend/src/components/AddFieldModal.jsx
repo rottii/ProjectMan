@@ -169,7 +169,7 @@ export default function AddFieldModal({
           alignItems: 'center',
           gap: '1rem'
         }}>
-            <button type="button" style={styles.manageAccessBtn}>{t("manage_access", "👥 Manage access")}</button>
+            <button type="button" style={styles.manageAccessBtn}>👥 {t("manage_access", "Manage access")}</button>
             {editField && (
               <div style={{ position: 'relative' }}>
                 <button type="button" onClick={() => setShowMenu(!showMenu)} style={{ ...styles.closeXBtn, fontSize: '1.2rem', padding: '0 0.25rem', transform: 'translateY(-2px)' }}>⋯</button>
@@ -201,7 +201,7 @@ export default function AddFieldModal({
                       fontWeight: '500',
                       textAlign: 'left'
                     }}>
-                      {t("delete_field", "🗑️ Delete field")}
+                      🗑️ {t("delete_field", "Delete field")}
                     </button>
                   </div>
                 )}
@@ -242,7 +242,7 @@ export default function AddFieldModal({
             </div>
           </div>
 
-          <button type="button" style={styles.addDescTextLink}>{t("add_description", "+ Add description")}</button>
+          <button type="button" style={styles.addDescTextLink}>+ {t("add_description", "Add description")}</button>
 
           {/* Options editor for single-select and multi-select */}
           {hasOptions && <div style={{
@@ -282,7 +282,7 @@ export default function AddFieldModal({
                     <span onClick={() => handleRemoveOption(option.id)} style={styles.removeOptionCross}>×</span>
                   </div>)}
               </div>
-              <button type="button" onClick={handleAddOption} style={styles.addOptionTextBtn}>{t("add_an_option", "+ Add an option")}</button>
+              <button type="button" onClick={handleAddOption} style={styles.addOptionTextBtn}>+ {t("add_an_option", "Add an option")}</button>
             </div>}
 
           {/* Number format selector */}
@@ -318,7 +318,7 @@ export default function AddFieldModal({
           borderRadius: '6px',
           fontSize: '0.8rem',
           color: 'var(--text-secondary)'
-        }}>{t("id_fields_are_auto_generated_and_read_only_each_ta", "\uD83C\uDD94 ID fields are auto-generated and read-only. Each task will get a unique numeric ID.")}</div>}
+        }}>🆔 {t("id_fields_are_auto_generated_and_read_only_each_ta", "ID fields are auto-generated and read-only. Each task will get a unique numeric ID.")}</div>}
 
           {fieldType === 'timer' && <div style={{
           marginTop: '1.25rem',
@@ -327,7 +327,7 @@ export default function AddFieldModal({
           borderRadius: '6px',
           fontSize: '0.8rem',
           color: 'var(--text-secondary)'
-        }}>{t("timer_fields_let_you_track_time_spent_on_tasks_cli", "\u23F1 Timer fields let you track time spent on tasks. Click start/stop to toggle the timer.")}</div>}
+        }}>⏱️ {t("timer_fields_let_you_track_time_spent_on_tasks_cli", "Timer fields let you track time spent on tasks. Click start/stop to toggle the timer.")}</div>}
 
           {fieldType === 'people' && <div style={{
           marginTop: '1.25rem',
@@ -336,7 +336,7 @@ export default function AddFieldModal({
           borderRadius: '6px',
           fontSize: '0.8rem',
           color: 'var(--text-secondary)'
-        }}>{t("people_fields_let_you_assign_multiple_project_memb", "\uD83D\uDC64 People fields let you assign multiple project members to a task field.")}</div>}
+        }}>👤 {t("people_fields_let_you_assign_multiple_project_memb", "People fields let you assign multiple project members to a task field.")}</div>}
 
           {fieldType === 'date' && <div style={{
           marginTop: '1.25rem',
@@ -345,7 +345,7 @@ export default function AddFieldModal({
           borderRadius: '6px',
           fontSize: '0.8rem',
           color: 'var(--text-secondary)'
-        }}>{t("date_fields_store_a_single_date_value_that_can_be_", "\uD83D\uDCC5 Date fields store a single date value that can be set per task.")}</div>}
+        }}>📅 {t("date_fields_store_a_single_date_value_that_can_be_", "Date fields store a single date value that can be set per task.")}</div>}
 
           {fieldType === 'github_pr' && <div style={{
           marginTop: '1.25rem',
@@ -354,7 +354,7 @@ export default function AddFieldModal({
           borderRadius: '6px',
           fontSize: '0.8rem',
           color: 'var(--text-secondary)'
-        }}>{t("github_pr_fields_automatically_sync_with_any_pull_", "\uD83D\uDC19 GitHub PR fields automatically sync with any Pull Requests linked to the task. This field is read-only.")}</div>}
+        }}>🐙 {t("github_pr_fields_automatically_sync_with_any_pull_", "GitHub PR fields automatically sync with any Pull Requests linked to the task. This field is read-only.")}</div>}
 
           <div style={styles.checkboxesBlock}>
             <label style={styles.checkboxLabel}>

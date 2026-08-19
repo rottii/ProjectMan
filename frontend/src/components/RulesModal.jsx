@@ -730,11 +730,11 @@ export default function RulesModal({
           <select className="node-value-selector" style={{
           margin: 0
         }} value={config.op} onChange={e => updateDateConfig(e.target.value, config.date1, config.date2)} onClick={e => e.stopPropagation()}>
-            <option value="empty">{name}{t("is_empty", "is empty")}</option>
-            <option value="not_empty">{name}{t("is_not_empty", "is not empty")}</option>
-            <option value="before">{name}{t("is_before", "is before...")}</option>
-            <option value="after">{name}{t("is_after", "is after...")}</option>
-            <option value="between">{name}{t("is_between", "is between...")}</option>
+            <option value="empty">{name} {t("is_empty", "is empty")}</option>
+            <option value="not_empty">{name} {t("is_not_empty", "is not empty")}</option>
+            <option value="before">{name} {t("is_before", "is before...")}</option>
+            <option value="after">{name} {t("is_after", "is after...")}</option>
+            <option value="between">{name} {t("is_between", "is between...")}</option>
           </select>
 
           {(config.op === 'before' || config.op === 'after') && <input type="date" className="node-value-selector" style={{

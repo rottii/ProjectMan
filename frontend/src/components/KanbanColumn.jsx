@@ -243,9 +243,9 @@ export default function KanbanColumn({
       flexShrink: 0,
       marginTop: 'auto'
     }}>
-      <input type="text" placeholder={t("add_task", "+ Add task...")} value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} style={styles.miniInput} required />
+      <input type="text" placeholder={"+ " + t("add_task", "Add task...")} value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} style={styles.miniInput} required />
       <button type="submit" style={styles.miniButton}>{t("add", "Add")}</button>
-    </form> : isReadOnly ? <div style={styles.readOnlyFooter}>{t("read_only_mode", "\uD83D\uDC41\uFE0F Read Only Mode")}</div> : null}
+    </form> : isReadOnly ? <div style={styles.readOnlyFooter}>👁️ {t("read_only_mode", "Read Only Mode")}</div> : null}
   </div>;
 }
 const styles = {

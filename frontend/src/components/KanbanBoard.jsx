@@ -22,6 +22,7 @@ import IconColorPicker from './IconColorPicker'
 import ProjectNoteView from './ProjectNoteView'
 import ProjectFilesView from './ProjectFilesView'
 import ProjectMessagesView from './ProjectMessagesView'
+import ProjectMindMapView from './ProjectMindMapView'
 import BulkActionBar from './BulkActionBar'
 import './KanbanBoard.css'
 import { getParsedCustomFields, getParsedGithubPRs, getGithubPRStatusLabel, GITHUB_PR_STATUSES, GITHUB_PR_SORT_MAP } from '../utils/customFields'
@@ -169,7 +170,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
   }, [isOptionsPaneOpen, isCustomizePanelOpen]);
 
   // Parse views for backward compatibility
-  const rawViews = selectedProject.activeViews || ['Overview', 'List', 'Board', 'Timeline', 'Gantt', 'Dashboard', 'Calendar', 'Workload'];
+  const rawViews = selectedProject.activeViews || ['Overview', 'List', 'Board', 'Timeline', 'Gantt', 'Dashboard', 'Calendar', 'Workload', 'Mind Map'];
   let parsedViews = rawViews.map((v, i) => {
     if (typeof v === 'string') return { id: `legacy-${v.toLowerCase()}`, type: v, name: v };
     return v;
@@ -2201,7 +2202,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
               {/* Field Box */}
               <div style={{ position: 'relative', flex: 1, minWidth: '120px' }}>
                 <div onClick={(e) => { e.stopPropagation(); setOpenFilterDropdown(prev => prev?.index === idx && prev?.type === 'field' ? null : { index: idx, type: 'field' }) }} style={{ border: '1px solid #D1D5DB', borderRadius: '6px', padding: '6px 12px', fontSize: '0.85rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>{filter.icon}</span> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{filter.field}</span> <span style={{ color: '#9CA3AF', marginLeft: 'auto' }}>⌄</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{filter.icon}</span> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(filter.field.toLowerCase().replace(/ /g, '_'), filter.field)}</span> <span style={{ color: '#9CA3AF', marginLeft: 'auto' }}>⌄</span>
                 </div>
                 {openFilterDropdown?.index === idx && openFilterDropdown?.type === 'field' && (
                   <div style={{ position: 'absolute', top: '100%', left: 0, width: '220px', backgroundColor: 'var(--bg-primary)', border: '1px solid #E5E7EB', borderRadius: '6px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', zIndex: 102, marginTop: '4px', maxHeight: '300px', overflowY: 'auto' }}>
@@ -2578,11 +2579,11 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
             </span>
             {isAddViewMenuOpen && (
               <div style={{ ...styles.addWidgetDropdownMenu, top: '100%', left: 0, marginTop: '4px', zIndex: 100 }} onClick={(e) => e.stopPropagation()}>
-                {['Overview', 'List', 'Board', 'Timeline', 'Gantt', 'Dashboard', 'Calendar', 'Workload', 'Note', 'Files', 'Messages']
+                {['Overview', 'List', 'Board', 'Timeline', 'Gantt', 'Dashboard', 'Calendar', 'Workload', 'Note', 'Files', 'Messages', 'Mind Map']
                   .filter(type => !(isMyTasks && type === 'Overview'))
                   .map(type => (
                     <div key={type} className="dropdown-item" style={styles.addWidgetDropdownItem} onClick={() => handleAddView(type)}>
-                      {type}
+                      {t(type.toLowerCase(), type)}
                     </div>
                   ))}
               </div>
@@ -2604,7 +2605,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#818CF8'}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6366F1'}
                     >
-                      <span style={{ fontWeight: '700' }}>+</span> Add widget
+                      <span style={{ fontWeight: '700' }}>+</span> {t('add_widget', 'Add widget')}
                     </button>
                     {isAddWidgetMenuOpen && (
                       <div style={{
@@ -2650,7 +2651,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
                   >
-                    🔗 Share Dashboard
+                    🔗 {t('share_dashboard', 'Share Dashboard')}
                   </button>
                 </div>
               </>
@@ -2663,7 +2664,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#818CF8'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6366F1'}
                 >
-                  <span style={{ fontWeight: '700' }}>+</span> Add task
+                  <span style={{ fontWeight: '700' }}>+</span> {t('add_task_btn', 'Add task')}
                 </button>
                 <div style={{ width: '1px', backgroundColor: 'rgba(255,255,255,0.2)', margin: '4px 0', zIndex: 1 }} />
                 <button
@@ -2679,16 +2680,16 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                 {isAddTaskMenuOpen && (
                   <div style={{ ...styles.addWidgetDropdownMenu, top: '100%', left: 0 }} onClick={(e) => e.stopPropagation()}>
                     <div className="dropdown-item" style={styles.addWidgetDropdownItem} onClick={() => { handleTopAddTaskGlobal(); setIsAddTaskMenuOpen(false); }}>
-                      <span style={{ color: 'var(--text-secondary)', marginRight: '8px' }}>✓</span> Task <span style={{ marginLeft: 'auto', fontSize: '0.7rem', color: 'var(--text-tertiary)', paddingLeft: '2rem' }}>Default</span>
+                      <span style={{ color: 'var(--text-secondary)', marginRight: '8px' }}>✓</span> {t('task', 'Task')} <span style={{ marginLeft: 'auto', fontSize: '0.7rem', color: 'var(--text-tertiary)', paddingLeft: '2rem' }}>{t('default', 'Default')}</span>
                     </div>
                     <div className="dropdown-item" style={styles.addWidgetDropdownItem} onClick={() => { handleTopAddTaskGlobal({ type: 'APPROVAL' }); setIsAddTaskMenuOpen(false); }}>
-                      <span style={{ color: 'var(--text-secondary)', marginRight: '8px' }}>⚖️</span> Approval
+                      <span style={{ color: 'var(--text-secondary)', marginRight: '8px' }}>⚖️</span> {t('approval', 'Approval')}
                     </div>
                     <div className="dropdown-item" style={styles.addWidgetDropdownItem} onClick={() => { handleTopAddTaskGlobal({ type: 'MILESTONE' }); setIsAddTaskMenuOpen(false); }}>
-                      <span style={{ color: 'var(--text-secondary)', marginRight: '8px' }}>◇</span> Milestone
+                      <span style={{ color: 'var(--text-secondary)', marginRight: '8px' }}>◇</span> {t('milestone', 'Milestone')}
                     </div>
                     <div className="dropdown-item" style={styles.addWidgetDropdownItem} onClick={() => { handleCreateSectionGlobal(); setIsAddTaskMenuOpen(false); }}>
-                      <span style={{ color: 'var(--text-secondary)', marginRight: '8px' }}>≡</span> Section
+                      <span style={{ color: 'var(--text-secondary)', marginRight: '8px' }}>≡</span> {t('section', 'Section')}
                     </div>
                   </div>
                 )}
@@ -2724,7 +2725,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                 <div style={styles.optionsRightGroup}>
                   <div style={{ position: 'relative' }}>
                     <div className="option-sub-item" style={{ ...styles.optionSubItem, backgroundColor: isFilterDropdownOpen || activeFilters.length > 0 ? 'var(--bg-tertiary)' : undefined, fontWeight: '500' }} onClick={(e) => { document.body.click(); e.stopPropagation(); setIsFilterDropdownOpen(!isFilterDropdownOpen); }}>
-                      <span style={styles.optionIcon}>📊</span> Filter {activeFilters.length > 0 && `(${activeFilters.length})`}
+                      <span style={styles.optionIcon}>📊</span> {t('filter', 'Filter')} {activeFilters.length > 0 && `(${activeFilters.length})`}
                       {activeFilters.length > 0 && (
                         <span
                           onClick={(e) => { e.stopPropagation(); setActiveFilters([]); }}
@@ -2738,35 +2739,35 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                       <div style={{ ...styles.groupDropdownPanel, right: '-150px', minWidth: '600px', padding: '16px' }} onClick={(e) => { e.stopPropagation(); setOpenFilterDropdown(null); }}>
                         {/* Header */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                          <span style={{ fontWeight: '500', fontSize: '1rem', color: 'var(--text-primary)' }}>Filters</span>
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer' }} onClick={() => setActiveFilters([])}>Clear</span>
+                          <span style={{ fontWeight: '500', fontSize: '1rem', color: 'var(--text-primary)' }}>{t('filters', 'Filters')}</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer' }} onClick={() => setActiveFilters([])}>{t('clear', 'Clear')}</span>
                         </div>
 
                         {/* Quick filters */}
                         <div style={{ marginBottom: '24px' }}>
-                          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>Quick filters</div>
+                          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>{t('quick_filters', 'Quick filters')}</div>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                             <div onClick={() => handleToggleFilter('incomplete')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('incomplete') ? '1px solid var(--accent-primary)' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('incomplete') ? 'var(--accent-primary)' : 'var(--text-primary)', backgroundColor: activeFilters.includes('incomplete') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
-                              <span style={{ color: activeFilters.includes('incomplete') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>✓</span> Incomplete tasks
+                              <span style={{ color: activeFilters.includes('incomplete') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>✓</span> {t('incomplete_tasks', 'Incomplete tasks')}
                             </div>
                             <div onClick={() => handleToggleFilter('completed')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('completed') ? '1px solid var(--accent-primary)' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('completed') ? 'var(--accent-primary)' : 'var(--text-primary)', backgroundColor: activeFilters.includes('completed') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
-                              <span style={{ color: activeFilters.includes('completed') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>✓</span> Completed tasks
+                              <span style={{ color: activeFilters.includes('completed') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>✓</span> {t('completed_tasks', 'Completed tasks')}
                             </div>
                             <div onClick={() => handleToggleFilter('my-tasks')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('my-tasks') ? '1px solid var(--accent-primary)' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('my-tasks') ? 'var(--accent-primary)' : 'var(--text-primary)', backgroundColor: activeFilters.includes('my-tasks') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
-                              <span style={{ color: activeFilters.includes('my-tasks') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>👤</span> Just my tasks
+                              <span style={{ color: activeFilters.includes('my-tasks') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>👤</span> {t('just_my_tasks', 'Just my tasks')}
                             </div>
                             <div onClick={() => handleToggleFilter('this-week')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('this-week') ? '1px solid var(--accent-primary)' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('this-week') ? 'var(--accent-primary)' : 'var(--text-primary)', backgroundColor: activeFilters.includes('this-week') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
-                              <span style={{ color: activeFilters.includes('this-week') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>📅</span> Due this week
+                              <span style={{ color: activeFilters.includes('this-week') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>📅</span> {t('due_this_week', 'Due this week')}
                             </div>
                             <div onClick={() => handleToggleFilter('next-week')} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: activeFilters.includes('next-week') ? '1px solid var(--accent-primary)' : '1px solid #D1D5DB', borderRadius: '16px', padding: '4px 12px', fontSize: '0.85rem', color: activeFilters.includes('next-week') ? 'var(--accent-primary)' : 'var(--text-primary)', backgroundColor: activeFilters.includes('next-week') ? '#EEF2F6' : 'transparent', cursor: 'pointer' }}>
-                              <span style={{ color: activeFilters.includes('next-week') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>📅</span> Due next week
+                              <span style={{ color: activeFilters.includes('next-week') ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>📅</span> {t('due_next_week', 'Due next week')}
                             </div>
                           </div>
                         </div>
 
                         {/* All filters */}
                         <div>
-                          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>All filters</div>
+                          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>{t('all_filters', 'All filters')}</div>
 
                           {renderActiveFiltersList()}
                         </div>
@@ -2776,7 +2777,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                             style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.85rem' }}
                             onClick={() => setIsFilterInnerMenuOpen(!isFilterInnerMenuOpen)}
                           >
-                            <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>+</span> Add filter ⌄
+                            <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>+</span> {t('add_filter', 'Add filter ⌄')}
                           </div>
 
                           {isFilterInnerMenuOpen && (
@@ -2831,7 +2832,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                   }}
                                 >
                                   <span style={{ color: 'var(--text-secondary)', width: '16px', textAlign: 'center' }}>{item.icon}</span>
-                                  <span>{item.label}</span>
+                                  <span>{t(item.label.toLowerCase().replace(/ /g, '_'), item.label)}</span>
                                 </div>
                               ))}
                             </div>
@@ -2846,7 +2847,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                       style={{ ...styles.optionSubItem, backgroundColor: isSortDropdownOpen || activeSorts.length > 0 ? 'var(--bg-tertiary)' : undefined, fontWeight: '500' }}
                       onClick={(e) => { document.body.click(); e.stopPropagation(); setIsSortDropdownOpen(!isSortDropdownOpen); setSortDropdownView('main'); }}
                     >
-                      <span style={styles.optionIcon}>⇅</span> Sort {activeSorts.length > 0 && `(${activeSorts.length})`}
+                      <span style={styles.optionIcon}>⇅</span> {t('sort', 'Sort')} {activeSorts.length > 0 && `(${activeSorts.length})`}
                       {activeSorts.length > 0 && (
                         <span
                           onClick={(e) => { e.stopPropagation(); setActiveSorts([]); }}
@@ -2861,8 +2862,8 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                         {activeSorts.length > 0 ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontWeight: '500', color: 'var(--text-primary)' }}>Sorts</span>
-                              <button onClick={() => { setActiveSorts([]); setIsSortDropdownOpen(false); }} style={{ background: 'none', border: 'none', fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}>Clear</button>
+                              <span style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{t('sorts', 'Sorts')}</span>
+                              <button onClick={() => { setActiveSorts([]); setIsSortDropdownOpen(false); }} style={{ background: 'none', border: 'none', fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}>{t('clear', 'Clear')}</button>
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -2891,7 +2892,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                     ⋮⋮
                                   </span>
                                   <div style={{ flex: 1, border: '1px solid #D1D5DB', borderRadius: '6px', padding: '6px 12px', fontSize: '0.85rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'var(--bg-primary)' }}>
-                                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{sortObj.field}</span>
+                                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(sortObj.field.toLowerCase().replace(/ /g, '_'), sortObj.field)}</span>
                                   </div>
                                   <div style={{ position: 'relative', width: '120px' }}>
                                     <div onClick={(e) => { e.stopPropagation(); setOpenFilterDropdown(prev => prev?.index === `sort-${sIdx}` && prev?.type === 'direction' ? null : { index: `sort-${sIdx}`, type: 'direction' }) }} style={{ border: '1px solid #D1D5DB', borderRadius: '6px', padding: '6px 12px', fontSize: '0.85rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -2917,7 +2918,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                 style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '4px' }}
                                 onClick={(e) => { e.stopPropagation(); setSortDropdownView(sortDropdownView === 'add' ? 'main' : 'add'); }}
                               >
-                                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>+</span> Add sort <span style={{ fontSize: '0.8rem' }}>⌄</span>
+                                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>+</span> {t('add_sort', 'Add sort')} <span style={{ fontSize: '0.8rem' }}>⌄</span>
                               </div>
                               {sortDropdownView === 'add' && (
                                 <div style={{ ...styles.sortDropdownMenu, position: 'absolute', top: '100%', left: '0', right: 'auto', marginTop: '4px', width: '220px', zIndex: 102, padding: '0.5rem 0' }} onClick={(e) => e.stopPropagation()}>
@@ -2944,7 +2945,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                         onClick={() => { handleSortOptionClick(item.label); setSortDropdownView('main'); setIsSortDropdownOpen(true); }}
                                       >
                                         <span style={styles.sortDropdownIcon}>{item.icon}</span>
-                                        <span style={{ flex: 1 }}>{item.label}</span>
+                                        <span style={{ flex: 1 }}>{t(item.label.toLowerCase().replace(/ /g, '_'), item.label)}</span>
                                         {isActive && <span style={{ fontSize: '0.8rem', color: 'var(--accent-primary)' }}>{activeObj.direction === 'asc' ? '↑' : '↓'}</span>}
                                       </div>
                                     )
@@ -2978,7 +2979,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                   onClick={() => handleSortOptionClick(item.label)}
                                 >
                                   <span style={styles.sortDropdownIcon}>{item.icon}</span>
-                                  <span style={{ flex: 1 }}>{item.label}</span>
+                                  <span style={{ flex: 1 }}>{t(item.label.toLowerCase().replace(/ /g, '_'), item.label)}</span>
                                   {isActive && <span style={{ fontSize: '0.8rem', color: 'var(--accent-primary)' }}>{activeObj.direction === 'asc' ? '↑' : '↓'}</span>}
                                 </div>
                               )
@@ -3008,7 +3009,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                       style={{ ...styles.optionSubItem, backgroundColor: isGroupDropdownOpen || (activeGroups && activeGroups.length > 0 && activeGroups[0].field !== 'Sections' || activeGroups.length > 1) ? 'var(--bg-tertiary)' : undefined, fontWeight: '500' }}
                       onClick={(e) => { document.body.click(); e.stopPropagation(); setIsGroupDropdownOpen(!isGroupDropdownOpen); }}
                     >
-                      <span style={styles.optionIcon}>⊞</span> Group
+                      <span style={styles.optionIcon}>⊞</span> {t('group', 'Group')}
                       {(activeGroups && activeGroups.length > 0 && activeGroups[0].field !== 'Sections' || activeGroups.length > 1) && (
                         <span
                           onClick={(e) => { e.stopPropagation(); setActiveGroups([{ field: 'Sections', order: 'Custom order' }]); }}
@@ -3022,8 +3023,8 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                     {isGroupDropdownOpen && (
                       <div style={{ ...styles.groupDropdownPanel, padding: 0, minWidth: '320px' }} onClick={(e) => e.stopPropagation()}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #E5E7EB' }}>
-                          <span style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '0.9rem' }}>Groups</span>
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer' }} onClick={() => setActiveGroups([{ field: 'Sections', order: 'Custom order' }])}>Clear</span>
+                          <span style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '0.9rem' }}>{t('groups', 'Groups')}</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer' }} onClick={() => setActiveGroups([{ field: 'Sections', order: 'Custom order' }])}>{t('clear', 'Clear')}</span>
                         </div>
 
                         <div style={{ padding: '16px' }}>
@@ -3036,7 +3037,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                   onClick={(e) => { e.stopPropagation(); setOpenFilterDropdown(prev => prev?.index === `groupField-${gIdx}` ? null : { index: `groupField-${gIdx}`, type: 'groupField' }); }}
                                 >
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <span style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>{groupObj.field === 'Sections' ? '≡' : 'A'}</span> {groupObj.field}
+                                    <span style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>{groupObj.field === 'Sections' ? '≡' : 'A'}</span> {t(groupObj.field.toLowerCase().replace(/ /g, '_'), groupObj.field)}
                                   </div>
                                   <span style={{ color: '#9CA3AF' }}>⌄</span>
                                 </div>
@@ -3068,7 +3069,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                         }}
                                       >
                                         <span style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', width: '20px', textAlign: 'center' }}>{item.icon}</span>
-                                        {item.label}
+                                        {t(item.label.toLowerCase().replace(/ /g, '_'), item.label)}
                                       </div>
                                     ))}
                                     <div style={{ height: '1px', backgroundColor: '#E5E7EB', margin: '4px 0' }}></div>
@@ -3078,7 +3079,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                       onClick={() => { setShowAddFieldMenu(true); setIsGroupDropdownOpen(false); setOpenFilterDropdown(null); }}
                                     >
-                                      + Add Custom Field
+                                      {t('add_custom_field', '+ Add Custom Field')}
                                     </div>
                                   </div>
                                 )}
@@ -3093,7 +3094,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                     setOpenFilterDropdown(prev => prev?.index === `groupOrder-${gIdx}` ? null : { index: `groupOrder-${gIdx}`, type: 'groupOrder' });
                                   }}
                                 >
-                                  {groupObj.field === 'Sections' ? 'Custom order' : groupObj.order} <span style={{ color: '#9CA3AF' }}>⌄</span>
+                                  {groupObj.field === 'Sections' ? t('custom_order', 'Custom order') : t(groupObj.order.toLowerCase().replace(/ /g, '_'), groupObj.order)} <span style={{ color: '#9CA3AF' }}>⌄</span>
                                 </div>
                                 {openFilterDropdown?.index === `groupOrder-${gIdx}` && openFilterDropdown?.type === 'groupOrder' && (
                                   <div style={{ position: 'absolute', top: '100%', right: 0, width: '150px', backgroundColor: 'var(--bg-primary)', border: '1px solid #E5E7EB', borderRadius: '6px', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)', zIndex: 110, marginTop: '4px', padding: '6px 0' }} onClick={(e) => e.stopPropagation()}>
@@ -3113,7 +3114,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                         <div style={{ width: '16px', display: 'flex', justifyContent: 'center' }}>
                                           {groupObj.order === opt && <span style={{ color: 'var(--accent-primary)' }}>✓</span>}
                                         </div>
-                                        {opt}
+                                        {t(opt.toLowerCase().replace(/ /g, '_'), opt)}
                                       </div>
                                     ))}
                                   </div>
@@ -3143,7 +3144,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                                   setOpenFilterDropdown(prev => prev?.index === 'add-subgroup' ? null : { index: 'add-subgroup', type: 'addSubgroup' });
                                 }}
                               >
-                                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>+</span> Add subgroup <span style={{ fontSize: '0.8rem' }}>⌄</span>
+                                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>+</span> {t('add_subgroup', 'Add subgroup')} <span style={{ fontSize: '0.8rem' }}>⌄</span>
                               </div>
 
                               {openFilterDropdown?.index === 'add-subgroup' && openFilterDropdown?.type === 'addSubgroup' && (
@@ -3189,7 +3190,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
 
                           <div style={{ height: '1px', backgroundColor: '#E5E7EB', margin: '16px 0' }}></div>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>Show empty groups</span>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{t('show_empty_groups', 'Show empty groups')}</span>
                             <div
                               style={{ width: '36px', height: '20px', backgroundColor: showEmptyGroups ? 'var(--accent-primary)' : '#D1D5DB', borderRadius: '10px', position: 'relative', cursor: 'pointer', transition: 'background-color 0.2s' }}
                               onClick={() => setShowEmptyGroups(!showEmptyGroups)}
@@ -3204,13 +3205,13 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                   </div>
 
                   <div style={styles.dividerVertical}></div>
-                  <div id="options-pane-toggle-btn" className="option-sub-item" style={styles.optionSubItem} onClick={() => { setIsOptionsPaneOpen(true); setIsCustomizePanelOpen(false); }}><span style={styles.optionIcon}>⚙️</span> Options</div>
+                  <div id="options-pane-toggle-btn" className="option-sub-item" style={styles.optionSubItem} onClick={() => { setIsOptionsPaneOpen(true); setIsCustomizePanelOpen(false); }}><span style={styles.optionIcon}>⚙️</span> {t('options', 'Options')}</div>
                   {isSearchOpen ? (
                     <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '2px 8px', backgroundColor: 'var(--bg-primary)', marginLeft: '8px' }}>
                       <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginRight: '6px' }}>🔍</span>
                       <input
                         type="text"
-                        placeholder="Search tasks..."
+                        placeholder={t('search_tasks', 'Search tasks...')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         style={{ border: 'none', outline: 'none', fontSize: '0.85rem', width: '130px', color: 'var(--text-primary)', backgroundColor: 'transparent' }}
@@ -3456,6 +3457,8 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
           <ProjectFilesView selectedProject={selectedProject} token={token} onTaskUpdate={handleTaskUpdate} />
         ) : activeViewObj.type === 'Messages' ? (
           <ProjectMessagesView selectedProject={selectedProject} token={token} currentUser={user} />
+        ) : activeViewObj.type === 'Mind Map' ? (
+          <ProjectMindMapView selectedProject={selectedProject} onTaskClick={setActiveTaskPaneId} />
         ) : null}
 
         {/* Sürükleme Ghost Önizleme Taslağı */}
@@ -3479,9 +3482,9 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
 
               {contextMenu.convertMode && (
                 <div style={{ ...styles.contextMenu, top: '-5px', left: '100%', position: 'absolute', marginLeft: '2px', minWidth: '150px' }}>
-                  <button onClick={() => handleConvertTask('TASK')} style={{ ...styles.contextMenuItem, display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: 'var(--text-secondary)' }}>✓</span> Task</button>
-                  <button onClick={() => handleConvertTask('MILESTONE')} style={{ ...styles.contextMenuItem, display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: 'var(--text-secondary)' }}>◇</span> Milestone</button>
-                  <button onClick={() => handleConvertTask('APPROVAL')} style={{ ...styles.contextMenuItem, display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: 'var(--text-secondary)' }}>⚖️</span> Approval</button>
+                  <button onClick={() => handleConvertTask('TASK')} style={{ ...styles.contextMenuItem, display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: 'var(--text-secondary)' }}>✓</span> {t('task', 'Task')}</button>
+                  <button onClick={() => handleConvertTask('MILESTONE')} style={{ ...styles.contextMenuItem, display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: 'var(--text-secondary)' }}>◇</span> {t('milestone', 'Milestone')}</button>
+                  <button onClick={() => handleConvertTask('APPROVAL')} style={{ ...styles.contextMenuItem, display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: 'var(--text-secondary)' }}>⚖️</span> {t('approval', 'Approval')}</button>
                 </div>
               )}
             </div>
@@ -3578,7 +3581,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
         <SlidePaneWrapper
           isOpen={!!activeTaskPaneId}
           className="task-pane-ignore-click"
-          style={{ position: 'fixed', top: '52px', bottom: 0, right: 0, width: '700px', zIndex: 9999 }}
+          style={{ position: 'fixed', top: '52px', bottom: 0, right: 0, width: '700px', zIndex: 100005 }}
         >
           <TaskDetailPane
             task={(() => {
@@ -3620,25 +3623,25 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
           {customizeView === 'main' && (
             <>
               <div style={styles.customizeHeader}>
-                <h2 style={styles.customizeTitle}>Customize</h2>
+                <h2 style={styles.customizeTitle}>{t('customize', 'Customize')}</h2>
                 <button style={styles.customizeCloseBtn} onClick={() => { setIsCustomizePanelOpen(false); setCustomizeView('main'); }}>→|</button>
               </div>
 
               <div style={styles.customizeBody}>
                 <div style={styles.customizeSectionHeader}>
                   <div>
-                    <h3 style={styles.customizeSectionTitle}>This project</h3>
-                    <div style={styles.customizeSectionSubtitle}>View and edit features on this project</div>
+                    <h3 style={styles.customizeSectionTitle}>{t('this_project', 'This project')}</h3>
+                    <div style={styles.customizeSectionSubtitle}>{t('view_and_edit_features', 'View and edit features on this project')}</div>
                   </div>
-                  <button style={styles.customizeAddBtn}>Add <span>▼</span></button>
+                  <button style={styles.customizeAddBtn}>{t('add', 'Add')} <span>▼</span></button>
                 </div>
 
-                <div style={styles.customizeGroupTitle}>AI Studio</div>
+                <div style={styles.customizeGroupTitle}>{t('ai_studio', 'AI Studio')}</div>
                 <div style={styles.customizeList}>
                   <div className="customize-list-card" style={styles.customizeListItem} onClick={openRulesView}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <span style={{ color: 'var(--text-secondary)' }}>⚡</span>
-                      <span style={styles.customizeItemLabel}>Rules</span>
+                      <span style={styles.customizeItemLabel}>{t('rules', 'Rules')}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       {projectRules.length > 0 && <span style={styles.customizeBadge}>{projectRules.length}</span>}
@@ -3647,7 +3650,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                   </div>
                 </div>
 
-                <div style={styles.customizeGroupTitle}>Workflow features</div>
+                <div style={styles.customizeGroupTitle}>{t('workflow_features', 'Workflow features')}</div>
                 <div style={styles.customizeList}>
                   {[
                     { icon: '◇', label: 'Fields', badge: selectedProject?.customFieldSettings?.length || 0, action: () => setCustomizeView('fields') },
@@ -3661,7 +3664,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                     <div key={i} className="customize-list-card" style={styles.customizeListItem} onClick={item.action}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <span style={{ color: 'var(--text-secondary)' }}>{item.icon}</span>
-                        <span style={styles.customizeItemLabel}>{item.label}</span>
+                        <span style={styles.customizeItemLabel}>{t(item.label.toLowerCase().replace(/ /g, '_'), item.label)}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {item.badge !== undefined && item.badge > 0 && <span style={styles.customizeBadge}>{item.badge}</span>}
@@ -3678,16 +3681,16 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
             <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: 'var(--bg-primary)' }}>
               <div style={{ ...styles.customizeHeader, justifyContent: 'flex-start', gap: '0.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
                 <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--text-secondary)', padding: 0 }} onClick={() => setCustomizeView('main')}>←</button>
-                <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)', fontWeight: '500' }}>Forms</h2>
+                <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)', fontWeight: '500' }}>{t('forms', 'Forms')}</h2>
               </div>
               <div style={{ padding: '1.5rem 1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '500', color: 'var(--text-primary)' }}>Added to project</h3>
+                  <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '500', color: 'var(--text-primary)' }}>{t('added_to_project', 'Added to project')}</h3>
                   <button
                     style={{ padding: '0.4rem 0.75rem', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'var(--bg-primary)', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
                     onClick={() => { setActiveFormId(null); setIsCustomizePanelOpen(false); setIsFormsModalOpen(true); }}
                   >
-                    <span style={{ color: 'var(--text-secondary)' }}>+</span> Add
+                    <span style={{ color: 'var(--text-secondary)' }}>+</span> {t('add', 'Add')}
                   </button>
                 </div>
 
@@ -3717,21 +3720,21 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
               <div style={{ ...styles.customizeHeader, justifyContent: 'flex-start', gap: '0.75rem' }}>
                 <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--text-secondary)', padding: 0 }} onClick={() => setCustomizeView('main')}>←</button>
                 <h2 style={{ ...styles.customizeTitle, display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '1.2rem' }}>
-                  Rules
+                  {t('rules', 'Rules')}
                 </h2>
               </div>
 
               <div style={styles.customizeBody}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
                   <div>
-                    <h3 style={styles.customizeSectionTitle}>Added to project</h3>
-                    <div style={styles.customizeSectionSubtitle}>Manage tasks and workflows automatically.</div>
+                    <h3 style={styles.customizeSectionTitle}>{t('added_to_project', 'Added to project')}</h3>
+                    <div style={styles.customizeSectionSubtitle}>{t('manage_tasks_and_workflows_automatically', 'Manage tasks and workflows automatically.')}</div>
                   </div>
-                  <button style={styles.customizeAddBtn} onClick={() => setIsRulesModalOpen(true)}>+ Add</button>
+                  <button style={styles.customizeAddBtn} onClick={() => setIsRulesModalOpen(true)}>+ {t('add', 'Add')}</button>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  {projectRules.length === 0 && <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>No active rules.</div>}
+                  {projectRules.length === 0 && <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('no_active_rules', 'No active rules.')}</div>}
                   {projectRules.map(r => {
                     let ruleName = r.name || 'Rule';
                     if (!r.name && r.ruleData?.trigger?.type) {
@@ -3864,7 +3867,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
           {optionsView === 'main' ? (
             <>
               <div style={styles.customizeHeader}>
-                <h2 style={styles.customizeTitle}>{activeViewObj?.name || activeViewObj?.type || 'Board'}</h2>
+                <h2 style={styles.customizeTitle}>{t((activeViewObj?.name || activeViewObj?.type || 'Board').toLowerCase().replace(/ /g, '_'), activeViewObj?.name || activeViewObj?.type || 'Board')}</h2>
                 <button style={styles.customizeCloseBtn} onClick={() => setIsOptionsPaneOpen(false)}>→</button>
               </div>
               <div style={styles.customizeBody}>
@@ -3874,11 +3877,11 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                     🗂️
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>View name</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>{t('view_name', 'View name')}</div>
                     <input
                       type="text"
                       key={activeViewObj?.id || 'board'}
-                      defaultValue={activeViewObj?.name || activeViewObj?.type || 'Board'}
+                      defaultValue={t((activeViewObj?.name || activeViewObj?.type || 'Board').toLowerCase().replace(/ /g, '_'), activeViewObj?.name || activeViewObj?.type || 'Board')}
                       onBlur={(e) => {
                         const newName = e.target.value;
                         if (newName && newName.trim() !== '' && newName !== (activeViewObj?.name || activeViewObj?.type)) {
@@ -3900,48 +3903,48 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                   <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-primary)' }} onClick={() => { }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>◫</span>
-                      <span style={styles.customizeItemLabel}>Layout options</span>
+                      <span style={styles.customizeItemLabel}>{t('layout_options', 'Layout options')}</span>
                     </div>
                     <span style={{ color: 'var(--text-secondary)' }}>›</span>
                   </div>
                   <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-primary)' }} onClick={() => { }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>👁️</span>
-                      <span style={styles.customizeItemLabel}>Show/hide fields</span>
+                      <span style={styles.customizeItemLabel}>{t('show_hide_fields', 'Show/hide fields')}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>1 hidden</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>1 {t('hidden', 'hidden')}</span>
                       <span style={{ color: 'var(--text-secondary)' }}>›</span>
                     </div>
                   </div>
                   <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-primary)' }} onClick={() => setOptionsView(activeFilters.filter(f => typeof f === 'object').length > 0 ? 'filters_list' : 'add_filter')}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>≡</span>
-                      <span style={styles.customizeItemLabel}>Filters</span>
+                      <span style={styles.customizeItemLabel}>{t('filters', 'Filters')}</span>
                     </div>
                     <span style={{ color: 'var(--text-secondary)' }}>›</span>
                   </div>
                   <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-primary)' }} onClick={() => setOptionsView(activeSorts.length > 0 ? 'sorts_list' : 'add_sort')}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>⇅</span>
-                      <span style={styles.customizeItemLabel}>Sorts</span>
+                      <span style={styles.customizeItemLabel}>{t('sorts', 'Sorts')}</span>
                     </div>
                     <span style={{ color: 'var(--text-secondary)' }}>›</span>
                   </div>
                   <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-primary)' }} onClick={() => setOptionsView('groups_list')}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>⊞</span>
-                      <span style={styles.customizeItemLabel}>Groups</span>
+                      <span style={styles.customizeItemLabel}>{t('groups', 'Groups')}</span>
                     </div>
                     <span style={{ color: 'var(--text-secondary)' }}>›</span>
                   </div>
                   <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-primary)' }} onClick={() => { }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>⮑</span>
-                      <span style={styles.customizeItemLabel}>Subtasks</span>
+                      <span style={styles.customizeItemLabel}>{t('subtasks', 'Subtasks')}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Collapsed</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{t('collapsed', 'Collapsed')}</span>
                       <span style={{ color: 'var(--text-secondary)' }}>›</span>
                     </div>
                   </div>
@@ -3952,13 +3955,13 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
             <>
               <div style={{ ...styles.customizeHeader, justifyContent: 'flex-start', gap: '12px' }}>
                 <button style={{ background: 'none', border: 'none', fontSize: '1.2rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }} onClick={() => setOptionsView('main')}>←</button>
-                <h2 style={{ ...styles.customizeTitle, fontWeight: 'normal' }}>Filters</h2>
+                <h2 style={{ ...styles.customizeTitle, fontWeight: 'normal' }}>{t('filters', 'Filters')}</h2>
               </div>
               <div style={{ ...styles.customizeBody, padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', overflowY: 'auto' }}>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Manage filters on this view</span>
-                  <button onClick={() => { setActiveFilters([]); setOptionsView('main'); }} style={{ background: 'none', border: 'none', fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}>Clear</button>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('manage_filters', 'Manage filters on this view')}</span>
+                  <button onClick={() => { setActiveFilters([]); setOptionsView('main'); }} style={{ background: 'none', border: 'none', fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}>{t('clear', 'Clear')}</button>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -3969,12 +3972,12 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '12px' }}
                   onClick={() => setOptionsView('add_filter')}
                 >
-                  <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>+</span> Add filter
+                  <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>+</span> {t('add_filter', 'Add filter')}
                 </div>
 
                 <div style={{ marginTop: 'auto', borderTop: '1px solid #E5E7EB', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
                   <button style={{ padding: '6px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', backgroundColor: 'var(--bg-primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    Save view <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
+                    {t('save_view', 'Save view')} <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
                   </button>
                 </div>
               </div>
@@ -3983,12 +3986,12 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
             <>
               <div style={{ ...styles.customizeHeader, justifyContent: 'flex-start', gap: '12px' }}>
                 <button style={{ background: 'none', border: 'none', fontSize: '1.2rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }} onClick={() => setOptionsView(activeFilters.filter(f => typeof f === 'object').length > 0 ? 'filters_list' : 'main')}>←</button>
-                <h2 style={{ ...styles.customizeTitle, fontWeight: 'normal' }}>Add filter</h2>
+                <h2 style={{ ...styles.customizeTitle, fontWeight: 'normal' }}>{t('add_filter', 'Add filter')}</h2>
               </div>
               <div style={{ ...styles.customizeBody, padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', overflowY: 'auto' }}>
                 <div style={{ position: 'relative' }}>
                   <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }}>🔍</span>
-                  <input type="text" placeholder="Filter by" style={{ width: '100%', padding: '8px 12px 8px 32px', borderRadius: '6px', border: '1px solid #D1D5DB', outline: 'none', fontSize: '0.9rem' }} />
+                  <input type="text" placeholder={t('filter_by', 'Filter by')} style={{ width: '100%', padding: '8px 12px 8px 32px', borderRadius: '6px', border: '1px solid #D1D5DB', outline: 'none', fontSize: '0.9rem' }} />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -4043,14 +4046,14 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                       }}
                     >
                       <span style={{ color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>{item.icon}</span>
-                      <span style={{ fontSize: '0.9rem' }}>{item.label}</span>
+                      <span style={{ fontSize: '0.9rem' }}>{t(item.label.toLowerCase().replace(/ /g, '_'), item.label)}</span>
                     </div>
                   ))}
                 </div>
 
                 <div style={{ marginTop: 'auto', borderTop: '1px solid #E5E7EB', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
                   <button style={{ padding: '6px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', backgroundColor: 'var(--bg-primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    Save view <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
+                    {t('save_view', 'Save view')} <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
                   </button>
                 </div>
               </div>
@@ -4059,13 +4062,13 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
             <>
               <div style={{ ...styles.customizeHeader, justifyContent: 'flex-start', gap: '12px' }}>
                 <button style={{ background: 'none', border: 'none', fontSize: '1.2rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }} onClick={() => setOptionsView('main')}>←</button>
-                <h2 style={{ ...styles.customizeTitle, fontWeight: 'normal' }}>Sorts</h2>
+                <h2 style={{ ...styles.customizeTitle, fontWeight: 'normal' }}>{t('sorts', 'Sorts')}</h2>
               </div>
               <div style={{ ...styles.customizeBody, padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', overflowY: 'auto' }}>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Manage sorts on this view</span>
-                  <button onClick={() => { setActiveSorts([]); setOptionsView('main'); }} style={{ background: 'none', border: 'none', fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}>Clear</button>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('manage_sorts', 'Manage sorts on this view')}</span>
+                  <button onClick={() => { setActiveSorts([]); setOptionsView('main'); }} style={{ background: 'none', border: 'none', fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}>{t('clear', 'Clear')}</button>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -4094,16 +4097,16 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                         ⋮⋮
                       </span>
                       <div style={{ flex: 1, border: '1px solid #D1D5DB', borderRadius: '6px', padding: '6px 12px', fontSize: '0.85rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'var(--bg-primary)' }}>
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{sortObj.field}</span>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(sortObj.field.toLowerCase().replace(/ /g, '_'), sortObj.field)}</span>
                       </div>
                       <div style={{ position: 'relative', width: '120px' }}>
                         <div onClick={(e) => { e.stopPropagation(); setOpenFilterDropdown(prev => prev?.index === `sort-${sIdx}` && prev?.type === 'direction' ? null : { index: `sort-${sIdx}`, type: 'direction' }) }} style={{ border: '1px solid #D1D5DB', borderRadius: '6px', padding: '6px 12px', fontSize: '0.85rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                          {sortObj.direction === 'asc' ? 'Ascending' : 'Descending'} <span style={{ color: '#9CA3AF', marginLeft: 'auto' }}>⌄</span>
+                          {sortObj.direction === 'asc' ? t('ascending', 'Ascending') : t('descending', 'Descending')} <span style={{ color: '#9CA3AF', marginLeft: 'auto' }}>⌄</span>
                         </div>
                         {openFilterDropdown?.index === `sort-${sIdx}` && openFilterDropdown?.type === 'direction' && (
-                          <div style={{ position: 'absolute', top: '100%', right: 0, width: '100%', backgroundColor: 'var(--bg-primary)', border: '1px solid #E5E7EB', borderRadius: '6px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', zIndex: 101, marginTop: '4px', padding: '4px 0' }}>
-                            <div onClick={(e) => { e.stopPropagation(); const ns = [...activeSorts]; ns[sIdx].direction = 'asc'; setActiveSorts(ns); setOpenFilterDropdown(null); }} style={{ padding: '6px 12px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-primary)', backgroundColor: sortObj.direction === 'asc' ? '#EEF2F6' : 'transparent' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = sortObj.direction === 'asc' ? '#EEF2F6' : 'transparent'}>Ascending</div>
-                            <div onClick={(e) => { e.stopPropagation(); const ns = [...activeSorts]; ns[sIdx].direction = 'desc'; setActiveSorts(ns); setOpenFilterDropdown(null); }} style={{ padding: '6px 12px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-primary)', backgroundColor: sortObj.direction === 'desc' ? '#EEF2F6' : 'transparent' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = sortObj.direction === 'desc' ? '#EEF2F6' : 'transparent'}>Descending</div>
+                          <div style={{ position: 'absolute', top: '100%', right: 0, width: '120px', backgroundColor: 'var(--bg-primary)', border: '1px solid #E5E7EB', borderRadius: '6px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', zIndex: 101, marginTop: '4px', padding: '4px 0' }}>
+                            <div onClick={(e) => { e.stopPropagation(); const ns = [...activeSorts]; ns[sIdx].direction = 'asc'; setActiveSorts(ns); setOpenFilterDropdown(null); }} style={{ padding: '6px 12px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-primary)', backgroundColor: sortObj.direction === 'asc' ? '#EEF2F6' : 'transparent' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = sortObj.direction === 'asc' ? '#EEF2F6' : 'transparent'}>{t('ascending', 'Ascending')}</div>
+                            <div onClick={(e) => { e.stopPropagation(); const ns = [...activeSorts]; ns[sIdx].direction = 'desc'; setActiveSorts(ns); setOpenFilterDropdown(null); }} style={{ padding: '6px 12px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-primary)', backgroundColor: sortObj.direction === 'desc' ? '#EEF2F6' : 'transparent' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = sortObj.direction === 'desc' ? '#EEF2F6' : 'transparent'}>{t('descending', 'Descending')}</div>
                           </div>
                         )}
                       </div>
@@ -4119,12 +4122,12 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '12px' }}
                   onClick={() => setOptionsView('add_sort')}
                 >
-                  <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>+</span> Add sort
+                  <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>+</span> {t('add_sort', 'Add sort')}
                 </div>
 
                 <div style={{ marginTop: 'auto', borderTop: '1px solid #E5E7EB', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
                   <button style={{ padding: '6px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', backgroundColor: 'var(--bg-primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    Save view <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
+                    {t('save_view', 'Save view')} <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
                   </button>
                 </div>
               </div>
@@ -4133,12 +4136,12 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
             <>
               <div style={{ ...styles.customizeHeader, justifyContent: 'flex-start', gap: '12px' }}>
                 <button style={{ background: 'none', border: 'none', fontSize: '1.2rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }} onClick={() => setOptionsView(activeSorts.length > 0 ? 'sorts_list' : 'main')}>←</button>
-                <h2 style={{ ...styles.customizeTitle, fontWeight: 'normal' }}>Add sort</h2>
+                <h2 style={{ ...styles.customizeTitle, fontWeight: 'normal' }}>{t('add_sort', 'Add sort')}</h2>
               </div>
               <div style={{ ...styles.customizeBody, padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', overflowY: 'auto' }}>
                 <div style={{ position: 'relative' }}>
                   <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }}>🔍</span>
-                  <input type="text" placeholder="Sort by" style={{ width: '100%', padding: '8px 12px 8px 32px', borderRadius: '6px', border: '1px solid #D1D5DB', outline: 'none', fontSize: '0.9rem' }} />
+                  <input type="text" placeholder={t('sort_by', 'Sort by')} style={{ width: '100%', padding: '8px 12px 8px 32px', borderRadius: '6px', border: '1px solid #D1D5DB', outline: 'none', fontSize: '0.9rem' }} />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -4170,14 +4173,14 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                       <span style={{ color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>{item.icon}</span>
-                      <span>{item.label}</span>
+                      <span>{t(item.label.toLowerCase().replace(/ /g, '_'), item.label)}</span>
                     </div>
                   ))}
                 </div>
 
                 <div style={{ marginTop: 'auto', borderTop: '1px solid #E5E7EB', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
                   <button style={{ padding: '6px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', backgroundColor: 'var(--bg-primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    Save view <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
+                    {t('save_view', 'Save view')} <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
                   </button>
                 </div>
               </div>
@@ -4186,11 +4189,11 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
             <>
               <div style={{ ...styles.customizeHeader, justifyContent: 'flex-start', gap: '12px' }}>
                 <button style={{ background: 'none', border: 'none', fontSize: '1.2rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }} onClick={() => setOptionsView('main')}>←</button>
-                <h2 style={{ ...styles.customizeTitle, fontWeight: 'normal' }}>Groups</h2>
+                <h2 style={{ ...styles.customizeTitle, fontWeight: 'normal' }}>{t('groups', 'Groups')}</h2>
               </div>
               <div style={{ ...styles.customizeBody, padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', overflowY: 'auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Manage groups on this view</span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('manage_groups', 'Manage groups on this view')}</span>
                 </div>
 
                 {activeGroups.map((groupObj, gIdx) => (
@@ -4234,7 +4237,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                               }}
                             >
                               <span style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', width: '20px', textAlign: 'center' }}>{item.icon}</span>
-                              {item.label}
+                              {t(item.label.toLowerCase().replace(/ /g, '_'), item.label)}
                             </div>
                           ))}
                           <div style={{ height: '1px', backgroundColor: '#E5E7EB', margin: '4px 0' }}></div>
@@ -4244,7 +4247,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             onClick={() => { setShowAddFieldMenu(true); setIsOptionsPaneOpen(false); setOpenFilterDropdown(null); }}
                           >
-                            + Add Custom Field
+                            {t('add_custom_field', '+ Add Custom Field')}
                           </div>
                         </div>
                       )}
@@ -4259,7 +4262,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                           setOpenFilterDropdown(prev => prev?.index === `groupOrder-opt-${gIdx}` ? null : { index: `groupOrder-opt-${gIdx}`, type: 'groupOrder' });
                         }}
                       >
-                        {groupObj.field === 'Sections' ? 'Custom order' : groupObj.order} <span style={{ color: '#9CA3AF' }}>⌄</span>
+                        {groupObj.field === 'Sections' ? t('custom_order', 'Custom order') : t(groupObj.order.toLowerCase().replace(/ /g, '_'), groupObj.order)} <span style={{ color: '#9CA3AF' }}>⌄</span>
                       </div>
                       {openFilterDropdown?.index === `groupOrder-opt-${gIdx}` && openFilterDropdown?.type === 'groupOrder' && (
                         <div style={{ position: 'absolute', top: '100%', right: 0, width: '150px', backgroundColor: 'var(--bg-primary)', border: '1px solid #E5E7EB', borderRadius: '6px', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)', zIndex: 110, marginTop: '4px', padding: '6px 0' }} onClick={(e) => e.stopPropagation()}>
@@ -4279,7 +4282,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                               <div style={{ width: '16px', display: 'flex', justifyContent: 'center' }}>
                                 {groupObj.order === opt && <span style={{ color: 'var(--accent-primary)' }}>✓</span>}
                               </div>
-                              {opt}
+                              {t(opt.toLowerCase().replace(/ /g, '_'), opt)}
                             </div>
                           ))}
                         </div>
@@ -4317,7 +4320,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                               <div style={{ width: '16px', display: 'flex', justifyContent: 'center' }}>
                                 {!showEmptyGroups && <span style={{ color: 'var(--accent-primary)' }}>✓</span>}
                               </div>
-                              Hide empty groups
+                              {t('hide_empty_groups', 'Hide empty groups')}
                             </div>
                             <div
                               style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-primary)' }}
@@ -4328,7 +4331,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                               <div style={{ width: '16px', display: 'flex', justifyContent: 'center' }}>
                                 {showEmptyGroups && <span style={{ color: 'var(--accent-primary)' }}>✓</span>}
                               </div>
-                              Show empty groups
+                              {t('show_empty_groups', 'Show empty groups')}
                             </div>
                           </div>
                         )}
@@ -4346,7 +4349,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                         setOpenFilterDropdown(prev => prev?.index === 'add-subgroup-opt' ? null : { index: 'add-subgroup-opt', type: 'addSubgroup' });
                       }}
                     >
-                      <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>+</span> Add subgroup <span style={{ fontSize: '0.8rem' }}>⌄</span>
+                      <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>+</span> {t('add_subgroup', 'Add subgroup')} <span style={{ fontSize: '0.8rem' }}>⌄</span>
                     </div>
 
                     {openFilterDropdown?.index === 'add-subgroup-opt' && openFilterDropdown?.type === 'addSubgroup' && (
@@ -4373,7 +4376,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                             }}
                           >
                             <span style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', width: '20px', textAlign: 'center' }}>{item.icon}</span>
-                            {item.label}
+                            {t(item.label.toLowerCase().replace(/ /g, '_'), item.label)}
                           </div>
                         ))}
                         <div style={{ height: '1px', backgroundColor: '#E5E7EB', margin: '4px 0' }}></div>
@@ -4383,7 +4386,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                           onClick={() => { setShowAddFieldMenu(true); setIsOptionsPaneOpen(false); setOpenFilterDropdown(null); }}
                         >
-                          <span style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', width: '20px', textAlign: 'center' }}>+</span> Add custom field
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', width: '20px', textAlign: 'center' }}>+</span> {t('add_custom_field', 'Add custom field')}
                         </div>
                       </div>
                     )}
@@ -4392,7 +4395,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
 
                 <div style={{ marginTop: 'auto', borderTop: '1px solid #E5E7EB', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
                   <button style={{ padding: '6px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', backgroundColor: 'var(--bg-primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    Save view <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
+                    {t('save_view', 'Save view')} <span style={{ color: 'var(--text-secondary)' }}>⌄</span>
                   </button>
                 </div>
               </div>
@@ -4411,10 +4414,10 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
 
         {tabContextMenu.visible && (
           <div className="view-context-menu" style={{ ...styles.contextMenu, left: tabContextMenu.x, top: tabContextMenu.y }}>
-            <div className="view-context-menu-item" onMouseDown={(e) => { e.stopPropagation(); handleRenameView(); }}>✏️ Rename</div>
-            <div className="view-context-menu-item" onMouseDown={(e) => { e.stopPropagation(); handleCopyView(); }}>📋 Copy</div>
-            <div className="view-context-menu-item" onMouseDown={(e) => { e.stopPropagation(); handleSetDefaultView(); }}>⭐ Set as default</div>
-            <div className="view-context-menu-item delete-item" onMouseDown={(e) => { e.stopPropagation(); handleDeleteView(); }}>🗑️ Delete</div>
+            <div className="view-context-menu-item" onMouseDown={(e) => { e.stopPropagation(); handleRenameView(); }}>✏️ {t('rename', 'Rename')}</div>
+            <div className="view-context-menu-item" onMouseDown={(e) => { e.stopPropagation(); handleCopyView(); }}>📋 {t('copy', 'Copy')}</div>
+            <div className="view-context-menu-item" onMouseDown={(e) => { e.stopPropagation(); handleSetDefaultView(); }}>⭐ {t('set_as_default', 'Set as default')}</div>
+            <div className="view-context-menu-item delete-item" onMouseDown={(e) => { e.stopPropagation(); handleDeleteView(); }}>🗑️ {t('delete', 'Delete')}</div>
           </div>
         )}
 
@@ -4513,7 +4516,7 @@ const styles = {
   addSectionInput: { fontFamily: 'inherit', padding: '0.75rem 1rem', borderRadius: '8px', border: '2px dashed var(--border-color)', backgroundColor: 'transparent', fontSize: '1.1rem', fontWeight: 'bold', width: '100%', boxSizing: 'border-box', outline: 'none', color: 'var(--text-primary)' },
   input: { padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', fontSize: '0.9rem', width: '100%', boxSizing: 'border-box', outline: 'none', color: 'var(--text-primary)' },
   button: { padding: '0.5rem', backgroundColor: 'var(--accent-primary)', color: '#FFF', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600', width: '100%' },
-  contextMenu: { position: 'fixed', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', zIndex: 100, padding: '0.4rem', minWidth: '150px' },
+  contextMenu: { position: 'fixed', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', zIndex: 100000, padding: '0.4rem', minWidth: '150px' },
   contextMenuItem: { width: '100%', padding: '0.6rem 0.8rem', backgroundColor: 'transparent', color: 'var(--text-primary)', border: 'none', borderRadius: '6px', cursor: 'pointer', textAlign: 'left', marginBottom: '2px' },
   contextMenuItemDelete: { width: '100%', padding: '0.6rem 0.8rem', backgroundColor: 'transparent', color: 'var(--accent-danger)', border: 'none', borderRadius: '6px', cursor: 'pointer', textAlign: 'left' },
   listSpreadsheetWrapper: { flex: 1, overflowY: 'auto', backgroundColor: 'var(--bg-primary)', display: 'flex', flexDirection: 'column' },

@@ -228,7 +228,7 @@ export default function Portfolios({
       <div style={styles.contentArea}>
         {activeTab === 'Recent and starred' ? <div style={styles.recentSection}>
             <div style={styles.recentHeader}>
-              <div style={styles.recentTitle}>{t("recent_portfolios", "\u25BC Recent portfolios")}</div>
+              <div style={styles.recentTitle}>▼ {t("recent_portfolios", "Recent portfolios")}</div>
               <div style={styles.gridIcon}>⊞</div>
             </div>
 
@@ -248,7 +248,7 @@ export default function Portfolios({
                     <div style={styles.memberBadge}><UserAvatar name={portfolio.owner?.name} userId={portfolio.owner?.id} profilePhoto={portfolio.owner?.profilePhoto} size={32} /></div>
                   </div>
                   <div style={styles.portfolioName}>{portfolio.name}</div>
-                  <div style={styles.portfolioSub}>{portfolio.projectsCount || 0}{t("projects", "projects")}</div>
+                  <div style={styles.portfolioSub}>{portfolio.projectsCount || 0} {t("projects", "projects")}</div>
                 </div>)}
             </div>
           </div> : <div style={styles.listViewSection}>

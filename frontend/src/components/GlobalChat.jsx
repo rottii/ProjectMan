@@ -120,30 +120,44 @@ export default function GlobalChat({ user, token, activeWorkspaceId, workspaces,
               </div>
             ) : (
               messages.map((msg, index) => {
+                const prevMsg = messages[index - 1];
+                const showDateSeparator = !prevMsg || new Date(prevMsg.createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
                 const isMine = msg.senderId === user.id;
-                const showAvatar = index === 0 || messages[index - 1].senderId !== msg.senderId;
+                const showAvatar = index === 0 || prevMsg.senderId !== msg.senderId || showDateSeparator;
                 
                 return (
-                  <div key={msg.id} className={`chat-message-row ${isMine ? 'mine' : ''}`}>
-                    {!isMine && showAvatar ? (
-                      <UserAvatar 
-                        name={msg.sender?.name} 
-                        userId={msg.senderId} 
-                        profilePhoto={msg.sender?.profilePhoto} 
-                        size={28} 
-                      />
-                    ) : (
-                      !isMine && <div style={{ width: 28, height: 28, flexShrink: 0 }}></div>
+                  <React.Fragment key={msg.id}>
+                    {showDateSeparator && (
+                      <div className="chat-date-separator">
+                        <span>
+                          {new Date(msg.createdAt).toLocaleDateString(i18n.language, { month: 'long', day: 'numeric', weekday: 'long' })}
+                        </span>
+                      </div>
                     )}
-                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, alignItems: isMine ? 'flex-end' : 'flex-start' }}>
-                      {!isMine && showAvatar && (
-                        <div className="chat-sender-name">{msg.sender?.name}</div>
+                    <div className={`chat-message-row ${isMine ? 'mine' : ''}`}>
+                      {!isMine && showAvatar ? (
+                        <UserAvatar 
+                          name={msg.sender?.name} 
+                          userId={msg.senderId} 
+                          profilePhoto={msg.sender?.profilePhoto} 
+                          size={28} 
+                        />
+                      ) : (
+                        !isMine && <div style={{ width: 28, height: 28, flexShrink: 0 }}></div>
                       )}
-                      <div className="chat-bubble">
-                        {msg.content}
+                      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, alignItems: isMine ? 'flex-end' : 'flex-start' }}>
+                        {!isMine && showAvatar && (
+                          <div className="chat-sender-name">{msg.sender?.name}</div>
+                        )}
+                        <div className="chat-bubble">
+                          <div className="chat-content">{msg.content}</div>
+                          <div className="chat-time">
+                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </React.Fragment>
                 );
               })
             )}

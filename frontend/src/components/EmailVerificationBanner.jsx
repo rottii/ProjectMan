@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { apiFetch } from '../api';
+import { useTranslation } from 'react-i18next';
 
 export default function EmailVerificationBanner({ token, user, setUser }) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState('idle'); // 'idle', 'sending', 'sent', 'error'
   const [dismissed, setDismissed] = useState(false);
 
@@ -45,8 +47,8 @@ export default function EmailVerificationBanner({ token, user, setUser }) {
       <span style={{ fontSize: '16px' }}>✉️</span>
       <span>
         {status === 'sent'
-          ? `Verification email sent to ${user?.email}! Check your inbox.`
-          : `Please verify your email (${user?.email}) to receive notifications.`
+          ? t('verification_email_sent', 'Verification email sent to {{email}}! Check your inbox.', { email: user?.email })
+          : t('please_verify_email', 'Please verify your email ({{email}}) to receive notifications.', { email: user?.email })
         }
       </span>
       {status !== 'sent' && (
@@ -66,7 +68,7 @@ export default function EmailVerificationBanner({ token, user, setUser }) {
             opacity: status === 'sending' ? 0.7 : 1,
           }}
         >
-          {status === 'sending' ? 'Sending...' : 'Resend verification email'}
+          {status === 'sending' ? t('sending', 'Sending...') : t('resend_verification_email', 'Resend verification email')}
         </button>
       )}
       <button

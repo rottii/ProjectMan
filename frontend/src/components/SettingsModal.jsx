@@ -66,14 +66,14 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
       if (res.ok && data.user) {
         setUser(data.user);
         localStorage.setItem('user', JSON.stringify(data.user));
-        setSaveMessage('Saved successfully');
+        setSaveMessage(t('saved_successfully', 'Saved successfully'));
         setTimeout(() => setSaveMessage(''), 3000);
       } else {
-        setSaveMessage('Failed to save');
+        setSaveMessage(t('failed_to_save', 'Failed to save'));
       }
     } catch (err) {
       console.error(err);
-      setSaveMessage('Error saving profile');
+      setSaveMessage(t('error_saving_profile', 'Error saving profile'));
     } finally {
       setSaving(false);
     }
@@ -131,7 +131,7 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
     <div className="settings-modal-overlay">
       <div className="settings-modal-container" onClick={e => e.stopPropagation()}>
         <div className="settings-modal-header">
-          <h2>Settings</h2>
+          <h2>{t('settings', 'Settings')}</h2>
           <button className="settings-close-btn" onClick={onClose}>✕</button>
         </div>
         
@@ -143,7 +143,7 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
                 className={`settings-sidebar-item ${activeTab === tab ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab)}
               >
-                {tab}
+                {t(tab.toLowerCase().replace(/ /g, '_'), tab)}
               </div>
             ))}
           </div>
@@ -154,14 +154,14 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
                 <div className="settings-photo-section">
                   <UserAvatar name={user?.name} size={100} profilePhoto={user?.profilePhoto} userId={user?.id} />
                   <div>
-                    <button className="settings-upload-btn">Upload your photo</button>
-                    <div className="settings-photo-text">Photos help your teammates recognize you in ProjectMan</div>
+                    <button className="settings-upload-btn">{t('upload_your_photo', 'Upload your photo')}</button>
+                    <div className="settings-photo-text">{t('photo_help_text', 'Photos help your teammates recognize you in ProjectMan')}</div>
                   </div>
                 </div>
 
                 <div className="settings-form-row">
                   <div className="settings-form-group">
-                    <label>Your full name *</label>
+                    <label>{t('your_full_name', 'Your full name *')}</label>
                     <input 
                       type="text" 
                       className="settings-input" 
@@ -174,7 +174,7 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
 
                 <div className="settings-form-row">
                   <div className="settings-form-group">
-                    <label>Job title</label>
+                    <label>{t('job_title', 'Job title')}</label>
                     <input 
                       type="text" 
                       className="settings-input" 
@@ -184,7 +184,7 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
                     />
                   </div>
                   <div className="settings-form-group">
-                    <label>Department or team</label>
+                    <label>{t('department_or_team', 'Department or team')}</label>
                     <input 
                       type="text" 
                       className="settings-input" 
@@ -197,7 +197,7 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
 
                 <div className="settings-form-row">
                   <div className="settings-form-group">
-                    <label>Email</label>
+                    <label>{t('email', 'Email')}</label>
                     <input 
                       type="email" 
                       className="settings-input" 
@@ -210,20 +210,20 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
 
                 <div className="settings-form-row">
                   <div className="settings-form-group">
-                    <label>About me</label>
+                    <label>{t('about_me', 'About me')}</label>
                     <textarea 
                       className="settings-textarea" 
                       name="aboutMe"
                       value={formData.aboutMe} 
                       onChange={handleInputChange} 
-                      placeholder="I usually work from 9am-5pm PST. Feel free to assign me a task with a due date anytime. Also, I love dogs!"
+                      placeholder={t('about_me_placeholder', 'I usually work from 9am-5pm PST. Feel free to assign me a task with a due date anytime. Also, I love dogs!')}
                     />
                   </div>
                 </div>
 
                 <div className="settings-personalization-card">
                   <div>
-                    <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Personalization settings</div>
+                    <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>{t('personalization_settings', 'Personalization settings')}</div>
                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                       Only you can see these fields. We use them to tailor ProjectMan to you and to share relevant product recommendations.
                     </div>
@@ -244,7 +244,7 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
                       cursor: saving ? 'not-allowed' : 'pointer'
                     }}
                   >
-                    {saving ? 'Saving...' : 'Save Profile'}
+                    {saving ? t('saving', 'Saving...') : t('save_profile', 'Save Profile')}
                   </button>
                   {saveMessage && <span style={{ alignSelf: 'center', fontSize: '13px', color: 'var(--text-secondary)' }}>{saveMessage}</span>}
                 </div>
@@ -255,41 +255,41 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
               <div>
                 <div className="settings-form-row">
                   <div className="settings-form-group">
-                    <label>Theme</label>
+                    <label>{t('theme', 'Theme')}</label>
                     <select 
                       className="settings-select"
                       value={isDarkMode ? 'Dark' : 'Light'}
                       onChange={handleThemeChange}
                     >
-                      <option value="Light">Light</option>
-                      <option value="Dark">Dark</option>
-                      <option value="System">System default</option>
+                      <option value="Light">{t('light', 'Light')}</option>
+                      <option value="Dark">{t('dark', 'Dark')}</option>
+                      <option value="System">{t('system_default', 'System default')}</option>
                     </select>
                   </div>
                   <div className="settings-form-group">
-                    <label>Sidebar & topbar color</label>
+                    <label>{t('sidebar_topbar_color', 'Sidebar & topbar color')}</label>
                     <select 
                       className="settings-select" 
                       name="sidebarColor" 
                       value={user?.sidebarColor || 'Black'} 
                       onChange={handleDisplayPrefChange}
                     >
-                      <option value="Black">Black</option>
-                      <option value="White">White</option>
+                      <option value="Black">{t('black', 'Black')}</option>
+                      <option value="White">{t('white', 'White')}</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="settings-form-row">
                   <div className="settings-form-group">
-                    <label>Language</label>
+                    <label>{t('language', 'Language')}</label>
                     <select 
                       className="settings-select"
                       value={i18n.language}
                       onChange={handleLanguageChange}
                     >
-                      <option value="en">English</option>
-                      <option value="tr">Turkish</option>
+                      <option value="en">{t('english', 'English')}</option>
+                      <option value="tr">{t('turkish', 'Turkish')}</option>
                     </select>
                   </div>
                   <div className="settings-form-group" />
@@ -298,16 +298,16 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
 
                 <div className="settings-form-row">
                   <div className="settings-form-group">
-                    <label>Pop-up notification duration</label>
+                    <label>{t('popup_notification_duration', 'Pop-up notification duration')}</label>
                     <select 
                       className="settings-select" 
                       name="notificationDuration" 
                       value={user?.notificationDuration || '10 seconds (default)'} 
                       onChange={handleDisplayPrefChange}
                     >
-                      <option value="10 seconds (default)">10 seconds (default)</option>
-                      <option value="20 seconds">20 seconds</option>
-                      <option value="Until dismissed">Until dismissed</option>
+                      <option value="10 seconds (default)">{t('10_seconds_default', '10 seconds (default)')}</option>
+                      <option value="20 seconds">{t('20_seconds', '20 seconds')}</option>
+                      <option value="Until dismissed">{t('until_dismissed', 'Until dismissed')}</option>
                     </select>
                   </div>
                   <div className="settings-form-group" />
@@ -315,54 +315,54 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
 
                 <div className="settings-form-row">
                   <div className="settings-form-group">
-                    <label>Open projectman.com as</label>
+                    <label>{t('open_projectman_as', 'Open projectman.com as')}</label>
                     <select 
                       className="settings-select" 
                       name="openAppAs" 
                       value={user?.openAppAs || 'ProjectMan.com homepage'} 
                       onChange={handleDisplayPrefChange}
                     >
-                      <option value="ProjectMan.com homepage">ProjectMan.com homepage</option>
-                      <option value="My tasks">My tasks</option>
+                      <option value="ProjectMan.com homepage">{t('projectman_homepage', 'ProjectMan.com homepage')}</option>
+                      <option value="My tasks">{t('my_tasks', 'My tasks')}</option>
                     </select>
                   </div>
                   <div className="settings-form-group" />
                 </div>
 
-                <div className="settings-section-title">Advanced options</div>
+                <div className="settings-section-title">{t('advanced_options', 'Advanced options')}</div>
                 <div className="settings-checkbox-row">
                   <input type="checkbox" id="adv1" name="showRowNumbers" checked={!!user?.showRowNumbers} onChange={handleDisplayPrefChange} />
-                  <label htmlFor="adv1">Show row numbers</label>
+                  <label htmlFor="adv1">{t('show_row_numbers', 'Show row numbers')}</label>
                 </div>
                 <div className="settings-checkbox-row">
                   <input type="checkbox" id="adv2" name="compactMode" checked={!!user?.compactMode} onChange={handleDisplayPrefChange} />
-                  <label htmlFor="adv2">Enable compact mode</label>
+                  <label htmlFor="adv2">{t('enable_compact_mode', 'Enable compact mode')}</label>
                 </div>
                 <div className="settings-checkbox-row">
                   <input type="checkbox" id="adv3" name="colorBlindMode" checked={!!user?.colorBlindMode} onChange={handleDisplayPrefChange} />
-                  <label htmlFor="adv3">Enable color blind friendly mode (protanopia and deuteranopia)</label>
+                  <label htmlFor="adv3">{t('enable_color_blind_mode', 'Enable color blind friendly mode (protanopia and deuteranopia)')}</label>
                 </div>
                 <div className="settings-checkbox-row">
                   <input type="checkbox" id="adv4" name="showCelebrations" checked={user?.showCelebrations ?? true} onChange={handleDisplayPrefChange} />
-                  <label htmlFor="adv4">Show occasional celebrations</label>
+                  <label htmlFor="adv4">{t('show_occasional_celebrations', 'Show occasional celebrations')}</label>
                 </div>
               </div>
             )}
 
             {activeTab === 'Navigation' && (
               <div>
-                <div className="settings-section-title" style={{marginTop: 0}}>Navigation labels and icons</div>
+                <div className="settings-section-title" style={{marginTop: 0}}>{t('navigation_labels_and_icons', 'Navigation labels and icons')}</div>
                 <div className="settings-checkbox-row">
                   <input type="radio" name="navLabel" id="nav1" defaultChecked />
-                  <label htmlFor="nav1">Icon and text</label>
+                  <label htmlFor="nav1">{t('icon_and_text', 'Icon and text')}</label>
                 </div>
                 <div className="settings-checkbox-row">
                   <input type="radio" name="navLabel" id="nav2" />
-                  <label htmlFor="nav2">Icon only</label>
+                  <label htmlFor="nav2">{t('icon_only', 'Icon only')}</label>
                 </div>
 
-                <div className="settings-section-title">Navigation visibility and ordering</div>
-                <div className="settings-section-desc">Hidden items are accessible in 'More'</div>
+                <div className="settings-section-title">{t('navigation_visibility_and_ordering', 'Navigation visibility and ordering')}</div>
+                <div className="settings-section-desc">{t('hidden_items_accessible_in_more', 'Hidden items are accessible in \'More\'')}</div>
                 
                 <div className="settings-toggle-row">
                   <div className="settings-toggle-left">
@@ -428,7 +428,7 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
 
             {activeTab === 'Notifications' && (
               <div>
-                <div className="settings-section-title" style={{marginTop: 0}}>Email Verification</div>
+                <div className="settings-section-title" style={{marginTop: 0}}>{t('email_verification', 'Email Verification')}</div>
                 <div style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
@@ -460,10 +460,10 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
                           });
                           const data = await res.json();
-                          setSaveMessage(res.ok ? 'Verification email sent!' : (data.error || 'Failed'));
+                          setSaveMessage(res.ok ? t('verification_email_sent_msg', 'Verification email sent!') : (data.error || t('failed', 'Failed')));
                           setTimeout(() => setSaveMessage(''), 4000);
                         } catch (err) {
-                          setSaveMessage('Failed to send');
+                          setSaveMessage(t('failed_to_send', 'Failed to send'));
                         }
                       }}
                       style={{
@@ -488,7 +488,7 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
                   </div>
                 )}
 
-                <div className="settings-section-title">Email Notifications</div>
+                <div className="settings-section-title">{t('email_notifications', 'Email Notifications')}</div>
                 <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
                   Choose which events trigger an email notification. These only work when your email is verified.
                 </div>
@@ -502,8 +502,8 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
                     onChange={handleDisplayPrefChange} 
                   />
                   <label htmlFor="emailNotifAssigned">
-                    <div style={{ fontWeight: '500' }}>Task assigned to me</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Get notified when someone assigns a task to you</div>
+                    <div style={{ fontWeight: '500' }}>{t('task_assigned_to_me', 'Task assigned to me')}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{t('task_assigned_to_me_desc', 'Get notified when someone assigns a task to you')}</div>
                   </label>
                 </div>
 
@@ -516,8 +516,8 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
                     onChange={handleDisplayPrefChange} 
                   />
                   <label htmlFor="emailNotifComment">
-                    <div style={{ fontWeight: '500' }}>Comments on my tasks</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Get notified when someone comments on a task you own or created</div>
+                    <div style={{ fontWeight: '500' }}>{t('comments_on_my_tasks', 'Comments on my tasks')}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{t('comments_on_my_tasks_desc', 'Get notified when someone comments on a task you own or created')}</div>
                   </label>
                 </div>
 
@@ -530,8 +530,8 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
                     onChange={handleDisplayPrefChange} 
                   />
                   <label htmlFor="emailNotifMention">
-                    <div style={{ fontWeight: '500' }}>@Mentions</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Get notified when someone mentions you in a comment or description</div>
+                    <div style={{ fontWeight: '500' }}>{t('mentions', '@Mentions')}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{t('mentions_desc', 'Get notified when someone mentions you in a comment or description')}</div>
                   </label>
                 </div>
 
@@ -544,8 +544,8 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
                     onChange={handleDisplayPrefChange} 
                   />
                   <label htmlFor="emailNotifReminder">
-                    <div style={{ fontWeight: '500' }}>Due date reminders</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Get reminded when your tasks are due soon or overdue</div>
+                    <div style={{ fontWeight: '500' }}>{t('due_date_reminders', 'Due date reminders')}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{t('due_date_reminders_desc', 'Get reminded when your tasks are due soon or overdue')}</div>
                   </label>
                 </div>
 
@@ -558,8 +558,8 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
                     onChange={handleDisplayPrefChange} 
                   />
                   <label htmlFor="emailNotifUpdates">
-                    <div style={{ fontWeight: '500' }}>Weekly summary digest</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Receive a weekly summary of activity across your projects</div>
+                    <div style={{ fontWeight: '500' }}>{t('weekly_summary_digest', 'Weekly summary digest')}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{t('weekly_summary_digest_desc', 'Receive a weekly summary of activity across your projects')}</div>
                   </label>
                 </div>
               </div>

@@ -429,7 +429,7 @@ export default function AdminConsoleView({
               backgroundColor: 'var(--primary-color, var(--accent-primary))', color: 'white', border: 'none',
               borderRadius: '6px', padding: '8px 16px', fontSize: '0.9rem', fontWeight: '500', cursor: 'pointer'
             }}>
-              {t("generate_invite_link", "Generate Invite Link")}
+              🔗 {t("generate_invite_link", "Generate Invite Link")}
             </button>
           </div>
           <div style={styles.card}>

@@ -333,7 +333,7 @@ export default function ProjectMessagesView({
   return <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>{t("messages", "Messages")}</h2>
-        {!isComposing && <button style={styles.newMessageBtn} onClick={() => setIsComposing(true)}>{t("new_message", "+ New message")}</button>}
+        {!isComposing && <button style={styles.newMessageBtn} onClick={() => setIsComposing(true)}>+ {t("new_message", "New message")}</button>}
       </div>
 
       {isComposing && <div style={styles.composerContainer}>

@@ -206,10 +206,10 @@ export default function TopNav({
           <button className="topnav-create-btn" onClick={() => setShowOmniCreate(!showOmniCreate)}>
             <span className="create-icon">+</span>{t("create", "Create")}</button>
           {showOmniCreate && <div className="omni-create-dropdown">
-            <div className="omni-create-item" onClick={() => handleOmniAction('task')}>{t("task", "\u2705 Task")}</div>
-            <div className="omni-create-item" onClick={() => handleOmniAction('project')}>{t("project", "\uD83D\uDCCB Project")}</div>
-            <div className="omni-create-item" onClick={() => handleOmniAction('portfolio')}>{t("portfolio", "\uD83D\uDCC1 Portfolio")}</div>
-            <div className="omni-create-item" onClick={() => handleOmniAction('goal')}>{t("goal", "\uD83C\uDFAF Goal")}</div>
+            <div className="omni-create-item" onClick={() => handleOmniAction('task')}>✅ {t("task", "Task")}</div>
+            <div className="omni-create-item" onClick={() => handleOmniAction('project')}>📋 {t("project", "Project")}</div>
+            <div className="omni-create-item" onClick={() => handleOmniAction('portfolio')}>📁 {t("portfolio", "Portfolio")}</div>
+            <div className="omni-create-item" onClick={() => handleOmniAction('goal')}>🎯 {t("goal", "Goal")}</div>
           </div>}
         </div>
 

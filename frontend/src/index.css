@@ -3,6 +3,7 @@
   --bg-primary: #FAFAFA;
   --bg-secondary: #F3F4F6;
   --bg-tertiary: #E5E7EB;
+  --bg-selected: #E3F2FD;
 
   --text-primary: #0F172A;
   --text-secondary: #475569;
@@ -50,6 +51,7 @@ body.dark {
   --bg-primary: #0B0F19;
   --bg-secondary: #131B2C;
   --bg-tertiary: #1E293B;
+  --bg-selected: #1E3A5F;
 
   --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
@@ -160,9 +162,9 @@ body {
 }
 
 .list-view-task-row.selected {
-  background-color: var(--bg-tertiary) !important;
+  background-color: var(--bg-selected) !important;
   color: var(--text-primary) !important;
-  border: 1px solid var(--accent-primary);
+  border: 2px solid var(--accent-primary);
   box-shadow: none;
 }
 

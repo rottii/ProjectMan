@@ -134,7 +134,7 @@ export default function GoalDetail({
       alignItems: 'center',
       gap: '0.5rem',
       marginBottom: '2rem'
-    }}>{t("back_to_goals", "\u2190 Back to Goals")}</button>
+    }}>← {t("back_to_goals", "Back to Goals")}</button>
 
       <div style={{
       display: 'flex',
@@ -156,7 +156,7 @@ export default function GoalDetail({
             fontSize: '0.8rem',
             fontWeight: 'bold'
           }}>
-              {currentGoal.level}{t("goal", "Goal")}</div>
+              {currentGoal.level} {t("goal", "Goal")}</div>
             {currentGoal.timePeriod && <div style={{
             padding: '0.25rem 0.75rem',
             backgroundColor: 'var(--bg-tertiary)',
