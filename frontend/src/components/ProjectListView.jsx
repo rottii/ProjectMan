@@ -687,7 +687,7 @@ export default function ProjectListView({
               {taskIndex + 1}
             </div>
           )}
-          {task.subtasks && task.subtasks.length > 0 ? (
+          {task.subtasks && task.subtasks.length > 0 && depth === 0 ? (
             <div 
               onClick={(e) => { e.stopPropagation(); toggleTaskExpand(task.id); }}
               style={{
@@ -1364,7 +1364,7 @@ export default function ProjectListView({
       })}
       </div>;
       
-    if (expandedTasks.has(task.id) && task.subtasks && task.subtasks.length > 0) {
+    if (expandedTasks.has(task.id) && task.subtasks && task.subtasks.length > 0 && depth === 0) {
       return (
         <React.Fragment key={task.id}>
           {row}

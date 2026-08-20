@@ -101,7 +101,7 @@ const styles = {
     border: '1px solid #E5E7EB',
     borderRadius: '8px',
     boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-    zIndex: 100005,
+    zIndex: 999999,
     padding: '0.75rem 0',
     width: '280px',
     boxSizing: 'border-box'

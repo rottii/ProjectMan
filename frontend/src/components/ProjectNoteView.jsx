@@ -423,7 +423,7 @@ const InsertMenu = ({
     border: '1px solid var(--border-color)',
     borderRadius: '6px',
     boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-    zIndex: 99999,
+    zIndex: 999999,
     minWidth: '220px',
     padding: '8px 0',
     marginTop: '4px',
@@ -677,7 +677,7 @@ export default function ProjectNoteView({
                 <div style={{
               position: 'fixed',
               inset: 0,
-              zIndex: 99
+              zIndex: 999998
             }} onClick={e => {
               e.stopPropagation();
               setIsToolbarMenuOpen(false);
@@ -803,12 +803,12 @@ export default function ProjectNoteView({
                   position: 'absolute',
                   left: '100%',
                   top: '0',
-                  zIndex: 99999
+                  zIndex: 999999
                 }}>
                         <div style={{
                     position: 'fixed',
                     inset: 0,
-                    zIndex: 99998,
+                    zIndex: 999998,
                     cursor: 'default'
                   }} onClick={e => {
                     e.stopPropagation();

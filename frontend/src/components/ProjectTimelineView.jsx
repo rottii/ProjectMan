@@ -72,7 +72,8 @@ export default function ProjectTimelineView({
     const renderData = [];
     const allTasksMap = {};
     selectedProject.sections?.forEach(sec => {
-      let filteredTasks = applyTaskFilter ? applyTaskFilter(sec.tasks) : sec.tasks;
+      const topLevelTasks = (sec.tasks || []).filter(t => !t.parentId);
+      let filteredTasks = applyTaskFilter ? applyTaskFilter(topLevelTasks) : topLevelTasks;
       filteredTasks = applyTaskSort ? applyTaskSort(filteredTasks) : filteredTasks;
       const tasksWithPos = [];
       filteredTasks?.forEach(task => {

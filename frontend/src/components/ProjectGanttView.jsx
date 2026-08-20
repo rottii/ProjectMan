@@ -117,7 +117,8 @@ export default function ProjectGanttView({
       });
     });
     (selectedProject.sections || []).forEach(section => {
-      let filteredTasks = applyTaskFilter ? applyTaskFilter(section.tasks) : section.tasks;
+      const topLevelTasks = (section.tasks || []).filter(t => !t.parentId);
+      let filteredTasks = applyTaskFilter ? applyTaskFilter(topLevelTasks) : topLevelTasks;
       filteredTasks = applyTaskSort ? applyTaskSort(filteredTasks) : filteredTasks;
       const tasksWithPos = [];
       filteredTasks?.forEach(task => {

@@ -5,7 +5,7 @@ import UserAvatar from './UserAvatar';
 import './GlobalChat.css';
 
 export default function GlobalChat({ user, token, activeWorkspaceId, workspaces, socket }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');

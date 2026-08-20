@@ -4,7 +4,10 @@ import { io } from 'socket.io-client';
 import { apiFetch, API_BASE_URL } from '../api';
 export default function Inbox({
   token,
-  user
+  user,
+  handleSelectProject,
+  setShowSettings,
+  setSettingsFocus
 }) {
   const {
     t
@@ -226,7 +229,7 @@ export default function Inbox({
           border: 'none',
           color: 'var(--accent-primary)'
         }} onClick={handleMarkAllAsRead}>{t("mark_all_as_read", "Mark all as read")}</button>}
-          <button style={styles.manageBtn}>{t("manage_notifications", "Manage notifications")}</button>
+          <button style={styles.manageBtn} onClick={() => { if (setShowSettings) setShowSettings(true); if (setSettingsFocus) setSettingsFocus('Notifications'); }}>{t("manage_notifications", "Manage notifications")}</button>
         </div>
       </div>
 
@@ -280,6 +283,13 @@ export default function Inbox({
           ...(n.isRead ? {} : styles.itemUnread)
         }} onClick={() => {
           if (!n.isRead) handleMarkAsRead(n.id);
+          
+          if (n.taskId && n.projectId && handleSelectProject) {
+            localStorage.setItem('pendingTaskToOpen', n.taskId);
+            handleSelectProject({ id: n.projectId });
+          } else if (n.projectId && handleSelectProject) {
+            handleSelectProject({ id: n.projectId });
+          }
         }}>
                 <div style={styles.iconBox}>{getIcon(n.type)}</div>
                 <div style={styles.content}>

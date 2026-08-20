@@ -24,10 +24,9 @@ exports.createComment = async (req, res) => {
 
         const newComment = await prisma.comment.create({
             data: {
-                content: content || '',
+                text: content || '',
                 taskId: req.params.taskId,
-                userId: req.user.userId,
-                attachments: attachments ? JSON.stringify(attachments) : null
+                userId: req.user.userId
             },
             include: {
                 user: { select: { id: true, name: true, email: true, profilePhoto: true } },
@@ -55,53 +54,59 @@ exports.createComment = async (req, res) => {
 
             // Notify assignee if not the commenter and not mentioned
             if (task.assigneeId && task.assigneeId !== req.user.userId && !notifiedMentions.includes(task.assigneeId)) {
-                await prisma.notification.create({
-                    data: {
-                        type: 'COMMENT',
-                        message: `New comment on task "${task.title}"`,
-                        userId: task.assigneeId,
-                        actorId: req.user.userId,
-                        taskId: task.id,
-                        projectId: task.section.projectId
-                    }
-                });
-                io.to(task.assigneeId).emit('new_notification');
-
-                // Send email notification
                 try {
-                    const assignee = await prisma.user.findUnique({ where: { id: task.assigneeId }, select: { email: true, name: true, emailVerified: true, emailNotifComment: true } });
+                    const assignee = await prisma.user.findUnique({ where: { id: task.assigneeId }, select: { email: true, name: true, emailVerified: true, emailNotifComment: true, appNotifComment: true } });
                     const commenter = await prisma.user.findUnique({ where: { id: req.user.userId }, select: { name: true } });
+                    
+                    if (!assignee || assignee.appNotifComment === undefined || assignee.appNotifComment) {
+                        await prisma.notification.create({
+                            data: {
+                                type: 'COMMENT',
+                                message: `New comment on task "${task.title}"`,
+                                userId: task.assigneeId,
+                                actorId: req.user.userId,
+                                taskId: task.id,
+                                projectId: task.section.projectId
+                            }
+                        });
+                        io.to(task.assigneeId).emit('new_notification');
+                    }
+
+                    // Send email notification
                     if (assignee?.emailVerified && assignee?.emailNotifComment) {
                         sendCommentEmail(assignee.email, assignee.name, task.title, task.id, commenter?.name || 'Someone', content);
                     }
-                } catch (emailErr) {
-                    console.error('Comment email error:', emailErr);
+                } catch (err) {
+                    console.error('Comment notification error:', err);
                 }
             }
             
             // Notify creator if not assignee, not commenter, and not mentioned
             if (task.creatorId && task.creatorId !== task.assigneeId && task.creatorId !== req.user.userId && !notifiedMentions.includes(task.creatorId)) {
-                 await prisma.notification.create({
-                    data: {
-                        type: 'COMMENT',
-                        message: `New comment on task "${task.title}"`,
-                        userId: task.creatorId,
-                        actorId: req.user.userId,
-                        taskId: task.id,
-                        projectId: task.section.projectId
-                    }
-                });
-                io.to(task.creatorId).emit('new_notification');
-
-                // Send email notification
                 try {
-                    const creator = await prisma.user.findUnique({ where: { id: task.creatorId }, select: { email: true, name: true, emailVerified: true, emailNotifComment: true } });
+                    const creator = await prisma.user.findUnique({ where: { id: task.creatorId }, select: { email: true, name: true, emailVerified: true, emailNotifComment: true, appNotifComment: true } });
                     const commenter = await prisma.user.findUnique({ where: { id: req.user.userId }, select: { name: true } });
+                    
+                    if (!creator || creator.appNotifComment === undefined || creator.appNotifComment) {
+                        await prisma.notification.create({
+                            data: {
+                                type: 'COMMENT',
+                                message: `New comment on task "${task.title}"`,
+                                userId: task.creatorId,
+                                actorId: req.user.userId,
+                                taskId: task.id,
+                                projectId: task.section.projectId
+                            }
+                        });
+                        io.to(task.creatorId).emit('new_notification');
+                    }
+
+                    // Send email notification
                     if (creator?.emailVerified && creator?.emailNotifComment) {
                         sendCommentEmail(creator.email, creator.name, task.title, task.id, commenter?.name || 'Someone', content);
                     }
-                } catch (emailErr) {
-                    console.error('Comment email error:', emailErr);
+                } catch (err) {
+                    console.error('Comment notification error:', err);
                 }
             }
         }

@@ -35,7 +35,11 @@ const getUserPayload = (u) => ({
   showRowNumbers: u.showRowNumbers,
   compactMode: u.compactMode,
   colorBlindMode: u.colorBlindMode,
-  showCelebrations: u.showCelebrations
+  showCelebrations: u.showCelebrations,
+  appNotifAssigned: u.appNotifAssigned,
+  appNotifComment: u.appNotifComment,
+  appNotifMention: u.appNotifMention,
+  appNotifReminder: u.appNotifReminder
 });
 
 // Configure multer for profile photos
@@ -425,7 +429,11 @@ router.patch('/me/preferences', authenticateToken, async (req, res) => {
       emailNotifComment,
       emailNotifMention,
       emailNotifReminder,
-      emailNotifUpdates
+      emailNotifUpdates,
+      appNotifAssigned,
+      appNotifComment,
+      appNotifMention,
+      appNotifReminder
     } = req.body;
     
     // Build update object only with provided fields
@@ -452,6 +460,12 @@ router.patch('/me/preferences', authenticateToken, async (req, res) => {
     if (emailNotifMention !== undefined) data.emailNotifMention = emailNotifMention;
     if (emailNotifReminder !== undefined) data.emailNotifReminder = emailNotifReminder;
     if (emailNotifUpdates !== undefined) data.emailNotifUpdates = emailNotifUpdates;
+
+    // In-App notification preferences
+    if (appNotifAssigned !== undefined) data.appNotifAssigned = appNotifAssigned;
+    if (appNotifComment !== undefined) data.appNotifComment = appNotifComment;
+    if (appNotifMention !== undefined) data.appNotifMention = appNotifMention;
+    if (appNotifReminder !== undefined) data.appNotifReminder = appNotifReminder;
 
     const updatedUser = await prisma.user.update({
       where: { id: req.user.userId },

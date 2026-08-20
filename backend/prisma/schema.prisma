@@ -47,6 +47,12 @@ model User {
   emailNotifReminder  Boolean @default(true)
   emailNotifUpdates   Boolean @default(false)
 
+  // In-App Notification Preferences
+  appNotifAssigned  Boolean @default(true)
+  appNotifComment   Boolean @default(true)
+  appNotifMention   Boolean @default(true)
+  appNotifReminder  Boolean @default(true)
+
   // Display Settings
   sidebarColor    String?  @default("Black")
   language        String?  @default("en")

@@ -52,7 +52,8 @@ export default function ProjectCalendarView({
     }
     const allTasks = [];
     selectedProject.sections?.forEach(sec => {
-      let filteredTasks = applyTaskFilter ? applyTaskFilter(sec.tasks) : sec.tasks;
+      const topLevelTasks = (sec.tasks || []).filter(t => !t.parentId);
+      let filteredTasks = applyTaskFilter ? applyTaskFilter(topLevelTasks) : topLevelTasks;
       filteredTasks = applyTaskSort ? applyTaskSort(filteredTasks) : filteredTasks;
       filteredTasks?.forEach(t => {
         if (t.startDate || t.dueDate) {

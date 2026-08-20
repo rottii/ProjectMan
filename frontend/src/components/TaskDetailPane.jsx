@@ -26,6 +26,8 @@ export default function TaskDetailPane({
     title: '',
     description: ''
   });
+  const [editingSubtaskId, setEditingSubtaskId] = useState(null);
+  const [editSubtaskTitleValue, setEditSubtaskTitleValue] = useState('');
   const [openFieldMenuId, setOpenFieldMenuId] = useState(null);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [newCommentText, setNewCommentText] = useState('');
@@ -209,7 +211,6 @@ export default function TaskDetailPane({
       document.removeEventListener('keyup', handleKeyUp);
     };
   }, [task, isReadOnly, onOpenPopover, openFieldMenuId, openSectionMenuId, isMoreMenuOpen, onClose]);
-  if (!task) return null;
   const allUsers = React.useMemo(() => {
     let list = selectedProject?.members?.map(m => m.user) || [];
     if (selectedProject?.owner && !list.find(u => u.id === selectedProject.owner.id)) {
@@ -220,6 +221,8 @@ export default function TaskDetailPane({
     }
     return list;
   }, [selectedProject, currentUser]);
+
+  if (!task) return null;
   const handleAddGithubPr = async () => {
     if (!githubPrUrlValue.trim() || isReadOnly) return;
     setIsFetchingPr(true);
@@ -548,6 +551,43 @@ export default function TaskDetailPane({
         const updatedSubtasks = task.subtasks.map(st => st.id === subtaskId ? {
           ...st,
           isCompleted: !isCompleted
+        } : st);
+        onTaskUpdate(task.id, {
+          ...task,
+          subtasks: updatedSubtasks
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const getSubtaskPopoverCoords = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    let coords = { left: Math.max(10, rect.left - 280) };
+    if (rect.bottom > window.innerHeight - 300) {
+      coords.bottom = window.innerHeight - rect.top;
+    } else {
+      coords.top = rect.bottom + 5;
+    }
+    return coords;
+  };
+  const handleRenameSubtask = async (subtaskId, newTitle) => {
+    if (isReadOnly || !newTitle.trim()) return;
+    try {
+      const response = await apiFetch(`/api/projects/tasks/${subtaskId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: newTitle
+        })
+      });
+      if (response.ok) {
+        const updatedSubtasks = task.subtasks.map(st => st.id === subtaskId ? {
+          ...st,
+          title: newTitle
         } : st);
         onTaskUpdate(task.id, {
           ...task,
@@ -2169,9 +2209,9 @@ export default function TaskDetailPane({
           <div style={styles.descriptionSection}>
             <div style={styles.descriptionLabel}>{t("description", "Description")}</div>
             {!isReadOnly ? <RichTextEditor value={editForm.description} onChange={val => setEditForm({
-            ...editForm,
-            description: val
-          })} onBlur={() => handleSave('description', editForm.description)} users={allUsers} minHeight="150px" /> : <div className="rich-text-content" style={{
+              ...editForm,
+              description: val
+            })} onBlur={() => handleSave('description', editForm.description)} users={allUsers} placeholder={t("what_is_this_task_about", "What is this task about?")} minHeight="150px" /> : <div style={{
             color: 'var(--text-primary)',
             fontSize: '0.9rem'
           }} dangerouslySetInnerHTML={{
@@ -2184,17 +2224,60 @@ export default function TaskDetailPane({
             <div style={styles.sectionTitle}>{t("subtasks", "Subtasks")}</div>
             <div style={styles.subtaskList}>
               {task.subtasks?.map(st => (
-                <div key={st.id} style={{ ...styles.subtaskItem, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => onTaskClick && onTaskClick(st.id)}>
-                  <input type="checkbox" checked={st.isCompleted} onChange={(e) => { e.stopPropagation(); handleToggleSubtaskComplete(st.id, st.isCompleted); }} disabled={isReadOnly} style={{ cursor: 'pointer' }} />
-                  <span style={{ textDecoration: st.isCompleted ? 'line-through' : 'none', color: st.isCompleted ? 'var(--text-tertiary)' : 'var(--text-primary)', flex: 1, fontSize: '0.9rem' }}>{st.title}</span>
+                <div key={st.id} className="subtask-item" style={{ ...styles.subtaskItem, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => onTaskClick && onTaskClick(st.id)}>
+                  <input type="checkbox" checked={st.isCompleted} onClick={(e) => e.stopPropagation()} onChange={(e) => { e.stopPropagation(); handleToggleSubtaskComplete(st.id, st.isCompleted); }} disabled={isReadOnly} style={{ cursor: 'pointer' }} />
+                  {editingSubtaskId === st.id ? (
+                    <input 
+                      type="text" 
+                      value={editSubtaskTitleValue} 
+                      autoFocus 
+                      onChange={e => setEditSubtaskTitleValue(e.target.value)} 
+                      onBlur={() => {
+                        handleRenameSubtask(st.id, editSubtaskTitleValue);
+                        setEditingSubtaskId(null);
+                      }} 
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          handleRenameSubtask(st.id, editSubtaskTitleValue);
+                          setEditingSubtaskId(null);
+                        }
+                        if (e.key === 'Escape') setEditingSubtaskId(null);
+                      }} 
+                      style={{
+                        flex: 1,
+                        fontSize: '0.9rem',
+                        fontFamily: 'inherit',
+                        padding: '2px 4px',
+                        backgroundColor: 'transparent',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '4px',
+                        outline: 'none'
+                      }} 
+                      onClick={e => e.stopPropagation()} 
+                    />
+                  ) : (
+                    <span 
+                      onClick={e => {
+                        e.stopPropagation();
+                        if (!isReadOnly) {
+                          setEditingSubtaskId(st.id);
+                          setEditSubtaskTitleValue(st.title);
+                        }
+                      }}
+                      style={{ textDecoration: st.isCompleted ? 'line-through' : 'none', color: st.isCompleted ? 'var(--text-tertiary)' : 'var(--text-primary)', flex: 1, fontSize: '0.9rem', padding: '2px 4px', border: '1px solid transparent' }}
+                    >
+                      {st.title}
+                    </span>
+                  )}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ cursor: 'pointer', padding: '2px' }} onClick={(e) => { e.stopPropagation(); onOpenPopover && onOpenPopover('assignee', st, { clientX: e.clientX, clientY: e.clientY }); }}>
-                       {st.assignee ? <UserAvatar user={st.assignee} size={24} /> : <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: '1px dashed var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>👤</span></div>}
+                    <div className="subtask-icon-btn" style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: '4px' }} onClick={(e) => { e.stopPropagation(); onOpenPopover && onOpenPopover('assignee', st, getSubtaskPopoverCoords(e)); }}>
+                       {st.assignee ? <UserAvatar name={st.assignee.name || st.assignee} userId={st.assignee.id || st.assignee} profilePhoto={st.assignee.profilePhoto} size={24} /> : <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: '1px dashed var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>👤</span></div>}
                     </div>
-                    <div style={{ cursor: 'pointer', padding: '2px', fontSize: '12px', color: st.dueDate ? 'var(--text-primary)' : 'var(--text-secondary)', display: 'flex', alignItems: 'center' }} onClick={(e) => { e.stopPropagation(); onOpenPopover && onOpenPopover('dueDate', st, { clientX: e.clientX, clientY: e.clientY }); }}>
+                    <div className="subtask-icon-btn" style={{ minWidth: '28px', height: '28px', padding: '0 4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '12px', color: st.dueDate ? 'var(--text-primary)' : 'var(--text-secondary)', borderRadius: '4px' }} onClick={(e) => { e.stopPropagation(); onOpenPopover && onOpenPopover('date', st, getSubtaskPopoverCoords(e)); }}>
                        {st.dueDate ? new Date(st.dueDate).toLocaleDateString() : <span style={{ fontSize: '14px' }}>📅</span>}
                     </div>
-                    {!isReadOnly && <div style={{ cursor: 'pointer', padding: '4px', color: 'var(--text-secondary)', borderRadius: '4px' }} onClick={(e) => { e.stopPropagation(); if (window.confirm('Delete subtask?')) { onDeleteTask && onDeleteTask(st.id); } }} className="subtask-delete-btn">🗑️</div>}
+                    {!isReadOnly && <div className="subtask-delete-btn subtask-icon-btn" style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', borderRadius: '4px' }} onClick={(e) => { e.stopPropagation(); if (window.confirm('Delete subtask?')) { onDeleteTask && onDeleteTask(st.id); } }}>🗑️</div>}
                   </div>
                 </div>
               ))}

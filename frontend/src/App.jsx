@@ -604,7 +604,13 @@ export default function App() {
                 handleSelectProject={handleSelectProject}
               />
             ) : activeView === 'inbox' ? (
-              <Inbox token={token} user={user} />
+              <Inbox 
+                token={token} 
+                user={user} 
+                handleSelectProject={handleSelectProject} 
+                setShowSettings={setShowSettings}
+                setSettingsFocus={setSettingsFocus}
+              />
             ) : activeView === 'profile' ? (
               <ProfileView user={user} setUser={setUser} setShowSettings={setShowSettings} setSettingsFocus={setSettingsFocus} projects={filteredProjects} activeWorkspace={activeWorkspace} setActiveView={setActiveView} handleSelectProject={handleSelectProject} token={token} />
             ) : activeView === 'goals' ? (

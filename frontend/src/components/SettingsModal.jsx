@@ -23,12 +23,16 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
 
   useEffect(() => {
     if (initialFocus) {
-      setActiveTab('Profile');
-      // Wait for React to render the Profile tab, then focus the input
-      setTimeout(() => {
-        const el = document.querySelector(`[name="${initialFocus}"]`);
-        if (el) el.focus();
-      }, 50);
+      if (TABS.includes(initialFocus)) {
+        setActiveTab(initialFocus);
+      } else {
+        setActiveTab('Profile');
+        // Wait for React to render the Profile tab, then focus the input
+        setTimeout(() => {
+          const el = document.querySelector(`[name="${initialFocus}"]`);
+          if (el) el.focus();
+        }, 50);
+      }
     }
   }, [initialFocus]);
 
@@ -428,7 +432,68 @@ export default function SettingsModal({ onClose, user, setUser, isDarkMode, setI
 
             {activeTab === 'Notifications' && (
               <div>
-                <div className="settings-section-title" style={{marginTop: 0}}>{t('email_verification', 'Email Verification')}</div>
+                <div className="settings-section-title" style={{marginTop: 0}}>{t('in_app_notifications', 'In-App Notifications')}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                  {t('in_app_notifications_desc', 'Choose which events trigger an in-app notification in your Inbox.')}
+                </div>
+
+                <div className="settings-checkbox-row">
+                  <input 
+                    type="checkbox" 
+                    id="appNotifAssigned" 
+                    name="appNotifAssigned"
+                    checked={user?.appNotifAssigned ?? true} 
+                    onChange={handleDisplayPrefChange} 
+                  />
+                  <label htmlFor="appNotifAssigned">
+                    <div style={{ fontWeight: '500' }}>{t('task_assigned_to_me', 'Task assigned to me')}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{t('task_assigned_to_me_desc', 'Get notified when someone assigns a task to you')}</div>
+                  </label>
+                </div>
+
+                <div className="settings-checkbox-row">
+                  <input 
+                    type="checkbox" 
+                    id="appNotifComment" 
+                    name="appNotifComment"
+                    checked={user?.appNotifComment ?? true} 
+                    onChange={handleDisplayPrefChange} 
+                  />
+                  <label htmlFor="appNotifComment">
+                    <div style={{ fontWeight: '500' }}>{t('comments_on_my_tasks', 'Comments on my tasks')}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{t('comments_on_my_tasks_desc', 'Get notified when someone comments on a task you own or created')}</div>
+                  </label>
+                </div>
+
+                <div className="settings-checkbox-row">
+                  <input 
+                    type="checkbox" 
+                    id="appNotifMention" 
+                    name="appNotifMention"
+                    checked={user?.appNotifMention ?? true} 
+                    onChange={handleDisplayPrefChange} 
+                  />
+                  <label htmlFor="appNotifMention">
+                    <div style={{ fontWeight: '500' }}>{t('mentions', '@Mentions')}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{t('mentions_desc', 'Get notified when someone mentions you in a comment or description')}</div>
+                  </label>
+                </div>
+
+                <div className="settings-checkbox-row">
+                  <input 
+                    type="checkbox" 
+                    id="appNotifReminder" 
+                    name="appNotifReminder"
+                    checked={user?.appNotifReminder ?? true} 
+                    onChange={handleDisplayPrefChange} 
+                  />
+                  <label htmlFor="appNotifReminder">
+                    <div style={{ fontWeight: '500' }}>{t('due_date_reminders', 'Due date reminders')}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{t('due_date_reminders_desc', 'Get reminded when your tasks are due soon or overdue')}</div>
+                  </label>
+                </div>
+
+                <div className="settings-section-title">{t('email_verification', 'Email Verification')}</div>
                 <div style={{ 
                   display: 'flex', 
                   alignItems: 'center', 

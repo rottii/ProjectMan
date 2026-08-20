@@ -23,16 +23,23 @@ async function processMentions({ newHtml, oldHtml, actorId, taskId, projectId, m
     
     for (const userId of addedIds) {
         try {
-            await prisma.notification.create({
-                data: {
-                    type: 'MENTIONED',
-                    message: `${messagePrefix} a ${taskId ? 'task' : 'message'}`,
-                    userId,
-                    actorId,
-                    taskId: taskId || null,
-                    projectId: projectId || null
-                }
+            const mentionedUser = await prisma.user.findUnique({ 
+                where: { id: userId }, 
+                select: { appNotifMention: true } 
             });
+
+            if (!mentionedUser || mentionedUser.appNotifMention === undefined || mentionedUser.appNotifMention) {
+                await prisma.notification.create({
+                    data: {
+                        type: 'MENTIONED',
+                        message: `${messagePrefix} a ${taskId ? 'task' : 'message'}`,
+                        userId,
+                        actorId,
+                        taskId: taskId || null,
+                        projectId: projectId || null
+                    }
+                });
+            }
         } catch (err) {
             console.error('Error creating mention notification for user', userId, err);
         }

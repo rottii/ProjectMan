@@ -278,6 +278,40 @@ body.theme-compact-mode .list-view-task-row>div {
   color: var(--text-primary);
 }
 
+.subtask-icon-btn {
+  height: 28px;
+  min-width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  box-sizing: border-box;
+  padding: 0;
+  transition: background-color 0.1s ease;
+}
+.subtask-icon-btn.has-text {
+  padding: 0 8px;
+}
+.subtask-icon-btn:hover {
+  background-color: var(--bg-hover, rgba(0, 0, 0, 0.05));
+}
+body.dark .subtask-icon-btn:hover {
+  background-color: var(--bg-hover, rgba(255, 255, 255, 0.08));
+}
+
+.subtask-item {
+  transition: all 0.1s ease;
+}
+.subtask-item:hover {
+  background-color: var(--bg-hover, rgba(0, 0, 0, 0.03)) !important;
+  border-color: var(--border-hover, #D1D5DB) !important;
+}
+body.dark .subtask-item:hover {
+  background-color: var(--bg-hover, rgba(255, 255, 255, 0.05)) !important;
+  border-color: var(--border-hover, #4B5563) !important;
+}
+
 .dropdown-item {
   transition: background-color 0.1s ease;
 }

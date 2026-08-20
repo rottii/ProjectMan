@@ -336,6 +336,12 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
     if (parsedSections?.length > 0) {
       setLastInteractedSectionId(parsedSections[0].id)
     }
+
+    const pendingTaskId = localStorage.getItem('pendingTaskToOpen');
+    if (pendingTaskId) {
+      setActiveTaskPaneId(pendingTaskId);
+      localStorage.removeItem('pendingTaskToOpen');
+    }
   }, [selectedProject?.id])
 
   useEffect(() => {
@@ -346,8 +352,8 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
 
   useEffect(() => {
     const closeAll = (e) => {
-      // Prevent closing if click is inside the Task Detail Pane or view context menu
-      if (e && e.target.closest && (e.target.closest('.task-pane-ignore-click') || e.target.closest('.view-context-menu'))) return;
+      // Prevent closing if click is inside the view context menu
+      if (e && e.target.closest && e.target.closest('.view-context-menu')) return;
 
       setContextMenu({ visible: false, x: 0, y: 0, taskId: null })
       setApprovalMenu({ visible: false, x: 0, y: 0, task: null })
@@ -1581,7 +1587,8 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
       const flat = [];
       const sections = virtualGroupedSections || parsedSections?.sort((a, b) => a.order - b.order) || [];
       sections.forEach(sec => {
-        const tasks = virtualGroupedSections ? sec.tasks : (applyTaskSort ? applyTaskSort(applyTaskFilter(sec.tasks)) : applyTaskFilter(sec.tasks));
+        const topLevelTasks = (sec.tasks || []).filter(t => !t.parentId);
+        const tasks = virtualGroupedSections ? topLevelTasks : (applyTaskSort ? applyTaskSort(applyTaskFilter(topLevelTasks)) : applyTaskFilter(topLevelTasks));
         flat.push(...tasks.map(t => t.id));
       });
       const idx1 = flat.indexOf(lastInteractedTaskId);
@@ -2141,7 +2148,10 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
         gMap[key].tasks.push(task);
       });
 
-      let groupedList = Object.values(gMap).map(g => ({ ...g, tasks: applyTaskSort ? applyTaskSort(applyTaskFilter(g.tasks)) : applyTaskFilter(g.tasks) }));
+      let groupedList = Object.values(gMap).map(g => {
+        const topLevelTasks = (g.tasks || []).filter(t => !t.parentId);
+        return { ...g, tasks: applyTaskSort ? applyTaskSort(applyTaskFilter(topLevelTasks)) : applyTaskFilter(topLevelTasks) };
+      });
       if (!showEmptyGroups) groupedList = groupedList.filter(g => g.tasks.length > 0);
 
       groupedList.sort((a, b) => {
@@ -3289,7 +3299,8 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
             ) : (
               <>
                 {(virtualGroupedSections || selectedProject.sections?.sort((a, b) => a.order - b.order))?.map(section => {
-                  const filteredTasks = virtualGroupedSections ? section.tasks : applyTaskSort(applyTaskFilter(section.tasks))
+                  const topLevelTasks = (section.tasks || []).filter(t => !t.parentId);
+                  const filteredTasks = virtualGroupedSections ? topLevelTasks : applyTaskSort(applyTaskFilter(topLevelTasks))
                   return (
                     <div
                       key={section.id}

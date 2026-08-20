@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import i18next from 'i18next';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useEditor, EditorContent, ReactRenderer } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -11,6 +12,9 @@ import 'tippy.js/dist/tippy.css';
 import { GithubPRExtension } from './GithubPRExtension';
 
 // ---- Mention Dropdown UI ----
+// NOTE: MentionList is rendered by Tiptap's ReactRenderer which runs outside
+// the normal React provider tree. Do NOT use hooks that depend on context
+// (useTranslation, useContext, etc.) here. Use i18next directly instead.
 const MentionList = forwardRef((props, ref) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const selectItem = index => {
@@ -33,69 +37,52 @@ const MentionList = forwardRef((props, ref) => {
   };
   useEffect(() => setSelectedIndex(0), [props.items]);
   useImperativeHandle(ref, () => ({
-    onKeyDown: ({
-      event
-    }) => {
-      if (event.key === 'ArrowUp') {
-        upHandler();
-        return true;
-      }
-      if (event.key === 'ArrowDown') {
-        downHandler();
-        return true;
-      }
-      if (event.key === 'Enter') {
-        enterHandler();
-        return true;
-      }
+    onKeyDown: ({ event }) => {
+      if (event.key === 'ArrowUp') { upHandler(); return true; }
+      if (event.key === 'ArrowDown') { downHandler(); return true; }
+      if (event.key === 'Enter') { enterHandler(); return true; }
       return false;
     }
   }));
-  return <div style={{
-    background: 'var(--bg-primary)',
-    border: '1px solid var(--border-color)',
-    borderRadius: '6px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-    overflow: 'hidden',
-    minWidth: '150px'
-  }}>
-      {props.items.length ? props.items.map((item, index) => <button key={item.id} onMouseDown={e => {
-      e.preventDefault();
-      e.stopPropagation();
-      selectItem(index);
-    }} style={{
-      display: 'block',
-      width: '100%',
-      padding: '8px 12px',
-      border: 'none',
-      borderLeft: index === selectedIndex ? '3px solid var(--accent-primary)' : '3px solid transparent',
-      background: index === selectedIndex ? 'var(--bg-secondary)' : 'transparent',
-      color: 'var(--text-primary)',
-      textAlign: 'left',
-      cursor: 'pointer',
-      fontSize: '0.9rem'
+  return (
+    <div style={{
+      background: 'var(--bg-primary)',
+      border: '1px solid var(--border-color)',
+      borderRadius: '6px',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      overflow: 'hidden',
+      minWidth: '180px',
+      zIndex: 999999
     }}>
-            <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%'
-      }}>
-              <span>{item.name}</span>
-              {item.email && <span style={{
-          color: 'var(--text-secondary)',
-          fontSize: '0.8rem',
-          marginLeft: '8px'
-        }}>
-                  {item.email}
-                </span>}
-            </div>
-          </button>) : <div style={{
-      padding: '8px 12px',
-      color: 'var(--text-secondary)',
-      fontSize: '0.9rem'
-    }}>{t("no_results", "No results")}</div>}
-    </div>;
+      {props.items.length > 0 ? props.items.map((item, index) => (
+        <button
+          key={item.id}
+          onMouseDown={e => { e.preventDefault(); e.stopPropagation(); selectItem(index); }}
+          style={{
+            display: 'block',
+            width: '100%',
+            padding: '8px 12px',
+            border: 'none',
+            borderLeft: index === selectedIndex ? '3px solid var(--accent-primary)' : '3px solid transparent',
+            background: index === selectedIndex ? 'var(--bg-secondary)' : 'transparent',
+            color: 'var(--text-primary)',
+            textAlign: 'left',
+            cursor: 'pointer',
+            fontSize: '0.9rem'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <span>{item.name}</span>
+            {item.email && <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginLeft: '8px' }}>{item.email}</span>}
+          </div>
+        </button>
+      )) : (
+        <div style={{ padding: '8px 12px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+          {i18next.t('no_results', 'No results')}
+        </div>
+      )}
+    </div>
+  );
 });
 
 // ---- Toolbar Icon SVG Components ----
@@ -170,45 +157,48 @@ export default function RichTextEditor({
                 console.log('No clientRect provided');
                 return;
               }
-              popup = tippy('body', {
+              popup = tippy(props.editor.view.dom, {
                 getReferenceClientRect: props.clientRect,
                 appendTo: () => document.body,
                 content: component.element,
-                showOnCreate: false,
+                showOnCreate: true,
                 interactive: true,
                 trigger: 'manual',
                 placement: 'bottom-start',
                 theme: 'mention-popup',
                 arrow: false,
-                zIndex: 99999
+                zIndex: 999999
               });
-              if (props.editor.isFocused) {
-                popup[0].show();
+              
+              const instance = Array.isArray(popup) ? popup[0] : popup;
+              if (instance) {
+                instance.show();
               }
             },
             onUpdate(props) {
               if (!component || !popup) return;
               component.updateProps(props);
               if (!props.clientRect) return;
-              popup[0].setProps({
-                getReferenceClientRect: props.clientRect
-              });
-              if (props.editor.isFocused) {
-                popup[0].show();
-              } else {
-                popup[0].hide();
+              const instance = Array.isArray(popup) ? popup[0] : popup;
+              if (instance) {
+                instance.setProps({
+                  getReferenceClientRect: props.clientRect
+                });
+                instance.show();
               }
             },
             onKeyDown(props) {
               if (props.event.key === 'Escape') {
-                popup?.[0]?.hide();
+                const instance = Array.isArray(popup) ? popup[0] : popup;
+                if (instance) instance.hide();
                 return true;
               }
               return component?.ref?.onKeyDown(props);
             },
             onExit() {
-              if (popup && popup[0]) {
-                popup[0].destroy();
+              const instance = Array.isArray(popup) ? popup[0] : popup;
+              if (instance) {
+                instance.destroy();
               }
               if (component) {
                 component.destroy();

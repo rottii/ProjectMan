@@ -25,7 +25,8 @@ const startReminderCron = (io) => {
                     ]
                 },
                 include: {
-                    section: true
+                    section: true,
+                    assignee: { select: { email: true, name: true, emailVerified: true, emailNotifReminder: true, appNotifReminder: true } }
                 }
             });
 
@@ -64,31 +65,32 @@ const startReminderCron = (io) => {
                 }
 
                 if (notificationType && notificationMessage) {
-                    // Create Notification
-                    await prisma.notification.create({
-                        data: {
-                            type: notificationType,
-                            message: notificationMessage,
-                            userId: task.assigneeId,
-                            taskId: task.id,
-                            projectId: task.section?.projectId
-                        }
-                    });
-
                     // Update Task
                     await prisma.task.update({
                         where: { id: task.id },
                         data: updateData
                     });
 
-                    // Emit to user
-                    if (io) {
-                        io.to(task.assigneeId).emit('new_notification');
+                    // Create Notification and Emit
+                    const assignee = task.assignee;
+                    if (assignee && (assignee.appNotifReminder === undefined || assignee.appNotifReminder)) {
+                        await prisma.notification.create({
+                            data: {
+                                type: notificationType,
+                                message: notificationMessage,
+                                userId: task.assigneeId,
+                                taskId: task.id,
+                                projectId: task.section?.projectId
+                            }
+                        });
+                        
+                        if (io) {
+                            io.to(task.assigneeId).emit('new_notification');
+                        }
                     }
 
                     // Send email notification
                     try {
-                        const assignee = await prisma.user.findUnique({ where: { id: task.assigneeId }, select: { email: true, name: true, emailVerified: true, emailNotifReminder: true } });
                         if (assignee?.emailVerified && assignee?.emailNotifReminder) {
                             sendReminderEmail(assignee.email, assignee.name, task.title, task.id, notificationType);
                         }

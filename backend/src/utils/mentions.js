@@ -43,20 +43,26 @@ async function processMentions({ newHtml, oldHtml, actorId, taskId, projectId, m
 
     for (const userId of addedIds) {
         try {
-            await prisma.notification.create({
-                data: {
-                    type: 'MENTIONED',
-                    message: `${messagePrefix} a ${taskId ? 'task' : 'message'}`,
-                    userId,
-                    actorId,
-                    taskId: taskId || null,
-                    projectId: projectId || null
-                }
+            const mentionedUser = await prisma.user.findUnique({ 
+                where: { id: userId }, 
+                select: { email: true, name: true, emailVerified: true, emailNotifMention: true, appNotifMention: true } 
             });
+
+            if (!mentionedUser || mentionedUser.appNotifMention === undefined || mentionedUser.appNotifMention) {
+                await prisma.notification.create({
+                    data: {
+                        type: 'MENTIONED',
+                        message: `${messagePrefix} a ${taskId ? 'task' : 'message'}`,
+                        userId,
+                        actorId,
+                        taskId: taskId || null,
+                        projectId: projectId || null
+                    }
+                });
+            }
 
             // Send email notification for mention
             try {
-                const mentionedUser = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true, emailVerified: true, emailNotifMention: true } });
                 if (mentionedUser?.emailVerified && mentionedUser?.emailNotifMention) {
                     sendMentionEmail(mentionedUser.email, mentionedUser.name, taskTitle, taskId, actorName, taskId ? `a comment on "${taskTitle}"` : 'a message');
                 }

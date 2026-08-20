@@ -81,22 +81,25 @@ exports.createTask = async (req, res) => {
         // Notify assignee if different from creator
         if (assigneeId && assigneeId !== req.user.userId) {
             try {
-                await prisma.notification.create({
-                    data: {
-                        type: 'ASSIGNED',
-                        message: `You were assigned to "${title}"`,
-                        userId: assigneeId,
-                        actorId: req.user.userId,
-                        taskId: newTask.id,
-                        projectId: section?.projectId || null
-                    }
-                });
-                const io = req.app.get('io');
-                if (io) io.to(assigneeId).emit('new_notification');
+                const assignee = await prisma.user.findUnique({ where: { id: assigneeId }, select: { email: true, name: true, emailVerified: true, emailNotifAssigned: true, appNotifAssigned: true } });
+                
+                if (!assignee || assignee.appNotifAssigned === undefined || assignee.appNotifAssigned) {
+                    await prisma.notification.create({
+                        data: {
+                            type: 'ASSIGNED',
+                            message: `You were assigned to "${title}"`,
+                            userId: assigneeId,
+                            actorId: req.user.userId,
+                            taskId: newTask.id,
+                            projectId: section?.projectId || null
+                        }
+                    });
+                    const io = req.app.get('io');
+                    if (io) io.to(assigneeId).emit('new_notification');
+                }
 
                 // Send email notification
                 try {
-                    const assignee = await prisma.user.findUnique({ where: { id: assigneeId }, select: { email: true, name: true, emailVerified: true, emailNotifAssigned: true } });
                     const assigner = await prisma.user.findUnique({ where: { id: req.user.userId }, select: { name: true } });
                     if (assignee?.emailVerified && assignee?.emailNotifAssigned) {
                         const project = section?.projectId ? await prisma.project.findUnique({ where: { id: section.projectId }, select: { name: true } }) : null;
@@ -557,21 +560,24 @@ exports.updateTask = async (req, res) => {
         // ─── Notifications ───────────────────────────────────────────────────
         if (assigneeId !== undefined && assigneeId && assigneeId !== req.user.userId && assigneeId !== currentTask.assigneeId) {
             try {
-                await prisma.notification.create({
-                    data: {
-                        type: 'ASSIGNED',
-                        message: `You were assigned to "${updatedTask.title}"`,
-                        userId: assigneeId,
-                        actorId: req.user.userId,
-                        taskId: updatedTask.id,
-                        projectId
-                    }
-                });
-                if (io) io.to(assigneeId).emit('new_notification');
+                const assignee = await prisma.user.findUnique({ where: { id: assigneeId }, select: { email: true, name: true, emailVerified: true, emailNotifAssigned: true, appNotifAssigned: true } });
+
+                if (!assignee || assignee.appNotifAssigned === undefined || assignee.appNotifAssigned) {
+                    await prisma.notification.create({
+                        data: {
+                            type: 'ASSIGNED',
+                            message: `You were assigned to "${updatedTask.title}"`,
+                            userId: assigneeId,
+                            actorId: req.user.userId,
+                            taskId: updatedTask.id,
+                            projectId
+                        }
+                    });
+                    if (io) io.to(assigneeId).emit('new_notification');
+                }
 
                 // Send email notification
                 try {
-                    const assignee = await prisma.user.findUnique({ where: { id: assigneeId }, select: { email: true, name: true, emailVerified: true, emailNotifAssigned: true } });
                     const assigner = await prisma.user.findUnique({ where: { id: req.user.userId }, select: { name: true } });
                     if (assignee?.emailVerified && assignee?.emailNotifAssigned) {
                         const project = projectId ? await prisma.project.findUnique({ where: { id: projectId }, select: { name: true } }) : null;
