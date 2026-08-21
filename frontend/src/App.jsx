@@ -538,7 +538,7 @@ export default function App() {
             setSelectedPortfolio={setSelectedPortfolio}
             setShowSettings={setShowSettings}
           />
-          <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', backgroundColor: 'var(--bg-secondary)', position: 'relative', scrollbarGutter: 'stable' }}>
+          <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', backgroundColor: 'var(--bg-secondary)', position: 'relative', scrollbarGutter: 'stable', height: '100%' }}>
             {activeView === 'home' ? (
               <Dashboard
                 user={user}

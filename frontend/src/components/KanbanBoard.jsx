@@ -82,7 +82,34 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
   const [ruleToEdit, setRuleToEdit] = useState(null)
   const [fieldToEdit, setFieldToEdit] = useState(null)
   const [activePopover, setActivePopover] = useState(null)
-  const [activeTaskPaneId, setActiveTaskPaneId] = useState(null)
+  const getTaskIdFromPath = () => {
+    if (typeof window === 'undefined') return null;
+    const match = window.location.pathname.match(/\/task\/([^\/]+)$/);
+    return match ? match[1] : null;
+  };
+
+  const [activeTaskPaneId, setActiveTaskPaneId] = useState(() => getTaskIdFromPath());
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setActiveTaskPaneId(getTaskIdFromPath());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    let path = window.location.pathname;
+    path = path.replace(/\/task\/[^\/]+$/, ''); // Strip existing /task/...
+    
+    if (activeTaskPaneId) {
+      path = `${path}/task/${activeTaskPaneId}`;
+    }
+    
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path + window.location.search);
+    }
+  }, [activeTaskPaneId]);
 
   const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false)
   const [isGroupInnerDropdownOpen, setIsGroupInnerDropdownOpen] = useState(false)
@@ -2486,7 +2513,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                       displayMembers.push(m.user);
                     });
                   }
-                  
+
                   return displayMembers.slice(0, 3).map((u, i) => (
                     <UserAvatar
                       key={u.id || i}
@@ -2495,9 +2522,9 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                       profilePhoto={u.profilePhoto}
                       size={28}
                       onClick={(e) => { e.stopPropagation(); setIsShareModalOpen(true); }}
-                      style={{ 
-                        cursor: 'pointer', 
-                        border: '2px solid var(--bg-primary)', 
+                      style={{
+                        cursor: 'pointer',
+                        border: '2px solid var(--bg-primary)',
                         marginLeft: i > 0 ? '-8px' : '0',
                         zIndex: 3 - i
                       }}
@@ -2579,7 +2606,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
               </span>
             ))}
           </div>
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', paddingBottom: '2px' }}>
             <span
               className="view-tab-item"
               style={{ ...styles.tabItemPassive, cursor: 'pointer', padding: '6px 12px', borderRadius: '6px' }}
@@ -2735,7 +2762,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                 <div style={styles.optionsRightGroup}>
                   <div style={{ position: 'relative' }}>
                     <div className="option-sub-item" style={{ ...styles.optionSubItem, backgroundColor: isFilterDropdownOpen || activeFilters.length > 0 ? 'var(--bg-tertiary)' : undefined, fontWeight: '500' }} onClick={(e) => { document.body.click(); e.stopPropagation(); setIsFilterDropdownOpen(!isFilterDropdownOpen); }}>
-                      <span style={styles.optionIcon}>📊</span> {t('filter', 'Filter')} {activeFilters.length > 0 && `(${activeFilters.length})`}
+                      <span style={styles.optionIcon}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ verticalAlign: 'middle', marginTop: '-2px' }}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></span> {t('filter', 'Filter')} {activeFilters.length > 0 && `(${activeFilters.length})`}
                       {activeFilters.length > 0 && (
                         <span
                           onClick={(e) => { e.stopPropagation(); setActiveFilters([]); }}
@@ -4499,7 +4526,7 @@ const styles = {
   customizeBtn: { backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '20px', padding: '0.45rem 1rem', fontSize: '0.8rem', fontWeight: '500', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' },
   logoutTopBtn: { backgroundColor: '#FEE2E2', color: 'var(--accent-danger)', border: 'none', borderRadius: '8px', padding: '0.45rem 0.75rem', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' },
   projectToolbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0', flexShrink: 0, position: 'relative', zIndex: 9999 },
-  tabsContainer: { display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'var(--bg-tertiary)', padding: '0.25rem', borderRadius: '12px', border: '1px solid var(--border-color)', flexShrink: 1, minWidth: 0 },
+  tabsContainer: { display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'var(--bg-tertiary)', padding: '0.25rem', borderRadius: '12px', border: '1px solid var(--border-color)', flexShrink: 1, minWidth: 0, maxWidth: '50%' },
   tabItemBack: { fontSize: '0.85rem', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: '600', padding: '6px 16px', borderRadius: '8px' },
   tabItemPassive: { fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '6px 16px', fontWeight: '600', cursor: 'pointer', borderRadius: '8px', transition: 'color 0.2s' },
   tabItemActive: { fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: '600', padding: '6px 16px', cursor: 'pointer', borderRadius: '8px', backgroundColor: 'var(--bg-primary)', boxShadow: 'var(--shadow-sm)' },

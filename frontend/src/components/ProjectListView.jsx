@@ -471,7 +471,7 @@ export default function ProjectListView({
         <button className="dropdown-item" onClick={() => {
         handleFilterOptionClick && handleFilterOptionClick(titles[colName] || colName);
         closeAllMenus();
-      }} style={styles.dropdownItem}>≡ {t("filter", "Filter")}</button>
+      }} style={{...styles.dropdownItem, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '6px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>{t("filter", "Filter")}</button>
         <button className="dropdown-item" onClick={() => {
         handleGroupOptionClick && handleGroupOptionClick(titles[colName] || colName);
         closeAllMenus();
