@@ -34,6 +34,9 @@ export default function TaskDetailPane({
   const [showTagInput, setShowTagInput] = useState(false);
   const [tagInputValue, setTagInputValue] = useState('');
   const [tagColorValue, setTagColorValue] = useState('#3B82F6');
+  const [editingTag, setEditingTag] = useState(null);
+  const [editTagInputValue, setEditTagInputValue] = useState('');
+  const [editTagColorValue, setEditTagColorValue] = useState('#3B82F6');
   const [availableTags, setAvailableTags] = useState([]);
   const [showProjectInput, setShowProjectInput] = useState(false);
   const [availableProjects, setAvailableProjects] = useState([]);
@@ -646,6 +649,36 @@ export default function TaskDetailPane({
       console.error(err);
     }
   };
+  const handleEditTag = async e => {
+    e.preventDefault();
+    if (isReadOnly || !editTagInputValue.trim() || !editingTag) return;
+    try {
+      const res = await apiFetch(`/api/tags/${editingTag.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: editTagInputValue.trim(),
+          color: editTagColorValue
+        })
+      });
+      const updatedTag = await res.json();
+      if (res.ok) {
+        setAvailableTags(prev => prev.map(t => t.id === updatedTag.id ? updatedTag : t));
+        const isTagOnTask = task.tags?.find(t => t.id === updatedTag.id);
+        if (isTagOnTask) {
+          const newTags = task.tags.map(t => t.id === updatedTag.id ? updatedTag : t);
+          onTaskUpdate(task.id, { ...task, tags: newTags });
+        }
+        setEditingTag(null);
+        setShowTagInput(false);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
   const handleAddTag = async e => {
     e.preventDefault();
     if (isReadOnly || !tagInputValue.trim()) return;
@@ -675,9 +708,10 @@ export default function TaskDetailPane({
             tagId
           })
         });
-        const updatedTask = await assignRes.json();
+        const addedTag = await assignRes.json();
         if (assignRes.ok) {
-          onTaskUpdate(task.id, updatedTask);
+          const newTags = [...(task.tags || []), addedTag];
+          onTaskUpdate(task.id, { ...task, tags: newTags });
           setTagInputValue('');
           setShowTagInput(false);
         }
@@ -700,9 +734,10 @@ export default function TaskDetailPane({
           tagId
         })
       });
-      const updatedTask = await assignRes.json();
+      const addedTag = await assignRes.json();
       if (assignRes.ok) {
-        onTaskUpdate(task.id, updatedTask);
+        const newTags = [...(task.tags || []), addedTag];
+        onTaskUpdate(task.id, { ...task, tags: newTags });
         setTagInputValue('');
         setShowTagInput(false);
       }
@@ -720,9 +755,10 @@ export default function TaskDetailPane({
           'Authorization': `Bearer ${token}`
         }
       });
-      const updatedTask = await res.json();
+      await res.json();
       if (res.ok) {
-        onTaskUpdate(task.id, updatedTask);
+        const newTags = (task.tags || []).filter(t => t.id !== tagId);
+        onTaskUpdate(task.id, { ...task, tags: newTags });
       }
     } catch (err) {
       console.error(err);
@@ -1354,15 +1390,22 @@ export default function TaskDetailPane({
                   fontWeight: '500',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px'
+                  gap: '4px',
+                  cursor: isReadOnly ? 'default' : 'pointer'
+                }} onClick={(e) => {
+                  if (isReadOnly) return;
+                  e.stopPropagation();
+                  setShowTagInput(true);
+                  setEditingTag(tag);
+                  setEditTagInputValue(tag.name);
+                  setEditTagColorValue(tag.color);
                 }}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style={{
                     flexShrink: 0
                   }}><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path></svg> {tag.name}
-                      {!isReadOnly && <span style={{
-                    cursor: 'pointer',
-                    opacity: 0.7
-                  }} onClick={() => handleRemoveTag(tag.id)}>×</span>}
+                      {!isReadOnly && <>
+                        <span style={{ cursor: 'pointer', opacity: 0.6, marginLeft: '4px' }} onClick={(e) => { e.stopPropagation(); handleRemoveTag(tag.id); }}>×</span>
+                      </>}
                     </span>)}
                   {!isReadOnly && <div style={{
                   position: 'relative'
@@ -1371,7 +1414,7 @@ export default function TaskDetailPane({
                     color: 'var(--text-secondary)',
                     cursor: 'pointer',
                     fontSize: '0.85rem'
-                  }} onClick={() => setShowTagInput(true)}>{t("add_tag", "+ Add Tag")}</span> : <div style={{
+                  }} onClick={() => { setEditingTag(null); setShowTagInput(true); }}>{t("add_tag", "+ Add Tag")}</span> : <div style={{
                     position: 'absolute',
                     top: '100%',
                     left: 0,
@@ -1384,6 +1427,20 @@ export default function TaskDetailPane({
                     zIndex: 100,
                     width: '200px'
                   }}>
+                      {editingTag ? (
+                          <form onSubmit={handleEditTag} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              <div style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-primary)' }}>Edit Tag</div>
+                              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                                  <input type="text" value={editTagInputValue} onChange={e => setEditTagInputValue(e.target.value)} placeholder="Tag name..." style={{ border: '1px solid var(--border-color)', borderRadius: '4px', outline: 'none', background: 'transparent', flex: 1, fontSize: '0.8rem', padding: '4px', color: 'var(--text-primary)' }} autoFocus />
+                                  <input type="color" value={editTagColorValue} onChange={e => setEditTagColorValue(e.target.value)} style={{ width: '24px', height: '24px', border: 'none', padding: 0, cursor: 'pointer' }} />
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '4px' }}>
+                                  <button type="button" onClick={() => setEditingTag(null)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.8rem', padding: '2px 6px' }}>Cancel</button>
+                                  <button type="submit" style={{ background: 'var(--accent-primary)', border: 'none', color: 'white', cursor: 'pointer', fontSize: '0.8rem', padding: '4px 10px', borderRadius: '4px' }}>Save</button>
+                              </div>
+                          </form>
+                      ) : (
+                          <>
                           {availableTags.length > 0 && <div style={{
                       marginBottom: '8px',
                       maxHeight: '120px',
@@ -1392,21 +1449,19 @@ export default function TaskDetailPane({
                       flexDirection: 'column',
                       gap: '4px'
                     }}>
-                              {availableTags.filter(t => !task.tags?.find(tt => tt.id === t.id) && t.name.toLowerCase().includes(tagInputValue.toLowerCase())).map(tag => <div key={tag.id} onClick={() => handleAssignExistingTag(tag.id)} style={{
+                              {availableTags.filter(t => !task.tags?.find(tt => tt.id === t.id) && t.name.toLowerCase().includes(tagInputValue.toLowerCase())).map(tag => <div key={tag.id} style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px',
+                        justifyContent: 'space-between',
                         padding: '4px',
                         cursor: 'pointer',
                         borderRadius: '4px'
                       }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill={tag.color} style={{
-                          flexShrink: 0
-                        }}><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path></svg>
-                                  <span style={{
-                          fontSize: '0.8rem',
-                          color: 'var(--text-primary)'
-                        }}>{tag.name}</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }} onClick={() => handleAssignExistingTag(tag.id)}>
+                                      <svg width="12" height="12" viewBox="0 0 24 24" fill={tag.color} style={{ flexShrink: 0 }}><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path></svg>
+                                      <span style={{ fontSize: '0.8rem', color: 'var(--text-primary)' }}>{tag.name}</span>
+                                  </div>
+                                  <span style={{ fontSize: '0.75rem', cursor: 'pointer', padding: '0 4px', opacity: 0.6 }} onClick={(e) => { e.stopPropagation(); setEditingTag(tag); setEditTagInputValue(tag.name); setEditTagColorValue(tag.color); }}>✏️</span>
                                 </div>)}
                             </div>}
                           <form onSubmit={handleAddTag} style={{
@@ -1463,11 +1518,13 @@ export default function TaskDetailPane({
                         }}>{t("create", "Create")}</button>
                             </div>
                           </form>
-                        </div>}
+                          </>
+                      )}
                     </div>}
-                </div>
+                </div>}
               </div>
             </div>
+          </div>
 
             <div style={{
             padding: '1rem 0',

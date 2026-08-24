@@ -101,11 +101,11 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
   useEffect(() => {
     let path = window.location.pathname;
     path = path.replace(/\/task\/[^\/]+$/, ''); // Strip existing /task/...
-    
+
     if (activeTaskPaneId) {
       path = `${path}/task/${activeTaskPaneId}`;
     }
-    
+
     if (window.location.pathname !== path) {
       window.history.pushState({}, '', path + window.location.search);
     }
@@ -119,6 +119,28 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
   const [activeGroups, setActiveGroups] = useState([{ field: 'Sections', order: 'Custom order' }])
   const [showAddFieldMenu, setShowAddFieldMenu] = useState(false)
   const [selectedTaskIds, setSelectedTaskIds] = useState(new Set())
+  const tabsScrollRef = useRef(null)
+  const [hasTabScrollbar, setHasTabScrollbar] = useState(false)
+
+  useEffect(() => {
+    const checkScrollbar = () => {
+      if (tabsScrollRef.current) {
+        const { scrollWidth, clientWidth } = tabsScrollRef.current;
+        setHasTabScrollbar(scrollWidth > clientWidth);
+      }
+    };
+    checkScrollbar();
+
+    let resizeObserver;
+    if (tabsScrollRef.current) {
+      resizeObserver = new ResizeObserver(() => checkScrollbar());
+      resizeObserver.observe(tabsScrollRef.current);
+    }
+
+    return () => {
+      if (resizeObserver) resizeObserver.disconnect();
+    };
+  }, [selectedProject?.views]);
 
   // Üst menü ve görünüm tab kontrolü
   const [isEditingName, setIsEditingName] = useState(false)
@@ -923,7 +945,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
 
   const lastSwapTimeRef = useRef(0);
 
-  const handleLiveTaskSwap = (dragId, hoverId, clientY = null, hoverRect = null) => {
+  const handleLiveTaskSwap = (dragId, hoverId, clientY = null, hoverRect = null, emptySectionId = null) => {
     const isMultiDrag = selectedTaskIds && selectedTaskIds.size > 1 && selectedTaskIds.has(dragId);
 
     // For single drag, hovering over itself is a no-op.
@@ -940,10 +962,17 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
     let hoverSecIdx = -1, hoverTaskIdx = -1;
 
     // Find hover target
-    for (let i = 0; i < currentSections.length; i++) {
-      const ts = currentSections[i].tasks || [];
-      for (let j = 0; j < ts.length; j++) {
-        if (ts[j].id === hoverId) { hoverSecIdx = i; hoverTaskIdx = j; }
+    if (emptySectionId) {
+      hoverSecIdx = currentSections.findIndex(s => s.id === emptySectionId);
+      if (hoverSecIdx >= 0) {
+        hoverTaskIdx = currentSections[hoverSecIdx].tasks?.length || 0;
+      }
+    } else {
+      for (let i = 0; i < currentSections.length; i++) {
+        const ts = currentSections[i].tasks || [];
+        for (let j = 0; j < ts.length; j++) {
+          if (ts[j].id === hoverId) { hoverSecIdx = i; hoverTaskIdx = j; }
+        }
       }
     }
 
@@ -973,6 +1002,11 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
 
     if (dragSecIdx < 0 || hoverSecIdx < 0) return;
     if (isMovingPlaceholder && hoverId === 'multi-drag-placeholder') return;
+
+    if (emptySectionId) {
+      const isAlreadyAtEnd = dragSecIdx === hoverSecIdx && dragTaskIdx === hoverTaskIdx - 1;
+      if (isAlreadyAtEnd) return;
+    }
 
     // Vertical threshold check (only trigger swap if crossing the midpoint)
     if (clientY !== null && hoverRect !== null && !isMultiDrag) {
@@ -2542,7 +2576,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
       {/* 2. SATIR: PROJECTMAN TOOLBAR */}
       <div style={styles.projectToolbar}>
         <div style={styles.tabsContainer}>
-          <div className="thin-scrollbar" onWheel={(e) => {
+          <div ref={tabsScrollRef} className="thin-scrollbar" onWheel={(e) => {
             if (e.deltaY !== 0) {
               e.currentTarget.scrollLeft += e.deltaY;
             }
@@ -2606,7 +2640,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
               </span>
             ))}
           </div>
-          <div style={{ position: 'relative', paddingBottom: '2px' }}>
+          <div style={{ position: 'relative', paddingBottom: hasTabScrollbar ? '13px' : '2px' }}>
             <span
               className="view-tab-item"
               style={{ ...styles.tabItemPassive, cursor: 'pointer', padding: '6px 12px', borderRadius: '6px' }}

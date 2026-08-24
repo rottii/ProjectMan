@@ -50,7 +50,7 @@ export default function MyTasks({
   }}>
       <KanbanBoard selectedProject={myTasksProject} setSelectedProject={updater => {
       setProjects(prev => {
-        const currentProj = prev.find(p => p.status === 'MY_TASKS' && p.ownerId === user.id);
+        const currentProj = prev.find(p => p.id === myTasksProject.id);
         if (!currentProj) return prev;
         const updatedProj = typeof updater === 'function' ? updater(currentProj) : updater;
         if (!updatedProj) return prev;

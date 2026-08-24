@@ -1131,7 +1131,7 @@ export default function Dashboard({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 9999
+      zIndex: 100005
     }}>
           <div style={{
         backgroundColor: 'var(--bg-primary)',

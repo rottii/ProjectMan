@@ -279,7 +279,10 @@ export default function PortfolioDetail({
             }}>⚙</span>{t("customize", "Customize")}</button>
           </div>
         </div>
+      </div>
 
+
+      <div style={styles.toolbar}>
         <div className="thin-scrollbar" onWheel={(e) => {
           if (e.deltaY !== 0) {
             e.currentTarget.scrollLeft += e.deltaY;
@@ -292,79 +295,76 @@ export default function PortfolioDetail({
               {tab}
             </div>)}
         </div>
-      </div>
 
-
-      <div style={styles.toolbar}>
-        <div style={{
-        position: 'relative',
-        display: 'inline-block'
-      }} ref={createMenuRef}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{
-          display: 'flex'
-        }}>
-            {activeTab === 'Dashboard' ? (
-              <button style={styles.addWorkBtn} onClick={() => setShowCreateMenu(!showCreateMenu)}>
-                <span style={{ fontWeight: '700' }}>+</span> {t("add_widget", "Add widget")}
-              </button>
-            ) : (
-              <button style={styles.addWorkBtn} onClick={() => setShowCreateMenu(!showCreateMenu)}>{t("add_work", "+ Add work")}<span style={{
-                ...styles.chevron,
-                marginLeft: '4px'
-              }}>▼</span>
-              </button>
+          position: 'relative',
+          display: 'inline-block'
+        }} ref={createMenuRef}>
+            <div style={{
+            display: 'flex'
+          }}>
+              {activeTab === 'Dashboard' ? (
+                <button style={styles.addWorkBtn} onClick={() => setShowCreateMenu(!showCreateMenu)}>
+                  <span style={{ fontWeight: '700' }}>+</span> {t("add_widget", "Add widget")}
+                </button>
+              ) : (
+                <button style={styles.addWorkBtn} onClick={() => setShowCreateMenu(!showCreateMenu)}>
+                  <span style={{ fontWeight: '700' }}>+</span> {t("add_work", "Add work")}
+                </button>
+              )}
+            </div>
+            
+            {showCreateMenu && activeTab === 'Dashboard' ? (
+              <div style={styles.createDropdownMenu}>
+                <div style={styles.dropdownItem} onClick={() => {
+                  setShowCreateMenu(false);
+                  window.dispatchEvent(new CustomEvent('openAddChartModal'));
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '8px', verticalAlign: 'middle'}}><rect x="3" y="12" width="4" height="9" rx="1" /><rect x="10" y="6" width="4" height="15" rx="1" /><rect x="17" y="3" width="4" height="18" rx="1" /></svg>
+                  {t("chart", "Chart")}
+                </div>
+                <div style={styles.dropdownItem} onClick={() => {
+                  setShowCreateMenu(false);
+                  window.dispatchEvent(new CustomEvent('openAddTextWidget'));
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '8px', verticalAlign: 'middle'}}><path d="M4 7V4h16v3" /><path d="M9 20h6" /><path d="M12 4v16" /></svg>
+                  {t("text_widget", "Text Widget")}
+                </div>
+              </div>
+            ) : showCreateMenu && (
+              <div style={styles.createDropdownMenu}>
+                <div style={styles.dropdownItem} onClick={() => {
+              handleCreateNewProject();
+              setShowCreateMenu(false);
+            }}>{t("create_new_project", "Create new project")}</div>
+                <div style={styles.dropdownItem} onClick={() => {
+              handleCreateNewPortfolio();
+              setShowCreateMenu(false);
+            }}>{t("create_new_portfolio", "Create new portfolio")}</div>
+                <div style={styles.dropdownItem} onClick={() => {
+              setShowAddWork(true);
+              setShowCreateMenu(false);
+            }}>{t("add_existing_work", "Add existing work")}</div>
+              </div>
             )}
           </div>
-          
-          {showCreateMenu && activeTab === 'Dashboard' ? (
-            <div style={styles.createDropdownMenu}>
-              <div style={styles.dropdownItem} onClick={() => {
-                setShowCreateMenu(false);
-                window.dispatchEvent(new CustomEvent('openAddChartModal'));
-              }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '8px', verticalAlign: 'middle'}}><rect x="3" y="12" width="4" height="9" rx="1" /><rect x="10" y="6" width="4" height="15" rx="1" /><rect x="17" y="3" width="4" height="18" rx="1" /></svg>
-                {t("chart", "Chart")}
-              </div>
-              <div style={styles.dropdownItem} onClick={() => {
-                setShowCreateMenu(false);
-                window.dispatchEvent(new CustomEvent('openAddTextWidget'));
-              }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '8px', verticalAlign: 'middle'}}><path d="M4 7V4h16v3" /><path d="M9 20h6" /><path d="M12 4v16" /></svg>
-                {t("text_widget", "Text Widget")}
-              </div>
-            </div>
-          ) : showCreateMenu && (
-            <div style={styles.createDropdownMenu}>
-              <div style={styles.dropdownItem} onClick={() => {
-            handleCreateNewProject();
-            setShowCreateMenu(false);
-          }}>{t("create_new_project", "Create new project")}</div>
-              <div style={styles.dropdownItem} onClick={() => {
-            handleCreateNewPortfolio();
-            setShowCreateMenu(false);
-          }}>{t("create_new_portfolio", "Create new portfolio")}</div>
-              <div style={styles.dropdownItem} onClick={() => {
-            setShowAddWork(true);
-            setShowCreateMenu(false);
-          }}>{t("add_existing_work", "Add existing work")}</div>
-            </div>
-          )}
-        </div>
 
-        <div style={styles.toolbarRight}>
-          <div style={styles.actionItem}><span style={{
-            display: 'flex', alignItems: 'center', marginRight: 4
-          }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></span>{t("filter", "Filter")}</div>
-          <div style={styles.actionItem}><span style={{
-            marginRight: 4
-          }}>⇅</span>{t("sort", "Sort")}</div>
-          <div style={styles.actionItem}><span style={{
-            marginRight: 4
-          }}>⊞</span>{t("group", "Group")}</div>
-          <div style={styles.actionItem}><span style={{
-            marginRight: 4
-          }}>⚙</span>{t("options", "Options")}</div>
-          <div style={styles.actionItem}>🔍</div>
+          <div style={styles.toolbarRight}>
+            <div style={styles.actionItem}><span style={{
+              display: 'flex', alignItems: 'center', marginRight: 4
+            }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></span>{t("filter", "Filter")}</div>
+            <div style={styles.actionItem}><span style={{
+              marginRight: 4
+            }}>⇅</span>{t("sort", "Sort")}</div>
+            <div style={styles.actionItem}><span style={{
+              marginRight: 4
+            }}>⊞</span>{t("group", "Group")}</div>
+            <div style={styles.actionItem}><span style={{
+              marginRight: 4
+            }}>⚙</span>{t("options", "Options")}</div>
+            <div style={styles.actionItem}>🔍</div>
+          </div>
         </div>
       </div>
 
@@ -374,28 +374,29 @@ export default function PortfolioDetail({
       }}>{t("loading", "Loading...")}</div> : activeTab === 'List' ? <div style={styles.table}>
             <div style={styles.tableHeader}>
               <div style={{
-            ...styles.tableCell,
+            ...styles.tableHeaderCell,
             flex: 3
-          }}>{t("name", "Name")}</div>
+          }}>{t("name", "Name").toUpperCase()}</div>
               <div style={{
-            ...styles.tableCell,
+            ...styles.tableHeaderCell,
             flex: 2
-          }}>{t("status", "Status")}</div>
+          }}>{t("status", "Status").toUpperCase()}</div>
               <div style={{
-            ...styles.tableCell,
+            ...styles.tableHeaderCell,
             flex: 2
-          }}>{t("task_progress", "Task progress")}</div>
+          }}>{t("task_progress", "Task progress").toUpperCase()}</div>
               <div style={{
-            ...styles.tableCell,
+            ...styles.tableHeaderCell,
             flex: 1.5
-          }}>{t("due_date", "Due date")}</div>
+          }}>{t("due_date", "Due date").toUpperCase()}</div>
               <div style={{
-            ...styles.tableCell,
+            ...styles.tableHeaderCell,
             flex: 1.5
-          }}>{t("owner", "Owner")}</div>
+          }}>{t("owner", "Owner").toUpperCase()}</div>
               <div style={{
-            ...styles.tableCell,
-            width: '40px'
+            ...styles.tableHeaderCell,
+            width: '40px',
+            borderRight: 'none'
           }}>+</div>
             </div>
 
@@ -458,7 +459,8 @@ export default function PortfolioDetail({
                   </div>
                   <div style={{
               ...styles.tableCell,
-              width: '40px'
+              width: '40px',
+              borderRight: 'none'
             }}></div>
                 </div>}
               {details.childPortfoliosList?.map(port => {
@@ -522,7 +524,8 @@ export default function PortfolioDetail({
 
                     <div style={{
                 ...styles.tableCell,
-                width: '40px'
+                width: '40px',
+                borderRight: 'none'
               }}></div>
                   </div>;
           })}
@@ -600,7 +603,8 @@ export default function PortfolioDetail({
 
                     <div style={{
                 ...styles.tableCell,
-                width: '40px'
+                width: '40px',
+                borderRight: 'none'
               }}></div>
                   </div>;
           })}
@@ -625,16 +629,23 @@ export default function PortfolioDetail({
 }
 const styles = {
   container: {
+    padding: '1.5rem',
+    backgroundColor: 'var(--bg-secondary)',
+    height: '100%',
     display: 'flex',
     flexDirection: 'column',
-    height: '100%',
-    backgroundColor: 'var(--bg-primary)',
-    color: 'var(--text-primary)',
-    overflow: 'hidden'
+    boxSizing: 'border-box',
+    overflow: 'hidden',
+    gap: '1.5rem'
   },
   headerArea: {
-    padding: '24px 32px 0 32px',
-    borderBottom: '1px solid #E5E7EB'
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0',
+    flexShrink: 0,
+    position: 'relative',
+    zIndex: 10000
   },
   breadcrumbs: {
     fontSize: '12px',
@@ -645,7 +656,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '24px'
+    width: '100%'
   },
   titleRow: {
     display: 'flex',
@@ -704,65 +715,88 @@ const styles = {
     border: '2px solid #FFF'
   },
   shareBtn: {
+    backgroundColor: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
+    border: '1px solid var(--border-color)',
+    borderRadius: '20px',
+    padding: '0.45rem 1rem',
+    fontSize: '0.8rem',
+    fontWeight: '500',
+    cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
-    padding: '6px 16px',
-    backgroundColor: 'var(--accent-primary)',
-    // ProjectMan blue
-    color: '#FFFFFF',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '13px',
-    fontWeight: '500',
-    cursor: 'pointer'
+    gap: '6px'
   },
   customizeBtn: {
+    backgroundColor: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
+    border: '1px solid var(--border-color)',
+    borderRadius: '20px',
+    padding: '0.45rem 1rem',
+    fontSize: '0.8rem',
+    fontWeight: '500',
+    cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
-    padding: '6px 12px',
-    backgroundColor: 'var(--bg-primary)',
-    border: '1px solid #D1D5DB',
-    borderRadius: '6px',
-    color: 'var(--text-primary)',
-    fontSize: '13px',
-    fontWeight: '500',
-    cursor: 'pointer'
+    gap: '6px'
   },
   tabsContainer: {
     display: 'flex',
-    gap: '24px'
+    alignItems: 'center',
+    gap: '0.25rem',
+    backgroundColor: 'var(--bg-tertiary)',
+    padding: '0.25rem',
+    borderRadius: '12px',
+    border: '1px solid var(--border-color)',
+    flexShrink: 1,
+    minWidth: 0,
+    maxWidth: '50%'
   },
   tab: {
-    paddingBottom: '12px',
-    fontSize: '14px',
+    fontSize: '0.85rem',
     color: 'var(--text-secondary)',
+    padding: '6px 16px',
+    fontWeight: '600',
     cursor: 'pointer',
-    borderBottom: '2px solid transparent'
+    borderRadius: '8px',
+    transition: 'color 0.2s',
+    borderBottom: 'none'
   },
   activeTab: {
+    fontSize: '0.85rem',
     color: 'var(--text-primary)',
-    fontWeight: '500',
-    borderBottom: '2px solid var(--text-primary)'
+    fontWeight: '600',
+    padding: '6px 16px',
+    cursor: 'pointer',
+    borderRadius: '8px',
+    backgroundColor: 'var(--bg-primary)',
+    boxShadow: 'var(--shadow-sm)',
+    borderBottom: 'none'
   },
   toolbar: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '12px 32px',
-    borderBottom: '1px solid #E5E7EB',
-    backgroundColor: 'var(--bg-primary)'
+    padding: '0',
+    flexShrink: 0,
+    position: 'relative',
+    zIndex: 9999
   },
   addWorkBtn: {
+    backgroundColor: '#6366F1',
+    color: '#FFF',
+    border: 'none',
+    borderRadius: '6px',
+    padding: '0.35rem 0.75rem',
+    fontSize: '0.8rem',
+    fontWeight: '600',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    padding: '6px 12px',
-    backgroundColor: 'var(--bg-primary)',
-    border: '1px solid #D1D5DB',
-    borderRadius: '4px',
-    color: 'var(--text-primary)',
-    fontSize: '13px',
-    cursor: 'pointer'
+    gap: '4px',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+    whiteSpace: 'nowrap',
+    flexShrink: 0
   },
   toolbarRight: {
     display: 'flex',
@@ -809,8 +843,13 @@ const styles = {
   },
   contentArea: {
     flex: 1,
-    overflowY: 'auto',
-    scrollbarGutter: 'stable'
+    backgroundColor: 'var(--bg-primary)',
+    borderRadius: 'var(--radius-md)',
+    boxShadow: 'var(--shadow-md)',
+    border: '1px solid var(--border-color)',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'auto'
   },
   table: {
     width: '100%',
@@ -819,15 +858,30 @@ const styles = {
   },
   tableHeader: {
     display: 'flex',
-    padding: '12px 32px',
-    borderBottom: '1px solid #E5E7EB'
+    borderBottom: '1px solid var(--border-color)',
+    backgroundColor: 'var(--bg-secondary)',
+    flexShrink: 0,
+    borderLeft: '3px solid transparent'
   },
-  tableCell: {
-    fontSize: '12px',
+  tableHeaderCell: {
+    boxSizing: 'border-box',
+    padding: '0.6rem',
+    fontSize: '0.75rem',
+    fontWeight: '600',
     color: 'var(--text-secondary)',
-    fontWeight: '500',
+    textTransform: 'uppercase',
+    borderRight: '1px solid var(--border-color)',
     display: 'flex',
     alignItems: 'center'
+  },
+  tableCell: {
+    boxSizing: 'border-box',
+    padding: '0.5rem 0.6rem',
+    fontSize: '0.85rem',
+    color: 'var(--text-primary)',
+    display: 'flex',
+    alignItems: 'center',
+    borderRight: '1px solid var(--border-color)'
   },
   tableBody: {
     display: 'flex',
@@ -835,9 +889,9 @@ const styles = {
   },
   tableRow: {
     display: 'flex',
-    padding: '12px 32px',
-    borderBottom: '1px solid #F3F4F6',
-    cursor: 'pointer'
+    borderBottom: '1px solid var(--bg-tertiary)',
+    cursor: 'pointer',
+    transition: 'background-color 0.1s, opacity 0.15s ease'
   },
   projectNameWrapper: {
     display: 'flex',

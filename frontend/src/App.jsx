@@ -14,7 +14,7 @@ import CreateProject from './components/CreateProject'
 import Inbox from './components/Inbox'
 import ProfileView from './components/ProfileView'
 import Goals from './components/Goals'
-import Reporting from './components/Reporting'
+
 import PublicForm from './components/PublicForm'
 import AdminConsoleView from './components/AdminConsoleView'
 import InvitePage from './components/InvitePage'
@@ -615,8 +615,7 @@ export default function App() {
               <ProfileView user={user} setUser={setUser} setShowSettings={setShowSettings} setSettingsFocus={setSettingsFocus} projects={filteredProjects} activeWorkspace={activeWorkspace} setActiveView={setActiveView} handleSelectProject={handleSelectProject} token={token} />
             ) : activeView === 'goals' ? (
               <Goals token={token} user={user} setActiveView={setActiveView} />
-            ) : activeView === 'reporting' ? (
-              <Reporting token={token} />
+
             ) : activeView === 'create_project' ? (
               <CreateProject
                 token={token}

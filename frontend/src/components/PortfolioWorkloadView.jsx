@@ -26,9 +26,9 @@ export default function PortfolioWorkloadView({
   const { start, days, assigneeData } = useMemo(() => {
     const today = new Date();
     const startDate = new Date(today);
-    startDate.setDate(today.getDate() - 30);
+    startDate.setDate(today.getDate() - Math.floor(365 * 0.75));
     startDate.setHours(0, 0, 0, 0);
-    const totalDays = 120;
+    const totalDays = Math.floor(365 * 1.5);
 
     const daysArr = [];
     for (let i = 0; i < totalDays; i++) {

@@ -44,4 +44,35 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
+// PUT /api/tags/:tagId -> Update a tag
+router.put('/:tagId', authenticateToken, async (req, res) => {
+  const { tagId } = req.params;
+  const { name, color } = req.body;
+  
+  if (!name) return res.status(400).json({ error: 'Etiket adı gereklidir.' });
+
+  try {
+    const existing = await prisma.tag.findFirst({
+      where: {
+        name,
+        id: { not: tagId }
+      }
+    });
+
+    if (existing) {
+      return res.status(400).json({ error: 'Bu isimde başka bir etiket var.' });
+    }
+
+    const updatedTag = await prisma.tag.update({
+      where: { id: tagId },
+      data: { name, color: color || '#9CA3AF' }
+    });
+
+    res.json(updatedTag);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Etiket güncellenemedi.' });
+  }
+});
+
 module.exports = router;

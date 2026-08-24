@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { FloatingMenu, BubbleMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
@@ -35,6 +36,7 @@ const InsertMenu = ({
   editor,
   onClose
 }) => {
+  const { t } = useTranslation();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [inputConfig, setInputConfig] = useState(null);
   const [inputValue, setInputValue] = useState('');
@@ -487,7 +489,7 @@ export default function ProjectNoteView({
   const [content, setContent] = useState(activeViewObj?.content || '');
   const [showTemplates, setShowTemplates] = useState(true);
   const [isToolbarMenuOpen, setIsToolbarMenuOpen] = useState(false);
-  const [isEditorMenuOpen, setIsEditorMenuOpen] = useState(false);
+  const [editorMenuPos, setEditorMenuPos] = useState(null);
   const editor = useEditor({
     extensions: [StarterKit, Underline, Highlight, Image.configure({
       inline: true,
@@ -734,6 +736,7 @@ export default function ProjectNoteView({
       flex: 1,
       display: 'flex',
       overflowY: 'auto',
+      scrollbarGutter: 'stable',
       position: 'relative'
     }}>
         {/* Left menu icon */}
@@ -784,7 +787,12 @@ export default function ProjectNoteView({
               }}>
                     <button onClick={e => {
                   e.stopPropagation();
-                  setIsEditorMenuOpen(!isEditorMenuOpen);
+                  if (editorMenuPos) {
+                    setEditorMenuPos(null);
+                  } else {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setEditorMenuPos({ left: rect.right + 10, top: rect.top });
+                  }
                 }} style={{
                   background: 'none',
                   border: 'none',
@@ -799,25 +807,30 @@ export default function ProjectNoteView({
                 }}>
                       +
                     </button>
-                    {isEditorMenuOpen && <div style={{
-                  position: 'absolute',
-                  left: '100%',
-                  top: '0',
-                  zIndex: 999999
+                  </div>
+                </FloatingMenu>}
+              {editorMenuPos && createPortal(
+                <div style={{
+                  position: 'fixed',
+                  left: editorMenuPos.left,
+                  top: editorMenuPos.top,
+                  zIndex: 9999999
                 }}>
-                        <div style={{
+                  <div style={{
                     position: 'fixed',
                     inset: 0,
-                    zIndex: 999998,
+                    zIndex: 9999998,
                     cursor: 'default'
                   }} onClick={e => {
                     e.stopPropagation();
-                    setIsEditorMenuOpen(false);
+                    setEditorMenuPos(null);
                   }} />
-                        <InsertMenu editor={editor} onClose={() => setIsEditorMenuOpen(false)} />
-                      </div>}
+                  <div style={{ position: 'relative', zIndex: 9999999 }}>
+                    <InsertMenu editor={editor} onClose={() => setEditorMenuPos(null)} />
                   </div>
-                </FloatingMenu>}
+                </div>,
+                document.body
+              )}
               {editor && <BubbleMenu editor={editor} tippyOptions={{
               duration: 100,
               placement: 'top-end',

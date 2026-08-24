@@ -164,14 +164,15 @@ export default function KanbanColumn({
     </div>}
 
     {/* SADECE GÖREV KARTLARININ KAYDIRILDIĞI SCROLL ALANI - TEK BÜYÜK KUTU */}
-    <div className="kanban-task-list" style={{
+    <div className="kanban-task-list" onDragOver={e => e.preventDefault()} style={{
       ...styles.taskListContainer,
       gap: isSubgrouped ? '1rem' : '0.75rem',
       backgroundColor: 'var(--bg-tertiary)',
       borderRadius: '8px',
       padding: '0.75rem 1rem',
       marginRight: 0,
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+      minHeight: '100px'
     }}>
       {section.subgroups ? section.subgroups.map((subgroup, index) => <div key={subgroup.id} style={{
         display: 'flex',
@@ -233,6 +234,14 @@ export default function KanbanColumn({
       }}>
         <TaskCard task={task} token={token} onTaskUpdate={onTaskUpdate} onTaskContextMenu={onTaskContextMenu} onOpenApprovalMenu={onOpenApprovalMenu} onOpenPopover={onOpenPopover} onOpenTaskPane={onOpenTaskPane} isVirtualGrouping={isVirtualGrouping} customFieldSettings={customFieldSettings} projectMembers={projectMembers} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} fieldConfig={fieldConfig} selectedTaskIds={selectedTaskIds} onTaskSelect={onTaskSelect} isMatrixCell={isMatrixCell} />
       </div>)}
+      <div style={{ flex: 1, minHeight: '30px' }} onDragOver={e => {
+        if (draggingTaskId && !isReadOnly && !isVirtualGrouping) {
+          e.preventDefault();
+          if (typeof handleLiveTaskSwap === 'function') {
+            handleLiveTaskSwap(draggingTaskId, null, null, null, section.id);
+          }
+        }
+      }} />
     </div>
 
     {/* Sadece yetkili kullanıcılar hızlı görev ekleme alanını görür */}

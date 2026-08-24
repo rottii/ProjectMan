@@ -8,24 +8,30 @@ const { getProjectRole, hasRole } = require('../utils/projectHelpers');
 exports.addTag = async (req, res) => {
     try {
         const { projectId, taskId } = req.params;
-        const { name, color } = req.body;
-
-        if (!name) return res.status(400).json({ error: 'Etiket adı zorunludur.' });
+        const { name, color, tagId } = req.body;
 
         const role = await getProjectRole(req.user.userId, projectId);
         if (!hasRole(role, 'EDITOR')) {
             return res.status(403).json({ error: 'Bu işlem için yetkiniz yok.' });
         }
 
-        // Find existing tag by name or create a new one
-        let tag = await prisma.tag.findUnique({
-            where: { name }
-        });
-
-        if (!tag) {
-            tag = await prisma.tag.create({
-                data: { name, color: color || '#808080' } // Default gray
+        let tag;
+        if (tagId) {
+            tag = await prisma.tag.findUnique({ where: { id: tagId } });
+            if (!tag) return res.status(404).json({ error: 'Etiket bulunamadı.' });
+        } else {
+            if (!name) return res.status(400).json({ error: 'Etiket adı zorunludur.' });
+            
+            // Find existing tag by name or create a new one
+            tag = await prisma.tag.findUnique({
+                where: { name }
             });
+
+            if (!tag) {
+                tag = await prisma.tag.create({
+                    data: { name, color: color || '#808080' } // Default gray
+                });
+            }
         }
 
         // Check if task already has this tag

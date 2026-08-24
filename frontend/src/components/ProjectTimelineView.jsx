@@ -50,9 +50,9 @@ export default function ProjectTimelineView({
   } = useMemo(() => {
     const today = new Date();
     const start = new Date(today);
-    start.setDate(today.getDate() - 60); // Start 60 days ago
+    start.setDate(today.getDate() - Math.floor(365 * 0.75)); // Start 0.75 years ago
     start.setHours(0, 0, 0, 0);
-    const totalDays = 180; // Total 180 days (approx 6 months)
+    const totalDays = Math.floor(365 * 1.5); // Total 1.5 years
 
     const daysArr = [];
     for (let i = 0; i < totalDays; i++) {
@@ -196,6 +196,9 @@ export default function ProjectTimelineView({
     });
   };
   useEffect(() => {
+    const timer = setTimeout(() => {
+      goToday(false);
+    }, 10);
     const onGoToday = () => goToday();
     const onScrollLeft = () => scrollLeftBtn();
     const onScrollRight = () => scrollRightBtn();
@@ -203,6 +206,7 @@ export default function ProjectTimelineView({
     window.addEventListener('timeline-scroll-left', onScrollLeft);
     window.addEventListener('timeline-scroll-right', onScrollRight);
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('timeline-go-today', onGoToday);
       window.removeEventListener('timeline-scroll-left', onScrollLeft);
       window.removeEventListener('timeline-scroll-right', onScrollRight);

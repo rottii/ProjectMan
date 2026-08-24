@@ -221,13 +221,7 @@ export default function Sidebar({
               <span className="sidebar-nav-icon">🎯</span>
               <span>{t('goals')}</span>
             </button>
-            <button className={`sidebar-nav-item ${activeView === 'reporting' ? 'active' : ''}`} onClick={() => {
-              handleSelectProject(null);
-              setActiveView('reporting');
-            }}>
-              <span className="sidebar-nav-icon">📊</span>
-              <span>{t('reporting')}</span>
-            </button>
+
           </nav>
 
           <div className="sidebar-divider" />
@@ -732,7 +726,7 @@ export default function Sidebar({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 9999
+      zIndex: 100005
     }}>
           <div style={{
         backgroundColor: 'var(--bg-primary)',
