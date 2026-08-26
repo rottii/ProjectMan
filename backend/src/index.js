@@ -27,6 +27,9 @@ const { ProfilingIntegration } = require('@sentry/profiling-node');
 
 const app = express();
 
+// Trust the first proxy (Caddy) so that rate limiting uses the correct client IP
+app.set('trust proxy', 1);
+
 // Initialize Sentry early
 Sentry.init({
   dsn: process.env.SENTRY_DSN || '',
@@ -111,7 +114,8 @@ const xssSanitizer = require('./middleware/xssSanitizer');
 const auditLogger = require('./middleware/auditLogger');
 
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" } // allow images to be loaded
+  crossOriginResourcePolicy: { policy: "cross-origin" }, // allow images to be loaded
+  crossOriginOpenerPolicy: false // allow Firebase Auth popups
 }));
 
 const corsOptions = {

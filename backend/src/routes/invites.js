@@ -1,23 +1,10 @@
 const express = require('express');
 const crypto = require('crypto');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const { authenticateToken } = require('../middleware/auth');
 const prisma = require('../lib/prisma');
-const { JWT_SECRET } = require('../config/env');
 
 const router = express.Router();
 
-// Helper function to generate tokens (duplicating from auth.js for simplicity, or we could extract it to a util)
-async function generateTokens(userId, rememberMe = false) {
-  const accessToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '1h' });
-  const refreshToken = crypto.randomBytes(40).toString('hex');
-  const days = rememberMe ? 30 : 1;
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + days);
-  await prisma.session.create({ data: { userId, refreshToken, expiresAt } });
-  return { accessToken, refreshToken };
-}
 
 // 1. Generate Invite Link (Admin Only)
 router.post('/workspaces/:workspaceId', authenticateToken, async (req, res) => {
@@ -92,8 +79,7 @@ router.get('/:token', async (req, res) => {
   }
 });
 
-// 3. Accept Invite (Public)
-router.post('/:token/accept', async (req, res) => {
+router.post('/:token/accept', authenticateToken, async (req, res) => {
   try {
     const { token } = req.params;
     
@@ -115,45 +101,7 @@ router.post('/:token/accept', async (req, res) => {
     }
 
     const workspaceId = inviteLink.workspaceId;
-    let userIdToJoin = null;
-    const { email, password, name, rememberMe } = req.body || {};
-
-    // Check if user is already authenticated
-    const authHeader = req.headers['authorization'];
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const authToken = authHeader.split(' ')[1];
-      try {
-        const decoded = jwt.verify(authToken, JWT_SECRET);
-        userIdToJoin = decoded.userId;
-      } catch (err) {
-        // Invalid token, ignore and proceed as unauthenticated if they provide form data
-        console.warn("Invalid auth token provided to invite accept:", err.message);
-      }
-    }
-
-    if (!userIdToJoin) {
-      // Must be a new user registration
-      if (!email || !password || !name) {
-        return res.status(400).json({ error: 'Please provide all required fields.' });
-      }
-
-      // Create new user
-      const userExists = await prisma.user.findUnique({ where: { email } });
-      if (userExists) {
-          return res.status(400).json({ error: 'Email already in use. Please login and then accept the invite from within the app.' });
-      }
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      const newUser = await prisma.user.create({
-        data: {
-          email,
-          name,
-          password: hashedPassword,
-        },
-      });
-      userIdToJoin = newUser.id;
-    }
+    const userIdToJoin = req.user.userId;
 
     // Check if user is already a member
     const existingMember = await prisma.workspaceMember.findUnique({
@@ -233,26 +181,10 @@ router.post('/:token/accept', async (req, res) => {
       data: { uses: { increment: 1 } }
     });
 
-    const isNewUser = req.body && req.body.email && req.body.password;
-
-    if (isNewUser) {
-        // Generate tokens and login for the new user
-        const tokens = await generateTokens(userIdToJoin, req.body.rememberMe);
-        const userRec = await prisma.user.findUnique({ where: { id: userIdToJoin } });
-
-        res.status(201).json({
-          message: 'Successfully joined the workspace!',
-          workspaceId,
-          token: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
-          user: { id: userRec.id, name: userRec.name, email: userRec.email, darkMode: userRec.darkMode, profilePhoto: userRec.profilePhoto }
-        });
-    } else {
-        res.status(200).json({
-            message: 'Successfully joined the workspace!',
-            workspaceId
-        });
-    }
+    res.status(200).json({
+        message: 'Successfully joined the workspace!',
+        workspaceId
+    });
 
   } catch (error) {
     console.error('Error accepting invite:', error);

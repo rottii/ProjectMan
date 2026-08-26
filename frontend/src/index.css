@@ -103,6 +103,8 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 
   overflow-y: scroll;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Custom scrollbar for webkit to look good in dark mode */
@@ -182,6 +184,11 @@ body {
 
 button, input, textarea, select {
   font-family: inherit;
+}
+
+input, textarea {
+  user-select: auto;
+  -webkit-user-select: auto;
 }
 
 button {

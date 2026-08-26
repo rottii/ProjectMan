@@ -200,11 +200,18 @@ export default function App() {
 
   useEffect(() => {
     const handleAuthExpired = () => {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
       setToken(null)
       setUser(null)
       setSelectedProject(null)
       setSelectedPortfolio(null)
       setActiveView('home')
+      
+      // Also sign out from Firebase
+      import('./config/firebase').then(({ auth }) => {
+        auth.signOut().catch(console.error);
+      });
     };
     window.addEventListener('auth-expired', handleAuthExpired);
     return () => window.removeEventListener('auth-expired', handleAuthExpired);

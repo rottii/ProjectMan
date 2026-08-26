@@ -213,29 +213,21 @@ export default function InvitePage({
           marginBottom: '1rem'
         }}>{t("you_are_currently_logged_in_as", "You are currently logged in as")}<strong>{currentUser.name}</strong> ({currentUser.email}).
              </p>
-             <button style={styles.button} type="submit" disabled={submitting}>
-               {submitting ? 'Joining...' : 'Join Workspace'}
+              <button style={styles.button} type="submit" disabled={submitting}>
+                {submitting ? 'Joining...' : 'Join Workspace'}
+              </button>
+            </form> : 
+            <div style={styles.form}>
+             <p style={{
+               fontSize: '0.95rem',
+               color: '#374151',
+               marginBottom: '1rem'
+             }}>{t("please_login_to_accept", "Please log in or create an account to accept this invite.")}
+             </p>
+             <button style={styles.button} type="button" onClick={() => window.location.href = '/'}>
+               {t("go_to_login", "Go to Login / Sign Up")}
              </button>
-           </form> : <form style={styles.form} onSubmit={handleSubmit}>
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>{t("full_name", "Full Name")}</label>
-              <input style={styles.input} type="text" name="name" value={formData.name} onChange={handleChange} required placeholder={t("e_g_jane_doe", "e.g. Jane Doe")} />
-            </div>
-          
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>{t("email_address", "Email Address")}</label>
-            <input style={styles.input} type="email" name="email" value={formData.email} onChange={handleChange} required placeholder={t("name_company_com", "name@company.com")} />
-          </div>
-          
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>{t("password", "Password")}</label>
-            <input style={styles.input} type="password" name="password" value={formData.password} onChange={handleChange} required minLength={6} />
-          </div>
-          
-          <button style={styles.button} type="submit" disabled={submitting}>
-            {submitting ? 'Creating account...' : 'Accept Invite & Join'}
-          </button>
-        </form>}
+           </div>}
       </div>
     </div>;
 }

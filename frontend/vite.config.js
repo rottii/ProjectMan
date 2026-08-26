@@ -8,6 +8,10 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    host: true // Docker container dışından erişim için zorunlu
+    host: true, // Docker container dışından erişim için zorunlu
+    headers: {
+      'Cross-Origin-Opener-Policy': 'unsafe-none',
+      'Cross-Origin-Embedder-Policy': 'unsafe-none'
+    }
   }
 })
