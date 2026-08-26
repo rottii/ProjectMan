@@ -77,11 +77,76 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
   const [activeFormId, setActiveFormId] = useState(null)
   const [customizeView, setCustomizeView] = useState('main')
   const [optionsView, setOptionsView] = useState('main')
+  const defaultVisibleFields = {
+    assignee: true,
+    dueDate: true,
+    priority: true,
+    status: true,
+    collaborators: false,
+    createdBy: false,
+    createdOn: false,
+    lastModifiedOn: false,
+    completedOn: false,
+    projects: true,
+    tags: false,
+    blockedBy: false,
+    blocking: false,
+    attachments: false
+  };
+  const [visibleFields, setVisibleFields] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem(`visibleFields_${selectedProject?.id}`);
+        if (saved) return JSON.parse(saved);
+      }
+    } catch (e) {}
+    return defaultVisibleFields;
+  });
+
+  useEffect(() => {
+    if (selectedProject?.id) {
+      localStorage.setItem(`visibleFields_${selectedProject.id}`, JSON.stringify(visibleFields));
+    }
+  }, [visibleFields, selectedProject?.id]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`visibleFields_${selectedProject?.id}`);
+      if (saved) {
+        setVisibleFields(JSON.parse(saved));
+      } else {
+        setVisibleFields(defaultVisibleFields);
+      }
+    } catch (e) {}
+  }, [selectedProject?.id]);
   const [projectRules, setProjectRules] = useState([])
   const [activeRuleMenuId, setActiveRuleMenuId] = useState(null)
   const [ruleToEdit, setRuleToEdit] = useState(null)
   const [fieldToEdit, setFieldToEdit] = useState(null)
   const [activePopover, setActivePopover] = useState(null)
+  const [draggingFieldId, setDraggingFieldId] = useState(null)
+  const [menuColumnOrder, setMenuColumnOrder] = useState([]);
+  
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        const saved = localStorage.getItem(`columnOrder_${selectedProject?.id}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) setMenuColumnOrder(parsed);
+        }
+      } catch (e) {}
+    };
+    handleStorageChange();
+    window.addEventListener('columnOrderChanged', handleStorageChange);
+    return () => window.removeEventListener('columnOrderChanged', handleStorageChange);
+  }, [selectedProject?.id]);
+
+  const updateMenuColumnOrder = (newOrder) => {
+    setMenuColumnOrder(newOrder);
+    localStorage.setItem(`columnOrder_${selectedProject?.id}`, JSON.stringify(newOrder));
+    window.dispatchEvent(new CustomEvent('columnOrderChanged'));
+  };
   const getTaskIdFromPath = () => {
     if (typeof window === 'undefined') return null;
     const match = window.location.pathname.match(/\/task\/([^\/]+)$/);
@@ -3349,7 +3414,15 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                         const cellSection = { ...pg, tasks: cellTasks, subgroups: undefined };
                         return (
                           <div key={pg.id} onClickCapture={() => setLastInteractedSectionId(pg.id)} style={{ width: '280px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
-                            <KanbanColumn section={cellSection} token={token} isVirtualGrouping={isVirtualGrouping} customFieldSettings={selectedProject?.customFieldSettings || []} projectMembers={selectedProject?.members || []} onTaskUpdate={handleTaskUpdate} onDeleteSection={handleDeleteSection} onRenameSection={handleRenameSection} onGeneralDrop={handleGeneralDrop} onTaskContextMenu={(e, id) => { if (!isReadOnly) setContextMenu({ visible: true, x: e.clientX, y: e.clientY, taskId: id }) }} onOpenApprovalMenu={handleOpenApprovalMenu} onOpenPopover={(type, task, coords, extra = {}) => setActivePopover({ type, task, coords, ...extra })} onOpenTaskPane={setActiveTaskPaneId} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} draggableSection={false} onDragStartSection={() => { }} onDragEndSection={() => { }} setLastInteractedSectionId={setLastInteractedSectionId} setLastInteractedTaskId={setLastInteractedTaskId} selectedTaskIds={selectedTaskIds} setSelectedTaskIds={setSelectedTaskIds} onTaskSelect={handleTaskSelect} isMatrixCell={true} subgroup={sg} />
+                            <KanbanColumn section={cellSection} token={token} visibleFields={visibleFields} currentProjectId={selectedProject?.id} columnOrder={(() => {
+                              const globalBaseIds = [
+                                'assignee', 'dueDate', 'priority', 'status', 'collaborators', 'createdBy', 'createdOn', 'lastModifiedOn', 'completedOn', 'projects', 'tags', 'blockedBy', 'blocking', 'attachments',
+                                ...getParsedCustomFields(selectedProject).map(cf => cf.id || cf.title)
+                              ];
+                              const fullOrderSet = new Set(menuColumnOrder || []);
+                              globalBaseIds.forEach(id => fullOrderSet.add(id));
+                              return Array.from(fullOrderSet);
+                            })()} isVirtualGrouping={isVirtualGrouping} customFieldSettings={selectedProject?.customFieldSettings || []} projectMembers={selectedProject?.members || []} onTaskUpdate={handleTaskUpdate} onDeleteSection={handleDeleteSection} onRenameSection={handleRenameSection} onGeneralDrop={handleGeneralDrop} onTaskContextMenu={(e, id) => { if (!isReadOnly) setContextMenu({ visible: true, x: e.clientX, y: e.clientY, taskId: id }) }} onOpenApprovalMenu={handleOpenApprovalMenu} onOpenPopover={(type, task, coords, extra = {}) => setActivePopover({ type, task, coords, ...extra })} onOpenTaskPane={setActiveTaskPaneId} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} draggableSection={false} onDragStartSection={() => { }} onDragEndSection={() => { }} setLastInteractedSectionId={setLastInteractedSectionId} setLastInteractedTaskId={setLastInteractedTaskId} selectedTaskIds={selectedTaskIds} setSelectedTaskIds={setSelectedTaskIds} onTaskSelect={handleTaskSelect} isMatrixCell={true} subgroup={sg} />
                           </div>
                         )
                       })}
@@ -3404,7 +3477,15 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                       onDrop={(e) => { if (!isVirtualGrouping) handleGeneralDrop(e, section.id); }}
                       style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', opacity: draggingSectionId === section.id ? 0.4 : 1 }}
                     >
-                      <KanbanColumn section={{ ...section, tasks: filteredTasks }} token={token} isVirtualGrouping={isVirtualGrouping} customFieldSettings={selectedProject?.customFieldSettings || []} projectMembers={selectedProject?.members || []} onTaskUpdate={handleTaskUpdate} onDeleteSection={handleDeleteSection} onRenameSection={handleRenameSection} onGeneralDrop={handleGeneralDrop} onTaskContextMenu={(e, id) => { if (!isReadOnly) setContextMenu({ visible: true, x: e.clientX, y: e.clientY, taskId: id }) }} onOpenApprovalMenu={handleOpenApprovalMenu} onOpenPopover={(type, task, coords, extra = {}) => setActivePopover({ type, task, coords, ...extra })} onOpenTaskPane={setActiveTaskPaneId} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} draggableSection={!isReadOnly && !isVirtualGrouping} onDragStartSection={(e) => { setDraggingSectionId(section.id); e.dataTransfer.setData('drag-type', 'section'); e.dataTransfer.setData('section-id', section.id); const ghostEl = document.getElementById('projectman-drag-ghost-preview-card'); if (ghostEl) { ghostEl.textContent = section.name; e.dataTransfer.setDragImage(ghostEl, 20, 15); } }} onDragEndSection={() => { handleFinalSectionMove(); setDraggingSectionId(null); window.__sectionDragState = null; }} setLastInteractedSectionId={setLastInteractedSectionId} setLastInteractedTaskId={setLastInteractedTaskId} selectedTaskIds={selectedTaskIds} setSelectedTaskIds={setSelectedTaskIds} onTaskSelect={handleTaskSelect} />
+                      <KanbanColumn section={{ ...section, tasks: filteredTasks }} token={token} visibleFields={visibleFields} currentProjectId={selectedProject?.id} columnOrder={(() => {
+                              const globalBaseIds = [
+                                'assignee', 'dueDate', 'priority', 'status', 'collaborators', 'createdBy', 'createdOn', 'lastModifiedOn', 'completedOn', 'projects', 'tags', 'blockedBy', 'blocking', 'attachments',
+                                ...getParsedCustomFields(selectedProject).map(cf => cf.id || cf.title)
+                              ];
+                              const fullOrderSet = new Set(menuColumnOrder || []);
+                              globalBaseIds.forEach(id => fullOrderSet.add(id));
+                              return Array.from(fullOrderSet);
+                            })()} isVirtualGrouping={isVirtualGrouping} customFieldSettings={selectedProject?.customFieldSettings || []} projectMembers={selectedProject?.members || []} onTaskUpdate={handleTaskUpdate} onDeleteSection={handleDeleteSection} onRenameSection={handleRenameSection} onGeneralDrop={handleGeneralDrop} onTaskContextMenu={(e, id) => { if (!isReadOnly) setContextMenu({ visible: true, x: e.clientX, y: e.clientY, taskId: id }) }} onOpenApprovalMenu={handleOpenApprovalMenu} onOpenPopover={(type, task, coords, extra = {}) => setActivePopover({ type, task, coords, ...extra })} onOpenTaskPane={setActiveTaskPaneId} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} draggableSection={!isReadOnly && !isVirtualGrouping} onDragStartSection={(e) => { setDraggingSectionId(section.id); e.dataTransfer.setData('drag-type', 'section'); e.dataTransfer.setData('section-id', section.id); const ghostEl = document.getElementById('projectman-drag-ghost-preview-card'); if (ghostEl) { ghostEl.textContent = section.name; e.dataTransfer.setDragImage(ghostEl, 20, 15); } }} onDragEndSection={() => { handleFinalSectionMove(); setDraggingSectionId(null); window.__sectionDragState = null; }} setLastInteractedSectionId={setLastInteractedSectionId} setLastInteractedTaskId={setLastInteractedTaskId} selectedTaskIds={selectedTaskIds} setSelectedTaskIds={setSelectedTaskIds} onTaskSelect={handleTaskSelect} />
                     </div>
                   )
                 })}
@@ -3462,6 +3543,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
             setSelectedTaskIds={setSelectedTaskIds}
             onTaskSelect={handleTaskSelect}
             onMarqueeMouseDown={handleMarqueeMouseDown}
+            visibleFields={visibleFields}
           />
         ) : activeViewObj.type === 'Dashboard' ? (
           <ProjectDashboardView
@@ -3653,7 +3735,7 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
         <SlidePaneWrapper
           isOpen={!!activeTaskPaneId}
           className="task-pane-ignore-click"
-          style={{ position: 'fixed', top: '52px', bottom: 0, right: 0, width: '700px', zIndex: 100005 }}
+          style={{ position: 'fixed', top: '56px', bottom: 0, right: 0, width: '700px', zIndex: 100005 }}
         >
           <TaskDetailPane
             task={(() => {
@@ -3979,13 +4061,22 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                     </div>
                     <span style={{ color: 'var(--text-secondary)' }}>›</span>
                   </div>
-                  <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-primary)' }} onClick={() => { }}>
+                  <div className="customize-list-card" style={{ ...styles.customizeListItem, justifyContent: 'space-between', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-primary)' }} onClick={() => setOptionsView('fields_list')}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', width: '20px', textAlign: 'center' }}>👁️</span>
                       <span style={styles.customizeItemLabel}>{t('show_hide_fields', 'Show/hide fields')}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>1 {t('hidden', 'hidden')}</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        {activeViewObj?.type === 'List' ? (
+                          [
+                            { id: 'assignee' }, { id: 'dueDate' }, { id: 'collaborators' }, { id: 'createdBy' },
+                            { id: 'createdOn' }, { id: 'lastModifiedOn' }, { id: 'completedOn' }, { id: 'projects' },
+                            { id: 'tags' }, { id: 'blockedBy' }, { id: 'blocking' }, { id: 'attachments' },
+                            ...getParsedCustomFields(selectedProject).map(cf => ({ id: cf.id || cf.title }))
+                          ].filter(f => !visibleFields[f.id]).length
+                        ) : 0} {t('hidden', 'hidden')}
+                      </span>
                       <span style={{ color: 'var(--text-secondary)' }}>›</span>
                     </div>
                   </div>
@@ -4020,6 +4111,121 @@ export default function KanbanBoard({ selectedProject, setSelectedProject, proje
                       <span style={{ color: 'var(--text-secondary)' }}>›</span>
                     </div>
                   </div>
+                </div>
+              </div>
+            </>
+          ) : optionsView === 'fields_list' ? (
+            <>
+              <div style={{ ...styles.customizeHeader, justifyContent: 'flex-start', gap: '12px' }}>
+                <button style={{ background: 'none', border: 'none', fontSize: '1.2rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }} onClick={() => setOptionsView('main')}>←</button>
+                <h2 style={{ ...styles.customizeTitle, fontWeight: 'normal' }}>{t('show_hide_columns', 'Show/hide columns')}</h2>
+              </div>
+              <div style={{ ...styles.customizeBody, padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', overflowY: 'auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('manage_columns_text', 'Show, hide, and reorder columns in this view')}</span>
+                  <button style={{ background: 'none', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.85rem', color: 'var(--text-primary)', cursor: 'pointer', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{fontWeight: 'bold'}}>+</span> {t('add', 'Add')}</button>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {(() => {
+                    let baseFields = [];
+                    if (activeViewObj?.type === 'List') {
+                      baseFields = [
+                        { id: 'assignee', label: 'Assignee', icon: '👤' },
+                        { id: 'dueDate', label: 'Due date', icon: '📅' },
+                        { id: 'collaborators', label: 'Collaborators', icon: '👥' },
+                        { id: 'createdBy', label: 'Created by', icon: '👤' },
+                        { id: 'createdOn', label: 'Created on', icon: '🕒' },
+                        { id: 'lastModifiedOn', label: 'Last modified on', icon: '✏️' },
+                        { id: 'completedOn', label: 'Completed on', icon: '✅' },
+                        { id: 'projects', label: 'Projects', icon: '📋' },
+                        { id: 'tags', label: 'Tags', icon: '🏷️' },
+                        { id: 'blockedBy', label: 'Blocked by', icon: '🚫' },
+                        { id: 'blocking', label: 'Blocking', icon: '🛑' },
+                        { id: 'attachments', label: 'Attachments', icon: '📎' },
+                        ...getParsedCustomFields(selectedProject).map(cf => ({ id: cf.id || cf.title, label: cf.title, icon: cf.type === 'date' ? '📅' : cf.type === 'people' ? '👤' : cf.type === 'checkbox' ? '☑' : '⌄' }))
+                      ];
+                    } else if (activeViewObj?.type === 'Board') {
+                      baseFields = [
+                        { id: 'projects', label: 'Projects', icon: '📋' },
+                        ...getParsedCustomFields(selectedProject).map(cf => ({ id: cf.id || cf.title, label: cf.title, icon: cf.type === 'date' ? '📅' : cf.type === 'people' ? '👤' : cf.type === 'checkbox' ? '☑' : '⌄' }))
+                      ];
+                    }
+                    
+                    const allFields = menuColumnOrder.map(colId => baseFields.find(f => f.id === colId)).filter(Boolean);
+                    baseFields.forEach(f => {
+                      if (!allFields.find(af => af.id === f.id)) allFields.push(f);
+                    });
+
+                    return allFields.map((field, idx, arr) => (
+                      <div 
+                        key={field.id} 
+                        draggable
+                        onDragStart={(e) => {
+                          setDraggingFieldId(field.id);
+                          e.dataTransfer.effectAllowed = 'move';
+                          if (e.dataTransfer.setData) e.dataTransfer.setData('text/plain', '');
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          if (!draggingFieldId || draggingFieldId === field.id) return;
+                          
+                          const globalBaseIds = [
+                            'assignee', 'dueDate', 'priority', 'status', 'collaborators', 'createdBy', 'createdOn', 'lastModifiedOn', 'completedOn', 'projects', 'tags', 'blockedBy', 'blocking', 'attachments',
+                            ...getParsedCustomFields(selectedProject).map(cf => cf.id || cf.title)
+                          ];
+                          const fullOrderSet = new Set(menuColumnOrder || []);
+                          globalBaseIds.forEach(id => fullOrderSet.add(id));
+                          const newFullOrder = Array.from(fullOrderSet);
+                          
+                          const strNewFullOrder = newFullOrder.map(String);
+                          const fullFromIdx = strNewFullOrder.indexOf(String(draggingFieldId));
+                          const fullToIdx = strNewFullOrder.indexOf(String(field.id));
+                          
+                          if (fullFromIdx !== -1 && fullToIdx !== -1) {
+                            const itemToMove = newFullOrder[fullFromIdx];
+                            newFullOrder.splice(fullFromIdx, 1);
+                            newFullOrder.splice(fullToIdx, 0, itemToMove);
+                            updateMenuColumnOrder(newFullOrder);
+                          }
+                        }}
+                        onDragEnd={() => setDraggingFieldId(null)}
+                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: idx < arr.length - 1 ? '1px solid var(--border-color)' : 'none', opacity: draggingFieldId === field.id ? 0.5 : 1, cursor: 'grab' }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', pointerEvents: 'none' }}>
+                          <span style={{ color: 'var(--text-tertiary)', fontSize: '1.2rem', cursor: 'grab' }}>⣿</span>
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', width: '20px', textAlign: 'center' }}>{field.icon}</span>
+                          <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>{t(field.id, field.label)}</span>
+                        </div>
+                        <div 
+                          onClick={() => setVisibleFields(prev => ({ ...prev, [field.id]: prev[field.id] !== false ? false : true }))} 
+                          style={{ 
+                            width: '32px', 
+                            height: '18px', 
+                            borderRadius: '9px', 
+                            backgroundColor: visibleFields[field.id] !== false ? '#3B82F6' : '#D1D5DB', 
+                            position: 'relative', 
+                            cursor: 'pointer', 
+                            transition: 'background-color 0.2s' 
+                          }}
+                        >
+                          {visibleFields[field.id] !== false && (
+                            <span style={{ position: 'absolute', left: '5px', top: '50%', transform: 'translateY(-50%)', color: 'white', fontSize: '10px', pointerEvents: 'none' }}>✓</span>
+                          )}
+                          <div style={{ 
+                            width: '14px', 
+                            height: '14px', 
+                            borderRadius: '50%', 
+                            backgroundColor: 'white', 
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                            position: 'absolute',
+                            top: '2px',
+                            left: visibleFields[field.id] !== false ? '16px' : '2px',
+                            transition: 'left 0.2s ease'
+                          }} />
+                        </div>
+                      </div>
+                    ));
+                  })()}
                 </div>
               </div>
             </>

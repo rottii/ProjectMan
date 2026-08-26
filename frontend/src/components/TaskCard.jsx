@@ -23,7 +23,10 @@ export default function TaskCard({
   fieldConfig,
   selectedTaskIds,
   onTaskSelect,
-  isMatrixCell
+  isMatrixCell,
+  visibleFields,
+  currentProjectId,
+  columnOrder
 }) {
   const {
     t
@@ -508,8 +511,9 @@ export default function TaskCard({
 
 
         {(() => {
-        const activeFields = fieldConfig && fieldConfig.length > 0 ? fieldConfig.filter(f => f.visible).map(f => customFieldSettings?.find(c => c.id === f.id)).filter(Boolean) : customFieldSettings;
-        return activeFields?.map(cf => {
+        let allElements = [];
+        const activeFields = fieldConfig && fieldConfig.length > 0 ? fieldConfig.filter(f => f.visible).map(f => customFieldSettings?.find(c => c.id === f.id)).filter(Boolean) : (customFieldSettings || []).filter(cf => !visibleFields || visibleFields[cf.id || cf.title] !== false);
+        const customFieldElements = activeFields?.map(cf => {
           const parsedFields = getParsedTaskCustomFields(task.customFields);
           const value = parsedFields[cf.id];
           const cfType = cf.type || 'single-select';
@@ -1051,6 +1055,57 @@ export default function TaskCard({
           }
           return null;
         });
+        
+        if (customFieldElements) allElements = allElements.concat(customFieldElements.filter(Boolean));
+
+        if (!visibleFields || visibleFields.projects !== false) {
+          const taskProjects = [];
+          if (task.section?.project && task.section.project.status !== 'MY_TASKS' && task.section.project.name !== 'My Tasks' && task.section.project.id !== currentProjectId) {
+             taskProjects.push(task.section.project);
+          }
+          if (task.secondaryProjects) {
+            task.secondaryProjects.forEach(sp => {
+              if (sp.project && sp.project.status !== 'MY_TASKS' && sp.project.name !== 'My Tasks' && sp.project.id !== currentProjectId) {
+                if (!taskProjects.find(p => p.id === sp.project.id)) {
+                  taskProjects.push(sp.project);
+                }
+              }
+            });
+          }
+          if (taskProjects.length > 0) {
+            const projectElements = taskProjects.map(p => (
+              <div key={`proj-${p.id}`} style={{
+                ...styles.staticCustomBadge,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                <div style={{
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '2px',
+                  backgroundColor: p.color || '#FBBF24'
+                }} />
+                <span>{p.name}</span>
+              </div>
+            ));
+            allElements.push(<div key="projects" style={{display: 'contents'}}>{projectElements}</div>);
+          }
+        }
+        
+        if (columnOrder && columnOrder.length > 0) {
+           const strColumnOrder = columnOrder.map(String);
+           allElements.sort((a, b) => {
+              const idA = String(typeof a?.key === 'string' ? a.key.replace(/^\.\$?/, '') : a?.key);
+              const idB = String(typeof b?.key === 'string' ? b.key.replace(/^\.\$?/, '') : b?.key);
+              const idxA = strColumnOrder.indexOf(idA);
+              const idxB = strColumnOrder.indexOf(idB);
+              const posA = idxA === -1 ? Infinity : idxA;
+              const posB = idxB === -1 ? Infinity : idxB;
+              return posA - posB;
+           });
+        }
+        return allElements;
       })()}
 
         {task.tags && task.tags.map(tag => <span key={tag.id} title={tag.name} style={{

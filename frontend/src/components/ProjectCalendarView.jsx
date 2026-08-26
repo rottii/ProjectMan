@@ -64,7 +64,7 @@ export default function ProjectCalendarView({
           if (eDate < sDate) eDate.setTime(sDate.getTime());
           allTasks.push({
             ...t,
-            sectionColor: getSectionColor(sec.id),
+            taskColor: getTaskColor(t.id),
             sDate,
             eDate
           });
@@ -341,7 +341,7 @@ export default function ProjectCalendarView({
               }} style={{
                 ...styles.taskBar,
                 pointerEvents: isDragging ? 'none' : 'auto',
-                '--task-bg': task.isCompleted ? '#E5E7EB' : task.sectionColor,
+                '--task-bg': task.isCompleted ? '#E5E7EB' : task.taskColor,
                 backgroundColor: 'var(--task-bg)',
                 color: task.isCompleted ? '#4B5563' : '#111827',
                 textDecoration: task.isCompleted ? 'line-through' : 'none',
@@ -371,10 +371,15 @@ export default function ProjectCalendarView({
       </div>
     </div>;
 }
-function getSectionColor(str) {
+function getTaskColor(str) {
   let hash = 0;
+  if (!str) return '#DBEAFE';
+  str = String(str);
   for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  const colors = ['#DBEAFE', '#FCE7F3', '#D1FAE5', '#FEF3C7', '#F3E8FF', '#FEE2E2'];
+  const colors = [
+    '#DBEAFE', '#FCE7F3', '#D1FAE5', '#FEF3C7', '#F3E8FF', '#FEE2E2',
+    '#E0E7FF', '#FAFAF9', '#ECFCCB', '#CCFBF1', '#FFEDD5', '#FFE4E6'
+  ];
   return colors[Math.abs(hash) % colors.length];
 }
 const styles = {

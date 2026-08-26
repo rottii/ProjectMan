@@ -189,128 +189,62 @@ export default function Portfolios({
         </div>
       </div>;
   }
-  return <div style={styles.container}>
-      <div style={styles.headerArea}>
-        <div style={styles.headerTop}>
-          <h1 style={styles.pageTitle}>{t("portfolios", "Portfolios")}</h1>
-          {activeTab === 'Recent and starred' && <button style={styles.createBtn} onClick={() => setCreationStep(1)}>{t("create_portfolio", "Create portfolio")}</button>}
-        </div>
-
-        <div style={styles.tabsAndActionsRow}>
-          <div className="thin-scrollbar" onWheel={(e) => {
-            if (e.deltaY !== 0) {
-              e.currentTarget.scrollLeft += e.deltaY;
-            }
-          }} style={styles.tabsContainer}>
-            <div style={{
-            ...styles.tab,
-            ...(activeTab === 'Recent and starred' ? styles.activeTab : {})
-          }} onClick={() => setActiveTab('Recent and starred')}>{t("recent_and_starred", "Recent and starred")}</div>
-            <div style={{
-            ...styles.tab,
-            ...(activeTab === 'Browse all' ? styles.activeTab : {})
-          }} onClick={() => setActiveTab('Browse all')}>{t("browse_all", "Browse all")}</div>
-          </div>
-
-          {activeTab === 'Browse all' && <div style={styles.browseAllActions}>
-              <div style={styles.actionItem}><span style={{
-              display: 'flex', alignItems: 'center', marginRight: 4
-            }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></span>{t("filter", "Filter")}</div>
-              <div style={styles.actionItem}><span style={{
-              marginRight: 4
-            }}>⇅</span>{t("sort_last_modified_newest", "Sort: Last modified (Newest)")}</div>
-              <div style={styles.actionItem}>🔍</div>
-              <button style={styles.createBtn} onClick={() => setCreationStep(1)}>{t("create_portfolio", "Create portfolio")}</button>
-            </div>}
-        </div>
+  return <div className="browse-projects-container">
+      <div className="browse-projects-header">
+        <h1>{t("portfolios", "Portfolios")}</h1>
+        {activeTab === 'Recent and starred' && <button className="bp-create-btn" onClick={() => setCreationStep(1)}>+ {t("create_portfolio", "Create portfolio")}</button>}
       </div>
 
-      <div style={styles.contentArea}>
-        {activeTab === 'Recent and starred' ? <div style={styles.recentSection}>
-            <div style={styles.recentHeader}>
-              <div style={styles.recentTitle}>▼ {t("recent_portfolios", "Recent portfolios")}</div>
-              <div style={styles.gridIcon}>⊞</div>
-            </div>
+      <div className="bp-filters" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '24px', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', gap: '24px' }}>
+          <div style={{ cursor: 'pointer', fontSize: '14px', color: activeTab === 'Recent and starred' ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: activeTab === 'Recent and starred' ? '500' : 'normal', borderBottom: activeTab === 'Recent and starred' ? '2px solid var(--text-primary)' : '2px solid transparent', paddingBottom: '12px', marginBottom: '-13px' }} onClick={() => setActiveTab('Recent and starred')}>{t("recent_and_starred", "Recent and starred")}</div>
+          <div style={{ cursor: 'pointer', fontSize: '14px', color: activeTab === 'Browse all' ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: activeTab === 'Browse all' ? '500' : 'normal', borderBottom: activeTab === 'Browse all' ? '2px solid var(--text-primary)' : '2px solid transparent', paddingBottom: '12px', marginBottom: '-13px' }} onClick={() => setActiveTab('Browse all')}>{t("browse_all", "Browse all")}</div>
+        </div>
 
-            <div style={styles.gridContainer}>
-              <div style={styles.newPortfolioCard} onClick={() => setCreationStep(1)}>
-                <div style={styles.plusIcon}>+</div>
-                <div style={styles.newPortfolioText}>{t("new_portfolio", "New portfolio")}</div>
-              </div>
-
-              {portfolios.map(portfolio => <div key={portfolio.id} style={styles.portfolioCard} onClick={() => {
-            setSelectedPortfolio(portfolio);
-            setActiveView('portfolio_detail');
-          }}>
-                  <div style={styles.folderShape}>
-                    <div style={styles.folderTab}></div>
-                    <div style={styles.folderBody}></div>
-                    <div style={styles.memberBadge}><UserAvatar name={portfolio.owner?.name} userId={portfolio.owner?.id} profilePhoto={portfolio.owner?.profilePhoto} size={32} /></div>
-                  </div>
-                  <div style={styles.portfolioName}>{portfolio.name}</div>
-                  <div style={styles.portfolioSub}>{portfolio.projectsCount || 0} {t("projects", "projects")}</div>
-                </div>)}
-            </div>
-          </div> : <div style={styles.listViewSection}>
-            <div style={styles.listHeader}>
-              <div style={{
-            ...styles.listHeaderCell,
-            flex: 2
-          }}>{t("name", "Name")}</div>
-              <div style={{
-            ...styles.listHeaderCell,
-            flex: 1
-          }}>{t("members", "Members")}</div>
-              <div style={{
-            ...styles.listHeaderCell,
-            flex: 2
-          }}>{t("parent_portfolios", "Parent portfolios")}</div>
-              <div style={{
-            ...styles.listHeaderCell,
-            width: '120px'
-          }}></div>
-            </div>
-
-            <div style={styles.listBody}>
-              {portfolios.map(portfolio => <div key={portfolio.id} style={styles.listRow} onClick={() => {
-            setSelectedPortfolio(portfolio);
-            setActiveView('portfolio_detail');
-          }}>
-                  <div style={{
-              ...styles.listCell,
-              flex: 2
-            }}>
-                    <div style={styles.listNameWrapper}>
-                      <div style={styles.listFolderIcon}>📁</div>
-                      <div>
-                        <div style={styles.listNameText}>{portfolio.name}</div>
-                        <div style={styles.listJoinedText}>{t("joined", "Joined")}</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{
-              ...styles.listCell,
-              flex: 1
-            }}>
-                    <div style={styles.memberBadgeSmall}><UserAvatar name={portfolio.owner?.name} userId={portfolio.owner?.id} profilePhoto={portfolio.owner?.profilePhoto} size={24} /></div>
-                  </div>
-                  <div style={{
-              ...styles.listCell,
-              flex: 2
-            }}>
-                  </div>
-                  <div style={{
-              ...styles.listCell,
-              width: '120px',
-              justifyContent: 'flex-end',
-              gap: '16px'
-            }}>
-                    <div style={styles.starIcon}>☆</div>
-                    <button style={styles.shareBtn}>{t("share", "Share")}</button>
-                  </div>
-                </div>)}
-            </div>
+        {activeTab === 'Browse all' && <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button className="bp-filter-chip">🔍</button>
+            <button className="bp-filter-chip">⇅ {t("sort_last_modified_newest", "Sort: Last modified (Newest)")}</button>
+            <button className="bp-create-btn" onClick={() => setCreationStep(1)}>+ {t("create_portfolio", "Create portfolio")}</button>
           </div>}
+      </div>
+
+      <div className="bp-table">
+        <div className="bp-table-header">
+          <div className="bp-col-name">{t("name", "Name")}</div>
+          <div className="bp-col-members">{t("members", "Members")}</div>
+          <div className="bp-col-portfolios">{t("parent_portfolios", "Parent portfolios")}</div>
+          <div style={{ width: '120px' }}></div>
+        </div>
+
+        <div className="bp-table-body">
+          {portfolios.map(portfolio => (
+            <div key={portfolio.id} className="bp-table-row" onClick={() => {
+              setSelectedPortfolio(portfolio);
+              setActiveView('portfolio_detail');
+            }}>
+              <div className="bp-col-name bp-flex-name">
+                <div className="bp-project-icon" style={{ backgroundColor: 'var(--accent-primary)', color: '#FFF' }}>
+                  📁
+                </div>
+                <div className="bp-project-info">
+                  <div className="bp-project-title">{portfolio.name}</div>
+                  <div className="bp-project-status">{portfolio.projectsCount || 0} {t("projects", "projects")}</div>
+                </div>
+              </div>
+              <div className="bp-col-members">
+                 {portfolio.owner && (
+                   <UserAvatar name={portfolio.owner.name} userId={portfolio.owner.id} profilePhoto={portfolio.owner.profilePhoto} size={24} />
+                 )}
+              </div>
+              <div className="bp-col-portfolios">
+              </div>
+              <div style={{ width: '120px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '16px' }}>
+                <div style={{ color: 'var(--text-tertiary)', fontSize: '16px' }}>☆</div>
+                <button style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '13px', cursor: 'pointer' }}>{t("share", "Share")}</button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>;
 }

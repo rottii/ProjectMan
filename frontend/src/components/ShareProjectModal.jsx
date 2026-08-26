@@ -227,7 +227,7 @@ export default function ShareProjectModal({
               gap: '0.5rem',
               alignItems: 'flex-start',
               borderBottom: '1px solid var(--border-color)'
-            }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+            }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
                   <span style={{
                 width: '20px',
                 color: !project.isPrivate ? 'var(--text-primary)' : 'transparent',
@@ -256,7 +256,7 @@ export default function ShareProjectModal({
               display: 'flex',
               gap: '0.5rem',
               alignItems: 'flex-start'
-            }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+            }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
                   <span style={{
                 width: '20px',
                 color: project.isPrivate ? 'var(--text-primary)' : 'transparent',

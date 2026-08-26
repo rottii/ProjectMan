@@ -288,7 +288,7 @@ export default function PortfolioDetail({
             e.currentTarget.scrollLeft += e.deltaY;
           }
         }} style={styles.tabsContainer}>
-          {['List', 'Timeline', 'Dashboard', 'Progress', 'Workload', 'Messages', '+'].map(tab => <div key={tab} style={{
+          {['List', 'Timeline', 'Dashboard', 'Progress', 'Workload', 'Messages', '+'].map(tab => <div key={tab} className="view-tab-item" style={{
           ...styles.tab,
           ...(activeTab === tab ? styles.activeTab : {})
         }} onClick={() => setActiveTab(tab)}>

@@ -48,7 +48,8 @@ export default function ProjectListView({
   setSelectedTaskIds,
   onTaskSelect,
   activeTaskPaneId,
-  onMarqueeMouseDown
+  onMarqueeMouseDown,
+  visibleFields
 }) {
   const {
     t
@@ -198,6 +199,8 @@ export default function ProjectListView({
   const [draggingColId, setDraggingColId] = useState(null);
   const [hiddenFields, setHiddenFields] = useState([]);
   
+  const activeColumnOrder = (columnOrder || []).filter(colId => visibleFields && visibleFields[colId] !== false);
+  
   useEffect(() => {
     setColumnOrder(prev => {
       let baseOrder = prev;
@@ -209,11 +212,9 @@ export default function ProjectListView({
         }
       } catch (e) {}
       
-      const isMyTasks = selectedProject?.status === 'MY_TASKS';
-      const base = isMyTasks ? ['projects', 'assignee', 'dueDate'] : ['assignee', 'dueDate'];
-      const filteredBase = base.filter(f => !hiddenFields.includes(f));
+      const base = ['assignee', 'dueDate', 'collaborators', 'createdBy', 'createdOn', 'lastModifiedOn', 'completedOn', 'projects', 'tags', 'blockedBy', 'blocking', 'attachments'];
       const cfs = customFields.map(cf => cf.id);
-      const allExpected = [...filteredBase, ...cfs];
+      const allExpected = [...base, ...cfs];
       const newOrder = baseOrder.filter(id => allExpected.includes(id));
       const missing = allExpected.filter(id => !newOrder.includes(id));
       if (missing.length > 0 || newOrder.length !== allExpected.length) {
@@ -221,13 +222,30 @@ export default function ProjectListView({
       }
       return newOrder.length > 0 ? newOrder : prev;
     });
-  }, [customFields, selectedProject?.id, selectedProject?.status, hiddenFields]);
+  }, [customFields, selectedProject?.id, selectedProject?.status]);
 
   useEffect(() => {
     if (selectedProject?.id && columnOrder.length > 0) {
       localStorage.setItem(`columnOrder_${selectedProject.id}`, JSON.stringify(columnOrder));
+      window.dispatchEvent(new CustomEvent('columnOrderChanged'));
     }
   }, [columnOrder, selectedProject?.id]);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        const saved = localStorage.getItem(`columnOrder_${selectedProject?.id}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+             setColumnOrder(prev => JSON.stringify(prev) !== saved ? parsed : prev);
+          }
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('columnOrderChanged', handleStorageChange);
+    return () => window.removeEventListener('columnOrderChanged', handleStorageChange);
+  }, [selectedProject?.id]);
   const [dropTargetCol, setDropTargetCol] = useState({
     id: null,
     position: null
@@ -245,7 +263,7 @@ export default function ProjectListView({
       });
       return;
     }
-    const isLastCol = columnOrder[columnOrder.length - 1] === targetColId;
+    const isLastCol = activeColumnOrder[activeColumnOrder.length - 1] === targetColId;
     const rect = e.currentTarget.getBoundingClientRect();
     const mouseX = e.clientX;
     const isRightHalf = mouseX > rect.left + rect.width / 2;
@@ -255,8 +273,8 @@ export default function ProjectListView({
     } else if (isRightHalf && !isLastCol) {
       // If hovering right half of a column that is NOT the last, 
       // we actually want to show the indicator on the LEFT edge of the NEXT column
-      const targetIndex = columnOrder.indexOf(targetColId);
-      const nextColId = columnOrder[targetIndex + 1];
+      const targetIndex = activeColumnOrder.indexOf(targetColId);
+      const nextColId = activeColumnOrder[targetIndex + 1];
       if (nextColId && nextColId !== draggingColId) {
         if (dropTargetCol.id !== nextColId || dropTargetCol.position !== 'left') {
           setDropTargetCol({
@@ -456,9 +474,9 @@ export default function ProjectListView({
       projects: 'Projects'
     };
     
-    const colIndex = columnOrder.indexOf(colId);
-    const canMoveLeft = colIndex > 0;
-    const canMoveRight = colIndex > -1 && colIndex < columnOrder.length - 1;
+    const visibleIdx = activeColumnOrder.indexOf(colId);
+    const canMoveLeft = visibleIdx > 0;
+    const canMoveRight = visibleIdx > -1 && visibleIdx < activeColumnOrder.length - 1;
     
     return <div style={styles.columnDropdownMenu} onClick={e => e.stopPropagation()}>
         {colName !== 'name' && colName !== 'assignee' && colName !== 'dueDate' && colName !== 'projects' && <button className="dropdown-item" onClick={() => {
@@ -521,8 +539,12 @@ export default function ProjectListView({
               <button className="dropdown-item" disabled={!canMoveLeft} onClick={(e) => {
                 e.stopPropagation();
                 if (canMoveLeft) {
+                  const targetId = activeColumnOrder[visibleIdx - 1];
                   const newOrder = [...columnOrder];
-                  [newOrder[colIndex - 1], newOrder[colIndex]] = [newOrder[colIndex], newOrder[colIndex - 1]];
+                  const fromIdx = newOrder.indexOf(colId);
+                  const toIdx = newOrder.indexOf(targetId);
+                  newOrder[fromIdx] = targetId;
+                  newOrder[toIdx] = colId;
                   setColumnOrder(newOrder);
                 }
               }} style={{ ...styles.dropdownItem, opacity: canMoveLeft ? 1 : 0.5, cursor: canMoveLeft ? 'pointer' : 'default' }}>
@@ -531,8 +553,12 @@ export default function ProjectListView({
               <button className="dropdown-item" disabled={!canMoveRight} onClick={(e) => {
                 e.stopPropagation();
                 if (canMoveRight) {
+                  const targetId = activeColumnOrder[visibleIdx + 1];
                   const newOrder = [...columnOrder];
-                  [newOrder[colIndex + 1], newOrder[colIndex]] = [newOrder[colIndex], newOrder[colIndex + 1]];
+                  const fromIdx = newOrder.indexOf(colId);
+                  const toIdx = newOrder.indexOf(targetId);
+                  newOrder[fromIdx] = targetId;
+                  newOrder[toIdx] = colId;
                   setColumnOrder(newOrder);
                 }
               }} style={{ ...styles.dropdownItem, opacity: canMoveRight ? 1 : 0.5, cursor: canMoveRight ? 'pointer' : 'default' }}>
@@ -864,8 +890,8 @@ export default function ProjectListView({
             </span>}
         </div>
 
-        {/* Data Cells (Dynamic based on columnOrder) */}
-        {columnOrder.map(colId => {
+        {/* Data Cells (Dynamic based on activeColumnOrder) */}
+        {activeColumnOrder.map(colId => {
         if (colId === 'assignee') {
           return <div key="assignee" style={{
             ...styles.gridBodyCell,
@@ -944,6 +970,25 @@ export default function ProjectListView({
                   {uniqueTaskProjects.length > 0 ? uniqueTaskProjects.join(', ') : '—'}
                 </span>
               </div>;
+        } else if (['collaborators', 'createdBy', 'createdOn', 'lastModifiedOn', 'completedOn', 'tags', 'blockedBy', 'blocking', 'attachments'].includes(colId)) {
+          let content = '—';
+          if (colId === 'createdOn' && task.createdAt) content = new Date(task.createdAt).toLocaleDateString();
+          if (colId === 'lastModifiedOn' && task.updatedAt) content = new Date(task.updatedAt).toLocaleDateString();
+          if (colId === 'completedOn' && task.completedAt) content = new Date(task.completedAt).toLocaleDateString();
+          if (colId === 'tags' && task.tags?.length > 0) content = task.tags.map(t => t.name || t).join(', ');
+          
+          return <div key={colId} style={{
+            ...styles.gridBodyCell,
+            width: colWidths[colId] || 140,
+            flexShrink: 0,
+            cursor: 'default',
+            color: 'var(--text-secondary)',
+            fontSize: '0.8rem'
+          }}>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {content}
+            </span>
+          </div>;
         } else {
           const cf = customFields.find(f => f.id === colId);
           if (!cf) return null;
@@ -1452,10 +1497,22 @@ export default function ProjectListView({
             {openColumnMenuName === 'name' && renderColumnDropdownMenu('name', 'name')}
             <div style={styles.resizeHandle} onMouseDown={e => handleResizeStart(e, 'name')} onClick={e => e.stopPropagation()} />
           </div>
-          {columnOrder.map(colId => {
+          {activeColumnOrder.map(colId => {
           let title = '';
           let menuName = colId;
-          if (colId === 'assignee') title = t('assignee', 'Assignee');else if (colId === 'dueDate') title = t('due_date', 'Due date');else if (colId === 'projects') title = t('projects', 'Projects');else {
+          if (colId === 'assignee') title = t('assignee', 'Assignee');
+          else if (colId === 'dueDate') title = t('due_date', 'Due date');
+          else if (colId === 'projects') title = t('projects', 'Projects');
+          else if (colId === 'collaborators') title = t('collaborators', 'Collaborators');
+          else if (colId === 'createdBy') title = t('created_by', 'Created by');
+          else if (colId === 'createdOn') title = t('created_on', 'Created on');
+          else if (colId === 'lastModifiedOn') title = t('last_modified_on', 'Last modified on');
+          else if (colId === 'completedOn') title = t('completed_on', 'Completed on');
+          else if (colId === 'tags') title = t('tags', 'Tags');
+          else if (colId === 'blockedBy') title = t('blocked_by', 'Blocked by');
+          else if (colId === 'blocking') title = t('blocking', 'Blocking');
+          else if (colId === 'attachments') title = t('attachments', 'Attachments');
+          else {
             const cf = customFields.find(f => f.id === colId);
             if (cf) {
               title = cf.title;

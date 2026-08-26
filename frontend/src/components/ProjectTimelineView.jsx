@@ -89,7 +89,7 @@ export default function ProjectTimelineView({
           isMilestone: task.type === 'MILESTONE',
           left: offsetDays * DAY_WIDTH,
           width: durationDays * DAY_WIDTH,
-          color: getSectionColor(sec.id),
+          color: getTaskColor(task.id),
           sectionId: sec.id
         };
         if (dragState && dragState.taskId === task.id) {
@@ -755,10 +755,15 @@ export default function ProjectTimelineView({
       </div>
     </div>;
 }
-function getSectionColor(str) {
+function getTaskColor(str) {
   let hash = 0;
+  if (!str) return '#DBEAFE';
+  str = String(str);
   for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  const colors = ['#FEE2E2', '#FEF3C7', '#D1FAE5', '#DBEAFE', '#F3E8FF', '#FCE7F3'];
+  const colors = [
+    '#FEE2E2', '#FEF3C7', '#D1FAE5', '#DBEAFE', '#F3E8FF', '#FCE7F3',
+    '#E0E7FF', '#FAFAF9', '#ECFCCB', '#CCFBF1', '#FFEDD5', '#FFE4E6'
+  ];
   return colors[Math.abs(hash) % colors.length];
 }
 const styles = {

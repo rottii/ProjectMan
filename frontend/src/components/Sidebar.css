@@ -313,3 +313,23 @@
     max-width: 280px;
   }
 }
+
+.profile-menu-item {
+  transition: none !important;
+}
+
+.profile-menu-item:hover {
+  background-color: var(--bg-secondary) !important;
+}
+
+.profile-menu-item-left {
+  transition: none !important;
+}
+
+.profile-menu-item-left:hover {
+  background-color: var(--bg-tertiary) !important;
+}
+
+.profile-menu-item-left.active {
+  background-color: var(--bg-tertiary) !important;
+}

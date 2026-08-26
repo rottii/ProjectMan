@@ -287,7 +287,7 @@ export default function Sidebar({
                   minWidth: '160px',
                   padding: '4px 0'
                 }}>
-                      <button onClick={e => {
+                      <button className="profile-menu-item" onClick={e => {
                     e.stopPropagation();
                     setShowAddMenu(false);
                     setActiveView('create_project');
@@ -303,12 +303,12 @@ export default function Sidebar({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px'
-                  }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                  }}>
                         <span style={{
                       fontSize: '1.2rem',
                       color: 'var(--text-tertiary)'
                     }}>📋</span>{t("new_project", "New project")}</button>
-                      <button onClick={e => {
+                      <button className="profile-menu-item" onClick={e => {
                     e.stopPropagation();
                     setShowAddMenu(false);
                     setActiveView('create_portfolio');
@@ -324,7 +324,7 @@ export default function Sidebar({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px'
-                  }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                  }}>
                         <span style={{
                       fontSize: '1.2rem',
                       color: 'var(--text-tertiary)'
@@ -426,18 +426,17 @@ export default function Sidebar({
                 flex: 1,
                 overflowY: 'auto'
               }}>
-                    {workspaces && workspaces.length > 0 && workspaces.map(ws => <div key={ws.id} style={{
+                    {workspaces && workspaces.length > 0 && workspaces.map(ws => <div key={ws.id} className={`profile-menu-item-left ${activeWorkspaceId === ws.id ? 'active' : ''}`} style={{
                   padding: '8px 16px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  backgroundColor: activeWorkspaceId === ws.id ? 'var(--hover-bg)' : 'transparent',
                   color: 'var(--text-primary)'
                 }} onClick={() => {
                   if (setActiveWorkspaceId) setActiveWorkspaceId(ws.id);
                   setShowProfileMenu(false);
-                }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = activeWorkspaceId === ws.id ? 'var(--hover-bg)' : 'transparent'}>
+                }}>
                         <div style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -455,7 +454,7 @@ export default function Sidebar({
                   </div>
 
                   {/* Dark mode switch */}
-                  <div onClick={() => setIsDarkMode(!isDarkMode)} style={{
+                  <div className="profile-menu-item-left" onClick={() => setIsDarkMode(!isDarkMode)} style={{
                 padding: '12px 16px',
                 borderTop: '1px solid var(--border-color)',
                 display: 'flex',
@@ -464,7 +463,7 @@ export default function Sidebar({
                 color: 'var(--text-secondary)',
                 fontSize: '0.85rem',
                 cursor: 'pointer'
-              }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+              }}>
                     <span style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -474,7 +473,7 @@ export default function Sidebar({
                   }}>{isDarkMode ? '🌙' : '☀️'}</span> {isDarkMode ? 'Dark Mode' : 'Light Mode'}</span>
                   </div>
                   
-                  <div onClick={() => {
+                  <div className="profile-menu-item-left" onClick={() => {
                 setShowProfileMenu(false);
                 if (handleLogout) handleLogout();
               }} style={{
@@ -485,7 +484,7 @@ export default function Sidebar({
                 color: 'var(--text-secondary)',
                 fontSize: '0.85rem',
                 cursor: 'pointer'
-              }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+              }}>
                     <span style={{
                   fontSize: '1.1rem'
                 }}>→</span>{t("log_out_all", "Log out all")}</div>
@@ -567,7 +566,7 @@ export default function Sidebar({
                   color: 'var(--text-secondary)',
                   fontSize: '0.85rem',
                   cursor: 'pointer'
-                }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                }}>
                         <span style={{
                     fontSize: '1.1rem',
                     width: '20px',
@@ -602,7 +601,7 @@ export default function Sidebar({
                   color: 'var(--text-secondary)',
                   fontSize: '0.85rem',
                   cursor: 'pointer'
-                }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                }}>
                       <span style={{
                     fontSize: '1.1rem',
                     width: '20px',
@@ -636,7 +635,7 @@ export default function Sidebar({
                   color: 'var(--text-secondary)',
                   fontSize: '0.85rem',
                   cursor: 'pointer'
-                }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                }}>
                       <span style={{
                     fontSize: '1.1rem',
                     width: '20px',
@@ -664,7 +663,7 @@ export default function Sidebar({
                   color: 'var(--text-secondary)',
                   fontSize: '0.85rem',
                   cursor: 'pointer'
-                }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                }}>
                       <span style={{
                     fontSize: '1.1rem',
                     width: '20px',
@@ -681,7 +680,7 @@ export default function Sidebar({
                   color: 'var(--text-secondary)',
                   fontSize: '0.85rem',
                   cursor: 'pointer'
-                }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                }}>
                       <span style={{
                     fontSize: '1.1rem',
                     width: '20px',
@@ -698,7 +697,7 @@ export default function Sidebar({
                   color: 'var(--text-secondary)',
                   fontSize: '0.85rem',
                   cursor: 'pointer'
-                }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                }}>
                       <span style={{
                     fontSize: '1.1rem',
                     width: '20px',

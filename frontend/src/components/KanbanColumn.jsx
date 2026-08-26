@@ -29,7 +29,10 @@ export default function KanbanColumn({
   selectedTaskIds,
   onTaskSelect,
   isMatrixCell,
-  subgroup
+  subgroup,
+  visibleFields,
+  currentProjectId,
+  columnOrder
 }) {
   const {
     t
@@ -221,7 +224,7 @@ export default function KanbanColumn({
             if (setLastInteractedSectionId) setLastInteractedSectionId(section.id);
             if (setLastInteractedTaskId) setLastInteractedTaskId(task.id);
           }}>
-            <TaskCard task={task} token={token} onTaskUpdate={onTaskUpdate} onTaskContextMenu={onTaskContextMenu} onOpenApprovalMenu={onOpenApprovalMenu} onOpenPopover={onOpenPopover} onOpenTaskPane={onOpenTaskPane} isVirtualGrouping={isVirtualGrouping} customFieldSettings={customFieldSettings} projectMembers={projectMembers} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} fieldConfig={fieldConfig} selectedTaskIds={selectedTaskIds} onTaskSelect={onTaskSelect} isMatrixCell={isMatrixCell} />
+            <TaskCard task={task} token={token} onTaskUpdate={onTaskUpdate} onTaskContextMenu={onTaskContextMenu} onOpenApprovalMenu={onOpenApprovalMenu} onOpenPopover={onOpenPopover} onOpenTaskPane={onOpenTaskPane} isVirtualGrouping={isVirtualGrouping} customFieldSettings={customFieldSettings} projectMembers={projectMembers} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} fieldConfig={fieldConfig} selectedTaskIds={selectedTaskIds} onTaskSelect={onTaskSelect} isMatrixCell={isMatrixCell} visibleFields={visibleFields} currentProjectId={currentProjectId} columnOrder={columnOrder} />
           </div>)}
         </div>
       </div>) : section.tasks?.map(task => <div key={task.id} style={{
@@ -232,7 +235,7 @@ export default function KanbanColumn({
         if (setLastInteractedSectionId) setLastInteractedSectionId(section.id);
         if (setLastInteractedTaskId) setLastInteractedTaskId(task.id);
       }}>
-        <TaskCard task={task} token={token} onTaskUpdate={onTaskUpdate} onTaskContextMenu={onTaskContextMenu} onOpenApprovalMenu={onOpenApprovalMenu} onOpenPopover={onOpenPopover} onOpenTaskPane={onOpenTaskPane} isVirtualGrouping={isVirtualGrouping} customFieldSettings={customFieldSettings} projectMembers={projectMembers} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} fieldConfig={fieldConfig} selectedTaskIds={selectedTaskIds} onTaskSelect={onTaskSelect} isMatrixCell={isMatrixCell} />
+        <TaskCard task={task} token={token} onTaskUpdate={onTaskUpdate} onTaskContextMenu={onTaskContextMenu} onOpenApprovalMenu={onOpenApprovalMenu} onOpenPopover={onOpenPopover} onOpenTaskPane={onOpenTaskPane} isVirtualGrouping={isVirtualGrouping} customFieldSettings={customFieldSettings} projectMembers={projectMembers} projectRole={projectRole} handleLiveTaskSwap={handleLiveTaskSwap} draggingTaskId={draggingTaskId} setDraggingTaskId={setDraggingTaskId} fieldConfig={fieldConfig} selectedTaskIds={selectedTaskIds} onTaskSelect={onTaskSelect} isMatrixCell={isMatrixCell} visibleFields={visibleFields} currentProjectId={currentProjectId} columnOrder={columnOrder} />
       </div>)}
       <div style={{ flex: 1, minHeight: '30px' }} onDragOver={e => {
         if (draggingTaskId && !isReadOnly && !isVirtualGrouping) {
